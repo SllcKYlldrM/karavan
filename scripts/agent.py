@@ -99,7 +99,7 @@ def get_existing_titles():
 existing_titles = get_existing_titles()
 titles_context = "\n".join([f"- {t}" for t in existing_titles]) if existing_titles else "Henüz yayınlanmış yazı yok."
 
-# 4. Konu Araştırması
+# 4. Konu Araştırması (Gelişmiş JSON Temizleme Filtreli)
 research_prompt = (
     "Sen bir Off-Grid Karavan SEO Stratejistisin. Genel kelimeler YASAKTIR.\n"
     f"Yayınlanmış konular:\n{titles_context}\n\n"
@@ -114,7 +114,6 @@ research_prompt = (
 )
 research_raw = call_ai(research_prompt, system_instruction="Sadece ve sadece saf JSON nesnesi üret. Markdown kod blokları (```) kullanma.", json_mode=True)
 
-# Gelişmiş JSON Temizleme Mekanizması
 research_raw = research_raw.strip()
 if research_raw.startswith("```json"):
     research_raw = research_raw[7:]
@@ -124,7 +123,6 @@ if research_raw.endswith("```"):
     research_raw = research_raw[:-3]
 research_raw = research_raw.strip()
 
-# Eğer metin içinde süslü parantezler dışında fazlalıklar varsa onları ayıkla
 json_start = research_raw.find("{")
 json_end = research_raw.rfind("}")
 if json_start != -1 and json_end != -1:
@@ -157,7 +155,7 @@ article_body = article_body.strip()
 # 6. Ana Kapak Görseli Üretimi ve Kaydı
 main_visual_prompt = f"Professional technical photograph of a modern off-grid caravan system related to {topic_data['title']}, photorealistic, high detail, engineering style, no text, no watermark"
 encoded_main_prompt = urllib.parse.quote(main_visual_prompt)
-main_image_url = f"https://image.pollinations.ai/prompt/{encoded_main_prompt}?width=1200&height=630&nologo=true&seed={random.randint(1, 10000)}"
+main_image_url = f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){encoded_main_prompt}?width=1200&height=630&nologo=true&seed={random.randint(1, 10000)}"
 
 main_image_filename = f"{topic_data['slug']}.jpg"
 main_image_path = os.path.join("public/images", main_image_filename)
@@ -185,7 +183,7 @@ for idx, img_desc in enumerate(image_tags, start=1):
     
     sub_prompt = f"Technical engineering photograph of {img_desc}, high quality, off-grid caravan context, no text, no watermark"
     encoded_sub_prompt = urllib.parse.quote(sub_prompt)
-    sub_full_url = f"https://image.pollinations.ai/prompt/{encoded_sub_prompt}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}"
+    sub_full_url = f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){encoded_sub_prompt}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}"
     
     try:
         print(f"-> Alt görsel {idx} indiriliyor: {img_desc}")
@@ -193,37 +191,4 @@ for idx, img_desc in enumerate(image_tags, start=1):
         if sub_res.status_code == 200:
             with open(sub_img_path, "wb") as f:
                 f.write(sub_res.content)
-            markdown_img_tag = f"\n\n![{img_desc}]({sub_img_url_path})\n\n"
-            article_body = article_body.replace(f"[IMAGE: {img_desc}]", markdown_img_tag)
-        else:
-            article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
-    except Exception as e:
-        print(f"⚠️ Alt görsel indirilemedi ({e}), etiket temizleniyor.")
-        article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
-
-# 8. Frontmatter ve Dosya Kaydı
-pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan", "off-grid"])])
-safe_description = f"Comprehensive technical guide and engineering standards for {topic_data['title']}."
-
-post_content = f"""---
-author: AI Editorial
-pubDatetime: {pub_datetime}
-title: "{topic_data['title']}"
-postSlug: "{topic_data['slug']}"
-featured: false
-draft: false
-tags:
-{tags_formatted}
-image: "{cover_image}"
-description: "{safe_description}"
----
-
-{article_body}
-"""
-
-output_path = os.path.join(POSTS_DIR, f"{topic_data['slug']}.md")
-with open(output_path, "w", encoding="utf-8") as f:
-    f.write(post_content)
-
-print(f"-> Yeni zenginleştirilmiş yazı ve görseller oluşturuldu: {output_path}")
+            markdown_img_tag = f"\n\n
