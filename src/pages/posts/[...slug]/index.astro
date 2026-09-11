@@ -69,7 +69,6 @@ const {
   timezone,
   tags,
   hideEditPost,
-  image,
 } = post.data;
 
 const { Content } = await render(post);
@@ -113,9 +112,9 @@ const ogImage = ogImageUrl
     data-pagefind-body
   >
     {
-      image && (
+      ogImage && (
         <img
-          src={image}
+          src={ogImage}
           alt={title}
           class="mb-8 rounded-lg aspect-video object-cover w-full"
         />
