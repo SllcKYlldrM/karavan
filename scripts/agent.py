@@ -91,14 +91,13 @@ Yayınlanmış konular:
 {titles_context}
 
 GÖREV:
-Düşük rekabetli, teknik detay ve hesaplama gerektiren TEK bir "Long-Tail" konu ve mini hesaplayıcı fikri belirle.
+Düşük rekabetli, teknik detay ve pratik mühendislik çözümleri gerektiren TEK bir "Long-Tail" konu belirle.
 
 ÇIKTI FORMATI (Sadece saf JSON):
 {{
   "title": "İngilizce SEO uyumlu başlık",
   "slug": "url-slug",
-  "tags": ["tag1", "tag2", "calculator"],
-  "calculator_concept": "Hesaplayıcı mantığı"
+  "tags": ["tag1", "tag2", "engineering"]
 }}
 """
 research_raw = call_ai(research_prompt, system_instruction="Sadece JSON üret.", json_mode=True)
@@ -108,36 +107,36 @@ if research_raw.endswith("```"): research_raw = research_raw[:-3]
 topic_data = json.loads(research_raw.strip())
 print(f"-> Konu: {topic_data['title']}")
 
-# 5. Kapsamlı İçerik Üretimi (Uzun Metin + Tablo + FAQ + Hesaplayıcı)
+# 5. Kapsamlı İçerik Üretimi (HTML/JS Yok, Zengin Tablo + Adım Adım Hesaplama Örnekleri + FAQ)
 content_prompt = f"""
 Sen uzman bir Karavan Mühendisisin.
 Konu: "{topic_data['title']}"
-Hesaplayıcı Konsepti: "{topic_data['calculator_concept']}"
 
 GÖREV:
-Bu konu için son derece kapsamlı, uzun (en az 1200 kelime), derinlemesine teknik rehber yaz.
+Bu konu için son derece kapsamlı, uzun (en az 1200 kelime), derinlemesine teknik bir rehber yaz.
 
-KURALLAR:
-1. Markdown formatında olmalı.
-2. İçerikte en az bir detaylı **Markdown Karşılaştırma/Veri Tablosu** bulunsun.
-3. Tarayıcıda çalışan interaktif bir HTML/JS mini hesaplayıcı bileşeni ekle.
-4. Yazının sonunda en az 3 soruluk bir **FAQ (Sık Sorulan Sorular)** bölümü olsun.
-5. Dil: İngilizce. Sadece makale gövdesini ver, frontmatter ekleme. Başlığı `# {topic_data['title']}` ile başlat.
+KESİN KURALLAR:
+1. ASLA ham HTML, CSS veya JavaScript kod bloğu EKLEME (tarayıcıda düz metin gibi görünüyorlar, yasaktır).
+2. Matematiksel formülleri LaTeX (`$...$`) şeklinde YAZMA. Bunun yerine düz metin olarak, örneğin (Voltage Drop = (2 x Current x Length x Resistance) / Area) formatında açıkça yaz.
+3. İçerikte en az 2 adet detaylı **Markdown Veri/Karşılaştırma Tablosu** bulunsun.
+4. Okuyucunun kendi kendine hesap yapabilmesi için somut, sayısal **Adım Adım Hesaplama Örnekleri (Step-by-Step Calculation Examples)** ekle.
+5. Yazının sonunda en az 4 soruluk detaylı bir **FAQ (Sık Sorulan Sorular)** bölümü olsun.
+6. Dil: İngilizce. Sadece makale gövdesini ver, frontmatter ekleme. Başlığı `# {topic_data['title']}` ile başlat.
 """
-article_body = call_ai(content_prompt, system_instruction="Uzun ve teknik Markdown makaleleri yazarsın.")
+article_body = call_ai(content_prompt, system_instruction="Uzun ve teknik Markdown makaleleri yazarsın. HTML ve LaTeX kullanmazsın.")
 if article_body.startswith("```markdown"): article_body = article_body[11:]
 if article_body.startswith("```"): article_body = article_body[3:]
 if article_body.endswith("```"): article_body = article_body[:-3]
 article_body = article_body.strip()
 
-# 6. Otomatik Kapak Görseli Üretimi (Pollinations.ai - Key gerektirmez)
+# 6. Otomatik Kapak Görseli Üretimi (Pollinations.ai)
 encoded_title = urllib.parse.quote(topic_data['title'])
 cover_image = f"https://image.pollinations.ai/prompt/Professional%20off-grid%20caravan,%20{encoded_title}?width=1200&height=630&nologo=true"
 
 # 7. Frontmatter ve Dosya Kaydı
 pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan", "off-grid"])])
-safe_description = f"Comprehensive technical guide and interactive calculator for {topic_data['title']}."
+safe_description = f"Comprehensive technical guide and engineering standards for {topic_data['title']}."
 
 post_content = f"""---
 author: AI Editorial
@@ -159,4 +158,4 @@ output_path = os.path.join(POSTS_DIR, f"{topic_data['slug']}.md")
 with open(output_path, "w", encoding="utf-8") as f:
     f.write(post_content)
 
-print(f"-> Yeni yazı ve otomatik görsel oluşturuldu: {output_path}")
+print(f"-> Yeni temiz yazı ve görsel oluşturuldu: {output_path}")
