@@ -16,7 +16,6 @@ openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
 if not gemini_api_key and not openrouter_api_key:
     raise ValueError("Hiçbir AI API anahtarı bulunamadı.")
 
-# DÜZELTME BURASI (gemini_client yerine gemini_api_key kontrol ediliyor)
 gemini_client = genai.Client(api_key=gemini_api_key) if gemini_api_key else None
 
 POSTS_DIR = "src/content/posts"
@@ -68,7 +67,20 @@ def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False
     if res.status_code != 200:
         raise RuntimeError(f"OpenRouter API Hatası: {res.status_code} - {res.text}")
         
-    return res.json()["choices"].strip()
+    res_data = res.json()
+    
+    if "choices" in res_data and len(res_data["choices"]) > 0:
+        choice = res_data["choices"]
+        if isinstance(choice, dict) and "message" in choice:
+            content = choice["message"].get("content", "")
+        elif isinstance(choice, str):
+            content = choice
+        else:
+            content = str(choice)
+    else:
+        raise RuntimeError(f"OpenRouter geçersiz yanıt döndürdü: {res_data}")
+
+    return content.strip() if isinstance(content, str) else str(content).strip()
 
 # 3. Hafıza Kontrolü
 def get_existing_titles():
@@ -110,7 +122,7 @@ if research_raw.endswith("```"): research_raw = research_raw[:-3]
 topic_data = json.loads(research_raw.strip())
 print(f"-> Konu: {topic_data['title']}")
 
-# 5. Kapsamlı İçerik Üretimi (Ana Kapak + Alt Başlık Görsel Yerleri Dahil)
+# 5. Kapsamlı İçerik Üretimi
 content_prompt = f"""
 Sen uzman bir Karavan Mühendisisin.
 Konu: "{topic_data['title']}"
@@ -130,80 +142,4 @@ KESİN KURALLAR:
 article_body = call_ai(content_prompt, system_instruction="Uzun ve teknik Markdown makaleleri yazarsın. HTML ve LaTeX kullanmazsın.")
 if article_body.startswith("```markdown"): article_body = article_body[11:]
 if article_body.startswith("```"): article_body = article_body[3:]
-if article_body.endswith("```"): article_body = article_body[:-3]
-article_body = article_body.strip()
-
-# 6. Ana Kapak Görseli Üretimi ve Kaydı
-main_visual_prompt = f"Professional technical photograph of a modern off-grid caravan system related to {topic_data['title']}, photorealistic, high detail, engineering style, no text, no watermark"
-encoded_main_prompt = urllib.parse.quote(main_visual_prompt)
-main_image_url = f"https://image.pollinations.ai/prompt/{encoded_main_prompt}?width=1200&height=630&nologo=true&seed={random.randint(1, 10000)}"
-
-main_image_filename = f"{topic_data['slug']}.jpg"
-main_image_path = os.path.join("public/images", main_image_filename)
-cover_image = f"/images/{main_image_filename}"
-
-try:
-    print(f"-> Ana kapak görseli indiriliyor...")
-    img_res = requests.get(main_image_url)
-    if img_res.status_code == 200:
-        with open(main_image_path, "wb") as img_file:
-            img_file.write(img_res.content)
-        print("-> Ana kapak görseli kaydedildi.")
-    else:
-        cover_image = "/images/default-og.jpg"
-except Exception as e:
-    print(f"⚠️ Ana kapak indirilemedi: {e}")
-    cover_image = "/images/default-og.jpg"
-
-# 7. Alt Başlık Görsellerini Bulup Üretme ve İçerikle Değiştirme
-image_tags = re.findall(r'\[IMAGE:\s*(.*?)\]', article_body)
-for idx, img_desc in enumerate(image_tags, start=1):
-    sub_img_filename = f"{topic_data['slug']}-part{idx}.jpg"
-    sub_img_path = os.path.join("public/images", sub_img_filename)
-    sub_img_url_path = f"/images/{sub_img_filename}"
-    
-    sub_prompt = f"Technical engineering photograph of {img_desc}, high quality, off-grid caravan context, no text, no watermark"
-    encoded_sub_prompt = urllib.parse.quote(sub_prompt)
-    sub_full_url = f"https://image.pollinations.ai/prompt/{encoded_sub_prompt}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}"
-    
-    try:
-        print(f"-> Alt görsel {idx} indiriliyor: {img_desc}")
-        sub_res = requests.get(sub_full_url)
-        if sub_res.status_code == 200:
-            with open(sub_img_path, "wb") as f:
-                f.write(sub_res.content)
-            # Metin içindeki [IMAGE: ...] etiketini gerçek Markdown resim etiketiyle değiştiriyoruz
-            markdown_img_tag = f"\n\n![{img_desc}]({sub_img_url_path})\n\n"
-            article_body = article_body.replace(f"[IMAGE: {img_desc}]", markdown_img_tag)
-        else:
-            article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
-    except Exception as e:
-        print(f"⚠️ Alt görsel indirilemedi ({e}), etiket temizleniyor.")
-        article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
-
-# 8. Frontmatter ve Dosya Kaydı
-pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan", "off-grid"])])
-safe_description = f"Comprehensive technical guide and engineering standards for {topic_data['title']}."
-
-post_content = f"""---
-author: AI Editorial
-pubDatetime: {pub_datetime}
-title: "{topic_data['title']}"
-postSlug: "{topic_data['slug']}"
-featured: false
-draft: false
-tags:
-{tags_formatted}
-image: "{cover_image}"
-description: "{safe_description}"
----
-
-{article_body}
-"""
-
-output_path = os.path.join(POSTS_DIR, f"{topic_data['slug']}.md")
-with open(output_path, "w", encoding="utf-8") as f:
-    f.write(post_content)
-
-print(f"-> Yeni zenginleştirilmiş yazı ve görseller oluşturuldu: {output_path}")
+if article_body.endswith("
