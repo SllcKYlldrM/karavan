@@ -16,7 +16,8 @@ openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
 if not gemini_api_key and not openrouter_api_key:
     raise ValueError("Hiçbir AI API anahtarı bulunamadı.")
 
-gemini_client = genai.Client(api_key=gemini_api_key) if gemini_client else None
+# DÜZELTME BURASI (gemini_client yerine gemini_api_key kontrol ediliyor)
+gemini_client = genai.Client(api_key=gemini_api_key) if gemini_api_key else None
 
 POSTS_DIR = "src/content/posts"
 os.makedirs(POSTS_DIR, exist_ok=True)
