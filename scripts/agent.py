@@ -36,8 +36,17 @@ def mark_topic_done(topic_id):
     with open(TOPICS_FILE, "w", encoding="utf-8") as f:
         json.dump(topics, f, indent=2, ensure_ascii=False)
 
+def safe_json_loads(text: str):
+    """LLM çıktılarındaki bozuk kaçış karakterlerini ve satır sonlarını onarır."""
+    clean = re.sub(r"^```json\s*|\s*```$", "", text.strip(), flags=re.MULTILINE).strip()
+    try:
+        return json.loads(clean, strict=False)
+    except json.JSONDecodeError:
+        # Standart dışı kaçış ters eğik çizgilerini (örn. \d, \s, \%) çift çizgiye çevirerek onar
+        fixed = re.sub(r'\\(?!(["\\/bfnrt]|u[0-9a-fA-F]{4}))', r'\\\\', clean)
+        return json.loads(fixed, strict=False)
+
 def generate_post(topic):
-# Hem rehberler hem interaktif JS hesaplayıcılar için kararlı ve ekonomik DeepSeek-V3
     model_name = "deepseek/deepseek-chat"
 
     prompt = f"""
@@ -45,15 +54,17 @@ You are a senior technical writer and web developer.
 Topic: {topic['title']}
 Task details: {topic['prompt']}
 
-If creating a calculator, use self-contained inline <style> and vanilla <script> elements inside standard HTML container so it renders and functions directly within Astro markdown.
-Do NOT indent HTML/JS/CSS lines with 4 spaces or tabs, write them completely unindented to prevent markdown code-block conversion.
+If creating a calculator, use self-contained inline <style> and vanilla <script> elements inside a clean HTML container so it functions directly within Astro markdown.
+Do NOT indent HTML/JS/CSS lines with 4 spaces or tabs, write them completely unindented.
+
 Return response STRICTLY as valid JSON with keys:
 - "title": string
 - "slug": string
 - "description": string
 - "tags": list of strings
 - "content": string (Markdown body)
-No markdown json wrappers, pure JSON only.
+No markdown code block wrappers around the JSON, return pure JSON string only.
+Ensure any backslashes in JavaScript or text are properly escaped.
 """
 
     headers = {
@@ -69,7 +80,7 @@ No markdown json wrappers, pure JSON only.
             {"role": "system", "content": "You output strictly valid JSON matching schema."},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.4 if topic.get("type") == "calculator" else 0.7
+        "temperature": 0.5
     }
 
     response = requests.post(API_URL, headers=headers, json=payload, timeout=180)
@@ -77,9 +88,8 @@ No markdown json wrappers, pure JSON only.
         print("API Hatası:", response.text)
         response.raise_for_status()
 
-    raw = response.json()["choices"][0]["message"]["content"].strip()
-    clean_json = re.sub(r"^```json\s*|\s*```$", "", raw, flags=re.MULTILINE).strip()
-    data = json.loads(clean_json)
+    raw_text = response.json()["choices"][0]["message"]["content"].strip()
+    data = safe_json_loads(raw_text)
     return BlogPostSchema(**data)
 
 def save_post(post: BlogPostSchema):
