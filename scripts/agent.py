@@ -15,7 +15,10 @@ gemini_api_key = os.environ.get("GEMINI_API_KEY")
 openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
 
 if not gemini_api_key:
-    raise ValueError("Gemini API anahtarı zorunludur.")
+    raise ValueError("GEMINI_API_KEY ortam değişkeni zorunludur.")
+
+if not openrouter_api_key:
+    raise ValueError("OPENROUTER_API_KEY ortam değişkeni zorunludur.")
 
 gemini_client = genai.Client(api_key=gemini_api_key)
 
@@ -45,9 +48,6 @@ def call_gemini(prompt: str, json_mode: bool = False) -> str:
     return response.text.strip()
 
 def call_openrouter(prompt: str, system_instruction: str = None) -> str:
-    if not openrouter_api_key:
-        raise RuntimeError("OpenRouter API anahtarı eksik.")
-        
     headers = {
         "Authorization": f"Bearer {openrouter_api_key}",
         "Content-Type": "application/json"
@@ -190,4 +190,57 @@ if article_body.startswith("```"): article_body = article_body[3:]
 if article_body.endswith("```"): article_body = article_body[:-3]
 article_body = article_body.strip()
 
-# --- ADIM 4: Görsel İndirme
+# --- ADIM 4: Görsel İndirme (Garantili Retry Döngüsü) ---
+main_visual_prompt = f"Professional technical engineering photograph of {topic_data['title']}, high detail, no text, no watermark"
+main_image_filename = f"{topic_data['slug']}.jpg"
+main_image_path = os.path.join("public/images", main_image_filename)
+cover_image = f"/images/{main_image_filename}"
+
+main_url = f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){urllib.parse.quote(main_visual_prompt)}?width=1200&height=630&nologo=true&seed={random.randint(1, 10000)}"
+
+download_image_safely(main_url, main_image_path, max_retries=3)
+
+# Alt görseller için de güvenli indirme
+for idx, img_desc in enumerate(re.findall(r'\[IMAGE:\s*(.*?)\]', article_body), start=1):
+    sub_img_filename = f"{topic_data['slug']}-part{idx}.jpg"
+    sub_path = os.path.join("public/images", sub_img_filename)
+    sub_url_path = f"/images/{sub_img_filename}"
+    
+    sub_prompt = f"Technical engineering photograph of {img_desc}, high quality, off-grid caravan or camping context, no text, no watermark"
+    sub_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(sub_prompt)}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}"
+    
+    if download_image_safely(sub_url, sub_path, max_retries=3):
+        markdown_img_tag = f"\n\n![{img_desc}]({sub_url_path})\n\n"
+        article_body = article_body.replace(f"[IMAGE: {img_desc}]", markdown_img_tag)
+    else:
+        print(f"⚠️ Alt görsel {idx} indirilemedi, etiket temizleniyor.")
+        article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
+
+# --- ADIM 5: Dosya Kaydı (Güvenli ogImage Kontrolüyle) ---
+pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan"])])
+
+# Kapak görseli diskte fiziksel olarak varsa ogImage ekle, yoksa hata almamak için boş bırak
+og_image_line = f'ogImage: "{cover_image}"' if os.path.exists(main_image_path) else ''
+
+post_content = f"""---
+author: AI Editorial
+pubDatetime: {pub_datetime}
+title: "{topic_data['title']}"
+postSlug: "{topic_data['slug']}"
+featured: false
+draft: false
+tags:
+{tags_formatted}
+{og_image_line}
+description: "Comprehensive technical guide for {topic_data['title']}."
+---
+
+{article_body}
+"""
+
+output_path = os.path.join(POSTS_DIR, f"{topic_data['slug']}.md")
+with open(output_path, "w", encoding="utf-8") as f:
+    f.write(post_content)
+
+print(f"-> 🚀 Başarıyla tamamlandı ve yayınlandı: {output_path}")
