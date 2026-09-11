@@ -1,127 +1,133 @@
 import os
 import re
 import json
+import glob
 from datetime import datetime, timezone
-import requests
-from pydantic import BaseModel, Field
+from google import genai
+from google.genai import types
 
-TOPICS_FILE = os.path.join("scripts", "topics.json")
-API_URL = "https://openrouter.ai/api/v1/chat/completions"
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+# 1. API İstemcisi
+api_key = os.environ.get("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("GEMINI_API_KEY ortam değişkeni bulunamadı.")
 
-class BlogPostSchema(BaseModel):
-    title: str = Field(description="SEO-friendly title")
-    slug: str = Field(description="URL slug")
-    description: str = Field(description="Meta description")
-    tags: list[str] = Field(description="Tags list")
-    content: str = Field(description="Full markdown content (including raw HTML/JS if calculator)")
+client = genai.Client(api_key=api_key)
 
-def get_next_topic():
-    if not os.path.exists(TOPICS_FILE):
-        return None
-    with open(TOPICS_FILE, "r", encoding="utf-8") as f:
-        topics = json.load(f)
-    for topic in topics:
-        if topic.get("status") == "pending":
-            return topic
-    return None
+POSTS_DIR = "src/content/posts"
+os.makedirs(POSTS_DIR, exist_ok=True)
 
-def mark_topic_done(topic_id):
-    with open(TOPICS_FILE, "r", encoding="utf-8") as f:
-        topics = json.load(f)
-    for topic in topics:
-        if topic.get("id") == topic_id:
-            topic["status"] = "completed"
-            break
-    with open(TOPICS_FILE, "w", encoding="utf-8") as f:
-        json.dump(topics, f, indent=2, ensure_ascii=False)
+# 2. Mevcut Yazıları Hafızaya Alma
+def get_existing_titles():
+    titles = []
+    for file_path in glob.glob(f"{POSTS_DIR}/*.md"):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                match = re.search(r'^title:\s*["\']?(.*?)["\']?$', content, re.MULTILINE)
+                if match:
+                    titles.append(match.group(1).strip())
+        except Exception:
+            continue
+    return titles
 
-def safe_json_loads(text: str):
-    """LLM çıktılarındaki bozuk kaçış karakterlerini ve satır sonlarını onarır."""
-    clean = re.sub(r"^```json\s*|\s*```$", "", text.strip(), flags=re.MULTILINE).strip()
-    try:
-        return json.loads(clean, strict=False)
-    except json.JSONDecodeError:
-        # Standart dışı kaçış ters eğik çizgilerini (örn. \d, \s, \%) çift çizgiye çevirerek onar
-        fixed = re.sub(r'\\(?!(["\\/bfnrt]|u[0-9a-fA-F]{4}))', r'\\\\', clean)
-        return json.loads(fixed, strict=False)
+existing_titles = get_existing_titles()
+titles_context = "\n".join([f"- {t}" for t in existing_titles]) if existing_titles else "Henüz yayınlanmış yazı yok."
 
-def generate_post(topic):
-    model_name = "deepseek/deepseek-chat"
+# 3. Aşama 1: Düşük Rekabetli Long-Tail Konu Araştırması
+research_prompt = f"""
+Sen bir Off-Grid Karavan SEO ve Teknik İçerik Stratejistisin.
+Sitemiz yeni ve otoritesi henüz düşük. Bu yüzden genel/rekabetçi kelimeler (örn: "karavan güneş paneli", "karavan akü seçimi") YASAKTIR.
 
-    prompt = f"""
-You are a senior technical writer and web developer.
-Topic: {topic['title']}
-Task details: {topic['prompt']}
+Şu ana kadar sitede yayınlanmış konular:
+{titles_context}
 
-If creating a calculator, use self-contained inline <style> and vanilla <script> elements inside a clean HTML container so it functions directly within Astro markdown.
-Do NOT indent HTML/JS/CSS lines with 4 spaces or tabs, write them completely unindented.
+GÖREV:
+Yukarıdakilerden FARKLI, Google'da aranma rekabeti düşük ama kullanıcıların forumlarda/aramalarda teknik yanıt aradığı TEK bir "Long-Tail" konu ve çalışan bir "Mini Hesaplayıcı/Araç" fikri belirle.
 
-Return response STRICTLY as valid JSON with keys:
-- "title": string
-- "slug": string
-- "description": string
-- "tags": list of strings
-- "content": string (Markdown body)
-No markdown code block wrappers around the JSON, return pure JSON string only.
-Ensure any backslashes in JavaScript or text are properly escaped.
+Örnek niş şablonlar:
+- "12V X Ah Akü ile Y Watt Buzdolabı Kaç Saat Çalışır? (+Hesaplayıcı)"
+- "X Metre Kabloda Y Amper Akım İçin Minimum Kablo Kesiti (mm²) Hesabı"
+- "-5 Derecede Karavan Gri Su Deposunun Donmaması İçin Kaç Watt Isıtıcı Gerekir?"
+
+ÇIKTI FORMATI:
+Sadece saf JSON formatında şu anahtarlarla yanıt ver (markdown code block ekleme):
+{{
+  "title": "İngilizce SEO uyumlu ve ilgi çekici başlık",
+  "slug": "url-uyumlu-kisa-slug",
+  "tags": ["etiket1", "etiket2", "etiket3", "calculator"],
+  "calculator_concept": "Yazıya eklenecek mini form ve hesaplama mantığı özeti"
+}}
 """
 
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://github.com",
-        "X-Title": "Autonomous Blog Agent"
-    }
+print("-> Niş konu araştırması yapılıyor...")
+research_res = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents=research_prompt,
+    config=types.GenerateContentConfig(
+        response_mime_type="application/json"
+    )
+)
 
-    payload = {
-        "model": model_name,
-        "messages": [
-            {"role": "system", "content": "You output strictly valid JSON matching schema."},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.5
-    }
+topic_data = json.loads(research_res.text.strip())
+print(f"-> Belirlenen Konu: {topic_data['title']}")
 
-    response = requests.post(API_URL, headers=headers, json=payload, timeout=180)
-    if not response.ok:
-        print("API Hatası:", response.text)
-        response.raise_for_status()
+# 4. Aşama 2: Kapsamlı İçerik ve Hesaplayıcı Üretimi
+content_prompt = f"""
+Sen profesyonel bir Off-Grid Karavan Mühendisi ve Teknik Yazarısın.
+Konu: "{topic_data['title']}"
+Hesaplayıcı Konsepti: "{topic_data['calculator_concept']}"
 
-    raw_text = response.json()["choices"][0]["message"]["content"].strip()
-    data = safe_json_loads(raw_text)
-    return BlogPostSchema(**data)
+GÖREV:
+Bu konu için teknik, son derece doyurucu, formüller içeren kapsamlı bir rehber yaz.
 
-def save_post(post: BlogPostSchema):
-    target_dir = os.path.join("src", "content", "posts")
-    os.makedirs(target_dir, exist_ok=True)
-    filepath = os.path.join(target_dir, f"{post.slug}.md")
-    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+KURALLAR:
+1. Kesinlikle Astro Markdown formatında olmalı.
+2. Yazının içine kullanıcıların tarayıcıda doğrudan değer girip anında sonuç alabileceği temiz, inline CSS ile stillendirilmiş bir HTML ve Vanilla JavaScript `<script>` mini hesaplayıcı bileşeni ekle.
+3. Hesaplayıcı sade, mobil uyumlu ve modern bir kart görünümünde olsun.
+4. Dil: İngilizce (küresel kitle ve yüksek CPC için).
+5. Yanıtta SADECE makalenin ana gövdesini ver (Frontmatter `---` bloklarını SEN EKLEME, ben kod ile ekleyeceğim). Başlığı `# {topic_data['title']}` ile başlat.
+"""
 
-    frontmatter = f"""---
+print("-> Makale ve hesaplayıcı kodu üretiliyor...")
+content_res = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents=content_prompt
+)
+
+article_body = content_res.text.strip()
+if article_body.startswith("```markdown"):
+    article_body = article_body[11:]
+if article_body.startswith("```"):
+    article_body = article_body[3:]
+if article_body.endswith("```"):
+    article_body = article_body[:-3]
+article_body = article_body.strip()
+
+# 5. Frontmatter Oluşturma (Astro Şeması Uyumlu)
+pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan", "off-grid"])])
+safe_description = f"Complete guide and interactive calculator for {topic_data['title']}."
+
+post_content = f"""---
 author: AI Editorial
-pubDatetime: {now_iso}
-title: "{post.title}"
-postSlug: "{post.slug}"
-featured: true
+pubDatetime: {pub_datetime}
+title: "{topic_data['title']}"
+postSlug: "{topic_data['slug']}"
+featured: false
 draft: false
 tags:
-{chr(10).join([f'  - {tag}' for tag in post.tags])}
-description: "{post.description}"
+{tags_formatted}
+description: "{safe_description}"
 ---
 
-{post.content}
+{article_body}
 """
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(frontmatter)
-    print(f"Yazı oluşturuldu: {filepath}")
 
-if __name__ == "__main__":
-    topic = get_next_topic()
-    if not topic:
-        print("İşlenecek yeni konu bulunamadı.")
-    else:
-        print(f"İşleniyor: {topic['title']} (Tip: {topic['type']})")
-        post = generate_post(topic)
-        save_post(post)
-        mark_topic_done(topic["id"])
+# 6. Dosyayı Kaydetme
+file_name = f"{topic_data['slug']}.md"
+output_path = os.path.join(POSTS_DIR, file_name)
+
+with open(output_path, "w", encoding="utf-8") as f:
+    f.write(post_content)
+
+print(f"-> Yeni yazı başarıyla oluşturuldu: {output_path}")
