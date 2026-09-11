@@ -105,18 +105,32 @@ research_prompt = (
     f"Yayınlanmış konular:\n{titles_context}\n\n"
     "GÖREV:\n"
     "Düşük rekabetli, teknik detay ve pratik mühendislik çözümleri gerektiren TEK bir \"Long-Tail\" konu belirle.\n\n"
-    "ÇIKTI FORMATI (Sadece saf JSON):\n"
+    "ÇIKTI FORMATI (Sadece saf JSON, markdown blokları veya başka açıklama kesinlikle yazma):\n"
     "{\n"
     "  \"title\": \"İngilizce SEO uyumlu başlık\",\n"
     "  \"slug\": \"url-slug\",\n"
     "  \"tags\": [\"tag1\", \"tag2\", \"engineering\"]\n"
     "}"
 )
-research_raw = call_ai(research_prompt, system_instruction="Sadece JSON üret.", json_mode=True)
-if research_raw.startswith("```json"): research_raw = research_raw[7:]
-if research_raw.startswith("```"): research_raw = research_raw[3:]
-if research_raw.endswith("```"): research_raw = research_raw[:-3]
-topic_data = json.loads(research_raw.strip())
+research_raw = call_ai(research_prompt, system_instruction="Sadece ve sadece saf JSON nesnesi üret. Markdown kod blokları (```) kullanma.", json_mode=True)
+
+# Gelişmiş JSON Temizleme Mekanizması
+research_raw = research_raw.strip()
+if research_raw.startswith("```json"):
+    research_raw = research_raw[7:]
+elif research_raw.startswith("```"):
+    research_raw = research_raw[3:]
+if research_raw.endswith("```"):
+    research_raw = research_raw[:-3]
+research_raw = research_raw.strip()
+
+# Eğer metin içinde süslü parantezler dışında fazlalıklar varsa onları ayıkla
+json_start = research_raw.find("{")
+json_end = research_raw.rfind("}")
+if json_start != -1 and json_end != -1:
+    research_raw = research_raw[json_start:json_end+1]
+
+topic_data = json.loads(research_raw)
 print(f"-> Konu: {topic_data['title']}")
 
 # 5. Kapsamlı İçerik Üretimi
