@@ -35,7 +35,7 @@ def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False
                 config_kwargs["response_mime_type"] = "application/json"
                 
             response = gemini_client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-3.6-flash",
                 contents=prompt,
                 config=types.GenerateContentConfig(**config_kwargs)
             )
@@ -48,7 +48,7 @@ def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False
     if not openrouter_api_key:
         raise RuntimeError("Gemini başarısız oldu ve yedek olarak kullanılacak OPENROUTER_API_KEY bulunamadı.")
         
-    print("-> AI isteği OpenRouter (google/gemini-2.5-flash) üzerinden yapılıyor...")
+    print("-> AI isteği OpenRouter (google/gemini-3.6-flash) üzerinden yapılıyor...")
     headers = {
         "Authorization": f"Bearer {openrouter_api_key}",
         "Content-Type": "application/json"
@@ -60,7 +60,7 @@ def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False
     messages.append({"role": "user", "content": prompt})
     
     payload = {
-        "model": "google/gemini-2.5-flash",
+        "model": "google/gemini-3.6-flash",
         "messages": messages
     }
     
