@@ -3,6 +3,7 @@ import re
 import json
 import glob
 import random
+import time
 from datetime import datetime, timezone
 from google import genai
 from google.genai import types
@@ -66,6 +67,25 @@ def call_openrouter(prompt: str, system_instruction: str = None) -> str:
         raise RuntimeError(f"OpenRouter Hatası: {res.status_code} - {res.text}")
         
     return res.json()["choices"][0]["message"]["content"].strip()
+
+def download_image_safely(url, save_path, max_retries=3):
+    """Görsel gerçekten inene ve doğrulanana kadar yeniden dener."""
+    for attempt in range(1, max_retries + 1):
+        try:
+            print(f"-> Görsel indiriliyor (Deneme {attempt}/{max_retries}): {os.path.basename(save_path)}")
+            res = requests.get(url, timeout=40)
+            if res.status_code == 200 and len(res.content) > 1000:
+                with open(save_path, "wb") as f:
+                    f.write(res.content)
+                print(f"-> Başarıyla indirildi: {os.path.basename(save_path)}")
+                return True
+        except Exception as e:
+            print(f"⚠️ İndirme hatası: {e}")
+        
+        if attempt < max_retries:
+            time.sleep(4)
+            
+    return False
 
 def get_existing_posts_summary():
     summaries = []
@@ -148,7 +168,7 @@ for revision_count in range(max_revisions + 1):
         article_body = qa_response.replace("ONAYLANDI", "").strip()
         break
     elif "REVIZE_GEREKLI" in qa_response and revision_count < max_revisions:
-        print(f"⚠️ İçerikte eksikler bulundu, OpenRouter'a revize gönderiliyor... Rapor:\n{qa_response[:200]}...")
+        print(f"⚠️ İçerikte eksikler bulundu, OpenRouter'a revize gönderiliyor...")
         revision_feedback_prompt = (
             f"Önceki yazdığın makalede kalite kontrol (QA) uzmanı şu eksikleri buldu ve revize istiyor:\n\n"
             f"{qa_response}\n\n"
@@ -170,48 +190,4 @@ if article_body.startswith("```"): article_body = article_body[3:]
 if article_body.endswith("```"): article_body = article_body[:-3]
 article_body = article_body.strip()
 
-# --- Görsel İndirme ve Kayıt ---
-main_visual_prompt = f"Professional technical engineering photograph of {topic_data['title']}, high detail, no text, no watermark"
-cover_image = f"/images/{topic_data['slug']}.jpg"
-try:
-    img_res = requests.get(f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){urllib.parse.quote(main_visual_prompt)}?width=1200&height=630&nologo=true&seed={random.randint(1, 10000)}")
-    if img_res.status_code == 200:
-        with open(os.path.join("public/images", f"{topic_data['slug']}.jpg"), "wb") as f:
-            f.write(img_res.content)
-except Exception:
-    pass
-
-for idx, img_desc in enumerate(re.findall(r'\[IMAGE:\s*(.*?)\]', article_body), start=1):
-    sub_path = f"/images/{topic_data['slug']}-part{idx}.jpg"
-    try:
-        sub_res = requests.get(f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){urllib.parse.quote(img_desc)}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}")
-        if sub_res.status_code == 200:
-            with open(os.path.join("public/images", f"{topic_data['slug']}-part{idx}.jpg"), "wb") as f:
-                f.write(sub_res.content)
-            article_body = article_body.replace(f"[IMAGE: {img_desc}]", f"\n\n![{img_desc}]({sub_path})\n\n")
-    except Exception:
-        article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
-
-pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan"])])
-
-post_content = f"""---
-author: AI Editorial
-pubDatetime: {pub_datetime}
-title: "{topic_data['title']}"
-postSlug: "{topic_data['slug']}"
-featured: false
-draft: false
-tags:
-{tags_formatted}
-ogImage: "{cover_image}"
-description: "Comprehensive technical guide for {topic_data['title']}."
----
-
-{article_body}
-"""
-
-with open(os.path.join(POSTS_DIR, f"{topic_data['slug']}.md"), "w", encoding="utf-8") as f:
-    f.write(post_content)
-
-print(f"-> Başarıyla tamamlandı ve yayınlandı: {topic_data['slug']}.md")
+# --- ADIM 4: Görsel İndirme
