@@ -6,15 +6,15 @@ from datetime import datetime, timezone
 from google import genai
 from google.genai import types
 import requests
+import urllib.parse
 
 # 1. Ortam Değişkenleri ve İstemciler
 gemini_api_key = os.environ.get("GEMINI_API_KEY")
 openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
 
 if not gemini_api_key and not openrouter_api_key:
-    raise ValueError("Hiçbir AI API anahtarı (GEMINI_API_KEY veya OPENROUTER_API_KEY) bulunamadı.")
+    raise ValueError("Hiçbir AI API anahtarı bulunamadı.")
 
-# Gemini İstemcisi
 gemini_client = genai.Client(api_key=gemini_api_key) if gemini_api_key else None
 
 POSTS_DIR = "src/content/posts"
@@ -22,12 +22,9 @@ os.makedirs(POSTS_DIR, exist_ok=True)
 
 # 2. Akıllı Çağrı Fonksiyonu (Gemini -> OpenRouter Fallback)
 def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False) -> str:
-    """Önce Gemini ile dener, kota/hata durumunda OpenRouter'a geçer."""
-    
-    # --- YÖNTEM 1: GEMINI API ---
     if gemini_client:
         try:
-            print("-> AI isteği Gemini API ile deneniyor...")
+            print("-> AI isteği Gemini API (gemini-3.6-flash) ile deneniyor...")
             config_kwargs = {}
             if system_instruction:
                 config_kwargs["system_instruction"] = system_instruction
@@ -41,14 +38,12 @@ def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False
             )
             return response.text.strip()
         except Exception as e:
-            print(f"⚠️ Gemini API hataya takıldı / limite ulaştı: {e}")
-            print("-> OpenRouter yedek sistemine geçiliyor...")
+            print(f"⚠️ Gemini API hatası: {e}. OpenRouter'a geçiliyor...")
 
-    # --- YÖNTEM 2: OPENROUTER FALLBACK ---
     if not openrouter_api_key:
-        raise RuntimeError("Gemini başarısız oldu ve yedek olarak kullanılacak OPENROUTER_API_KEY bulunamadı.")
+        raise RuntimeError("Gemini başarısız oldu ve OPENROUTER_API_KEY bulunamadı.")
         
-    print("-> AI isteği OpenRouter (google/gemini-3.6-flash) üzerinden yapılıyor...")
+    print("-> AI isteği OpenRouter üzerinden yapılıyor...")
     headers = {
         "Authorization": f"Bearer {openrouter_api_key}",
         "Content-Type": "application/json"
@@ -60,10 +55,9 @@ def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False
     messages.append({"role": "user", "content": prompt})
     
     payload = {
-        "model": "google/gemini-3.6-flash",
+        "model": "google/gemini-2.5-flash",
         "messages": messages
     }
-    
     if json_mode:
         payload["response_format"] = {"type": "json_object"}
 
@@ -71,10 +65,9 @@ def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False
     if res.status_code != 200:
         raise RuntimeError(f"OpenRouter API Hatası: {res.status_code} - {res.text}")
         
-    data = res.json()
-    return data["choices"][0]["message"]["content"].strip()
+    return res.json()["choices"][0]["message"]["content"].strip()
 
-# 3. Mevcut Yazıları Hafızaya Alma
+# 3. Hafıza Kontrolü
 def get_existing_titles():
     titles = []
     for file_path in glob.glob(f"{POSTS_DIR}/*.md"):
@@ -91,74 +84,60 @@ def get_existing_titles():
 existing_titles = get_existing_titles()
 titles_context = "\n".join([f"- {t}" for t in existing_titles]) if existing_titles else "Henüz yayınlanmış yazı yok."
 
-# 4. Aşama 1: Düşük Rekabetli Long-Tail Konu Araştırması
+# 4. Konu Araştırması
 research_prompt = f"""
-Sen bir Off-Grid Karavan SEO ve Teknik İçerik Stratejistisin.
-Sitemiz yeni ve otoritesi henüz düşük. Bu yüzden genel kelimeler (örn: "karavan güneş paneli") YASAKTIR.
-
-Şu ana kadar sitede yayınlanmış konular:
+Sen bir Off-Grid Karavan SEO Stratejistisin. Genel kelimeler YASAKTIR.
+Yayınlanmış konular:
 {titles_context}
 
 GÖREV:
-Yukarıdakilerden FARKLI, Google'da aranma rekabeti düşük ama kullanıcıların forumlarda/aramalarda teknik yanıt aradığı TEK bir "Long-Tail" konu ve çalışan bir "Mini Hesaplayıcı/Araç" fikri belirle.
+Düşük rekabetli, teknik detay ve hesaplama gerektiren TEK bir "Long-Tail" konu ve mini hesaplayıcı fikri belirle.
 
-ÇIKTI FORMATI:
-Sadece saf JSON formatında şu anahtarlarla yanıt ver (markdown code block ekleme):
+ÇIKTI FORMATI (Sadece saf JSON):
 {{
-  "title": "İngilizce SEO uyumlu ve ilgi çekici başlık",
-  "slug": "url-uyumlu-kisa-slug",
-  "tags": ["etiket1", "etiket2", "calculator"],
-  "calculator_concept": "Yazıya eklenecek mini form ve hesaplama mantığı özeti"
+  "title": "İngilizce SEO uyumlu başlık",
+  "slug": "url-slug",
+  "tags": ["tag1", "tag2", "calculator"],
+  "calculator_concept": "Hesaplayıcı mantığı"
 }}
 """
-
-research_system = "Sen profesyonel bir SEO stratejistisin. Sadece geçerli JSON çıktısı üretebilirsin."
-print("-> Niş konu araştırması başlatılıyor...")
-research_raw = call_ai(research_prompt, system_instruction=research_system, json_mode=True)
-
-# Markdown temizliği (eğer model block eklediyse)
-if research_raw.startswith("```json"):
-    research_raw = research_raw[7:]
-if research_raw.startswith("```"):
-    research_raw = research_raw[3:]
-if research_raw.endswith("```"):
-    research_raw = research_raw[:-3]
-
+research_raw = call_ai(research_prompt, system_instruction="Sadece JSON üret.", json_mode=True)
+if research_raw.startswith("```json"): research_raw = research_raw[7:]
+if research_raw.startswith("```"): research_raw = research_raw[3:]
+if research_raw.endswith("```"): research_raw = research_raw[:-3]
 topic_data = json.loads(research_raw.strip())
-print(f"-> Belirlenen Konu: {topic_data['title']}")
+print(f"-> Konu: {topic_data['title']}")
 
-# 5. Aşama 2: Kapsamlı İçerik ve Hesaplayıcı Üretimi
+# 5. Kapsamlı İçerik Üretimi (Uzun Metin + Tablo + FAQ + Hesaplayıcı)
 content_prompt = f"""
-Sen profesyonel bir Off-Grid Karavan Mühendisi ve Teknik Yazarısın.
+Sen uzman bir Karavan Mühendisisin.
 Konu: "{topic_data['title']}"
 Hesaplayıcı Konsepti: "{topic_data['calculator_concept']}"
 
 GÖREV:
-Bu konu için teknik, son derece doyurucu, formüller içeren kapsamlı bir rehber yaz.
+Bu konu için son derece kapsamlı, uzun (en az 1200 kelime), derinlemesine teknik rehber yaz.
 
 KURALLAR:
-1. Kesinlikle Astro Markdown formatında olmalı.
-2. Yazının içine kullanıcıların tarayıcıda doğrudan değer girip anında sonuç alabileceği temiz, inline CSS ile stillendirilmiş bir HTML ve Vanilla JavaScript `<script>` mini hesaplayıcı bileşeni ekle.
-3. Dil: İngilizce.
-4. Yanıtta SADECE makalenin ana gövdesini ver (Frontmatter `---` bloklarını SEN EKLEME). Başlığı `# {topic_data['title']}` ile başlat.
+1. Markdown formatında olmalı.
+2. İçerikte en az bir detaylı **Markdown Karşılaştırma/Veri Tablosu** bulunsun.
+3. Tarayıcıda çalışan interaktif bir HTML/JS mini hesaplayıcı bileşeni ekle.
+4. Yazının sonunda en az 3 soruluk bir **FAQ (Sık Sorulan Sorular)** bölümü olsun.
+5. Dil: İngilizce. Sadece makale gövdesini ver, frontmatter ekleme. Başlığı `# {topic_data['title']}` ile başlat.
 """
-
-content_system = "Sen uzman bir teknik yazarsın. Sadece Markdown formatında içerik üretirsin."
-print("-> Makale ve hesaplayıcı kodu üretiliyor...")
-article_body = call_ai(content_prompt, system_instruction=content_system)
-
-if article_body.startswith("```markdown"):
-    article_body = article_body[11:]
-if article_body.startswith("```"):
-    article_body = article_body[3:]
-if article_body.endswith("```"):
-    article_body = article_body[:-3]
+article_body = call_ai(content_prompt, system_instruction="Uzun ve teknik Markdown makaleleri yazarsın.")
+if article_body.startswith("```markdown"): article_body = article_body[11:]
+if article_body.startswith("```"): article_body = article_body[3:]
+if article_body.endswith("```"): article_body = article_body[:-3]
 article_body = article_body.strip()
 
-# 6. Frontmatter Oluşturma
+# 6. Otomatik Kapak Görseli Üretimi (Pollinations.ai - Key gerektirmez)
+encoded_title = urllib.parse.quote(topic_data['title'])
+cover_image = f"https://image.pollinations.ai/prompt/Professional%20off-grid%20caravan,%20{encoded_title}?width=1200&height=630&nologo=true"
+
+# 7. Frontmatter ve Dosya Kaydı
 pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan", "off-grid"])])
-safe_description = f"Complete guide and interactive calculator for {topic_data['title']}."
+safe_description = f"Comprehensive technical guide and interactive calculator for {topic_data['title']}."
 
 post_content = f"""---
 author: AI Editorial
@@ -169,17 +148,15 @@ featured: false
 draft: false
 tags:
 {tags_formatted}
+image: "{cover_image}"
 description: "{safe_description}"
 ---
 
 {article_body}
 """
 
-# 7. Dosyayı Kaydetme
-file_name = f"{topic_data['slug']}.md"
-output_path = os.path.join(POSTS_DIR, file_name)
-
+output_path = os.path.join(POSTS_DIR, f"{topic_data['slug']}.md")
 with open(output_path, "w", encoding="utf-8") as f:
     f.write(post_content)
 
-print(f"-> Yeni yazı başarıyla oluşturuldu: {output_path}")
+print(f"-> Yeni yazı ve otomatik görsel oluşturuldu: {output_path}")
