@@ -18,8 +18,8 @@ export interface Props {
 }
 
 const { post } = Astro.props;
-const { Content } = post.render ? await post.render() : await render(post);
-
+const { Content } = await render(post);
+---
 const allPosts = await getCollection("posts", ({ data }) => !data.draft);
 const sortedPosts = allPosts.sort(
   (a, b) => b.data.pubDatetime.valueOf() - a.data.pubDatetime.valueOf()
