@@ -95,10 +95,17 @@ const ogImage = ogImageUrl
   : undefined;
 ---
 
-<PostLayout ${config.site.title}`} canonicalURL="{canonicalURL}" description="{description}" modDatetime="{modDatetime}" ogImage="{ogImage}" pubDatetime="{pubDatetime}" title="{`${title}" |>
-  <Header/>
+<PostLayout
+  title={`${title} | ${config.site.title}`}
+  description={description}
+  ogImage={ogImage}
+  canonicalURL={canonicalURL}
+  pubDatetime={pubDatetime}
+  modDatetime={modDatetime}
+>
+  <Header />
 
-  <BackButton/>
+  <BackButton />
 
   <main
     id="main-content"
@@ -123,7 +130,7 @@ const ogImage = ogImageUrl
     </h1>
 
     <div class="my-2 flex items-center gap-2">
-      <Datetime size="lg" {modDatetime} {pubDatetime} {timezone}/>
+      <Datetime {pubDatetime} {modDatetime} {timezone} size="lg" />
       <span
         aria-hidden="true"
         class:list={[
@@ -133,7 +140,7 @@ const ogImage = ogImageUrl
       >
         |
       </span>
-      <EditPost class="max-sm:hidden" {hideEditPost} {post}/>
+      <EditPost {hideEditPost} {post} class="max-sm:hidden" />
     </div>
 
     <article
@@ -144,26 +151,26 @@ const ogImage = ogImageUrl
         "prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)",
       ]}
     >
-      <Content/>
+      <Content />
     </article>
 
     <hr class="my-8 border-dashed" />
 
-    <EditPost class="sm:hidden" {hideEditPost} {post}/>
+    <EditPost class="sm:hidden" {hideEditPost} {post} />
 
-    <BackToTopButton/>
+    <BackToTopButton />
 
     <ul class="mt-4 mb-8 flex flex-wrap gap-4 sm:my-8">
-      {tags.map(tag => <Tag size="sm" tag="{slugifyStr(tag)}" tagName="{tag}"/>)}
+      {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} size="sm" />)}
     </ul>
 
-    <ShareLinks/>
+    <ShareLinks />
 
     <hr class="my-8 border-dashed" />
 
-    <AdjacentPostNav {nextPost} {prevPost}/>
+    <AdjacentPostNav {prevPost} {nextPost} />
   </main>
-  <Footer/>
+  <Footer />
 </PostLayout>
 
 <script is:inline data-astro-rerun>
