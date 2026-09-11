@@ -1,10 +1,8 @@
 name: Autonomous Content Agent
 
 on:
-  # Her gün saat 03:00 UTC'de otonom çalışır
   schedule:
     - cron: '0 3 * * *'
-  # Panelden istediğin an manuel butonla tetiklemek için:
   workflow_dispatch:
 
 permissions:
@@ -25,9 +23,9 @@ jobs:
       - name: Kütüphaneleri Yükle
         run: |
           python -m pip install --upgrade pip
-          pip install google-genai
+          pip install google-genai requests
 
-- name: Ajanı Çalıştır
+      - name: Ajanı Çalıştır
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
