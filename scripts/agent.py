@@ -22,7 +22,17 @@ POSTS_DIR = "src/content/posts"
 os.makedirs(POSTS_DIR, exist_ok=True)
 os.makedirs("public/images", exist_ok=True)
 
-# 2. Akıllı Çağrı Fonksiyonu (Gemini -> OpenRouter Fallback)
+# 2. Kategoriler ve Kapsam Tanımı
+CATEGORIES = {
+    "Power & Solar Systems": "Lityum (LiFePO4) Akü Teknolojileri, BMS Koruma, MPPT Isıl Kısıtlama, DC-DC Şarj Verimliliği, İnverter Bekleme Kayıpları, Taşınabilir Güç İstasyonları",
+    "Engineering Calculators": "12V/24V Kablo Kesiti ve Voltaj Düşümü Hesapları, Çekme Kapasitesi, Ağırlık Dağılımı (Towing Ratio), Solar Açı Optimizasyonu",
+    "Build & Conversion": "Panelvan Armaflex İzolasyon Hesapları, Şasi Güçlendirme, Tavan Havalandırma (MaxxFan), Overlanding Donanım Entegrasyonu",
+    "Water & Plumbing Systems": "Basınçlı 12V Su Pompaları, Akümülatör Tankı Optimizasyonu, Gri/Temiz Su Isıtıcı Bantları, UV Filtreleme ve Su Arıtma",
+    "HVAC & Climate Control": "12V/24V Inverter Klima Gerçek Akü Tüketimi, Dizel Park Isıtıcıları Yüksek Rakım Bakımı, Çadır ve Karavan Altı Isıtma",
+    "Smart RV & IoT": "ESP32 Röle Kartları ile 12V Otomasyon, MQTT ile SoC ve Tank Seviye Takibi, PIR Sensörlü Alarm Devreleri"
+}
+
+# 3. Akıllı Çağrı Fonksiyonu (Gemini -> OpenRouter Fallback)
 def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False) -> str:
     if gemini_client:
         try:
@@ -82,7 +92,7 @@ def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False
 
     return content.strip() if isinstance(content, str) else str(content).strip()
 
-# 3. Hafıza Kontrolü
+# 4. Hafıza Kontrolü
 def get_existing_titles():
     titles = []
     for file_path in glob.glob(f"{POSTS_DIR}/*.md"):
@@ -99,17 +109,22 @@ def get_existing_titles():
 existing_titles = get_existing_titles()
 titles_context = "\n".join([f"- {t}" for t in existing_titles]) if existing_titles else "Henüz yayınlanmış yazı yok."
 
-# 4. Konu Araştırması (Gelişmiş JSON Temizleme Filtreli)
+# Rastgele bir kategori seçerek ajana hedef verelim
+selected_category = random.choice(list(CATEGORIES.keys()))
+category_focus = CATEGORIES[selected_category]
+
+# 5. Konu Araştırması (Kategori Odaklı ve Esnek)
 research_prompt = (
-    "Sen bir Off-Grid Karavan SEO Stratejistisin. Genel kelimeler YASAKTIR.\n"
-    f"Yayınlanmış konular:\n{titles_context}\n\n"
+    "Sen bir Off-Grid Karavan ve Kamp Mühendisliği SEO Stratejistisin. Genel kelimeler YASAKTIR.\n"
+    f"Seçilen Kategori: {selected_category} ({category_focus})\n"
+    f"Daha önce yayınlanmış konular (Bunları TEKRARLAMA):\n{titles_context}\n\n"
     "GÖREV:\n"
-    "Düşük rekabetli, teknik detay ve pratik mühendislik çözümleri gerektiren TEK bir \"Long-Tail\" konu belirle.\n\n"
+    "Bu kategori altında, düşük rekabetli, teknik detay ve pratik mühendislik/kamp çözümleri gerektiren TEK bir \"Long-Tail\" konu belirle.\n\n"
     "ÇIKTI FORMATI (Sadece saf JSON, markdown blokları veya başka açıklama kesinlikle yazma):\n"
     "{\n"
     "  \"title\": \"İngilizce SEO uyumlu başlık\",\n"
     "  \"slug\": \"url-slug\",\n"
-    "  \"tags\": [\"tag1\", \"tag2\", \"engineering\"]\n"
+    "  \"tags\": [\"tag1\", \"tag2\", \"" + selected_category.lower().replace(" & ", "-") + "\"]\n"
     "}"
 )
 research_raw = call_ai(research_prompt, system_instruction="Sadece ve sadece saf JSON nesnesi üret. Markdown kod blokları (```) kullanma.", json_mode=True)
@@ -129,14 +144,16 @@ if json_start != -1 and json_end != -1:
     research_raw = research_raw[json_start:json_end+1]
 
 topic_data = json.loads(research_raw)
+print(f"-> Seçilen Kategori: {selected_category}")
 print(f"-> Konu: {topic_data['title']}")
 
-# 5. Kapsamlı İçerik Üretimi
+# 6. Kapsamlı İçerik Üretimi
 content_prompt = (
-    "Sen uzman bir Karavan Mühendisisin.\n"
+    "Sen uzman bir Karavan ve Kamp Sistemleri Mühendisisin.\n"
+    f"Kategori: {selected_category}\n"
     f"Konu: \"{topic_data['title']}\"\n\n"
     "GÖREV:\n"
-    "Bu konu için son derece kapsamlı, uzun (en az 1200 kelime), derinlemesine teknik bir rehber yaz.\n\n"
+    "Bu konu için son derece kapsamlı, uzun (en az 1200 kelime), derinlemesine teknik ve pratik bir rehber yaz.\n\n"
     "KESİN KURALLAR:\n"
     "1. ASLA ham HTML, CSS veya JavaScript kod bloğu EKLEME.\n"
     "2. Matematiksel formülleri LaTeX (`$...$`) şeklinde YAZMA. Düz metin olarak yaz (Örn: Voltage Drop = (2 x Current x Length x Resistance) / Area).\n"
@@ -152,8 +169,8 @@ if article_body.startswith("```"): article_body = article_body[3:]
 if article_body.endswith("```"): article_body = article_body[:-3]
 article_body = article_body.strip()
 
-# 6. Ana Kapak Görseli Üretimi ve Kaydı
-main_visual_prompt = f"Professional technical photograph of a modern off-grid caravan system related to {topic_data['title']}, photorealistic, high detail, engineering style, no text, no watermark"
+# 7. Ana Kapak Görseli Üretimi ve Kaydı
+main_visual_prompt = f"Professional technical photograph of a modern off-grid caravan system or outdoor camping setup related to {topic_data['title']}, photorealistic, high detail, engineering style, no text, no watermark"
 encoded_main_prompt = urllib.parse.quote(main_visual_prompt)
 main_image_url = f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){encoded_main_prompt}?width=1200&height=630&nologo=true&seed={random.randint(1, 10000)}"
 
@@ -174,14 +191,14 @@ except Exception as e:
     print(f"⚠️ Ana kapak indirilemedi: {e}")
     cover_image = "/images/default-og.jpg"
 
-# 7. Alt Başlık Görsellerini Bulup Üretme ve İçerikle Değiştirme
+# 8. Alt Başlık Görsellerini Bulup Üretme ve İçerikle Değiştirme
 image_tags = re.findall(r'\[IMAGE:\s*(.*?)\]', article_body)
 for idx, img_desc in enumerate(image_tags, start=1):
     sub_img_filename = f"{topic_data['slug']}-part{idx}.jpg"
     sub_img_path = os.path.join("public/images", sub_img_filename)
     sub_img_url_path = f"/images/{sub_img_filename}"
     
-    sub_prompt = f"Technical engineering photograph of {img_desc}, high quality, off-grid caravan context, no text, no watermark"
+    sub_prompt = f"Technical engineering photograph of {img_desc}, high quality, off-grid caravan or camping context, no text, no watermark"
     encoded_sub_prompt = urllib.parse.quote(sub_prompt)
     sub_full_url = f"https://image.pollinations.ai/prompt/{encoded_sub_prompt}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}"
     
@@ -198,3 +215,30 @@ for idx, img_desc in enumerate(image_tags, start=1):
     except Exception as e:
         print(f"⚠️ Alt görsel indirilemedi ({e}), etiket temizleniyor.")
         article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
+
+# 9. Frontmatter ve Dosya Kaydı
+pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan", "off-grid"])])
+safe_description = f"Comprehensive technical guide and engineering standards for {topic_data['title']}."
+
+post_content = f"""---
+author: AI Editorial
+pubDatetime: {pub_datetime}
+title: "{topic_data['title']}"
+postSlug: "{topic_data['slug']}"
+featured: false
+draft: false
+tags:
+{tags_formatted}
+ogImage: "{cover_image}"
+description: "{safe_description}"
+---
+
+{article_body}
+"""
+
+output_path = os.path.join(POSTS_DIR, f"{topic_data['slug']}.md")
+with open(output_path, "w", encoding="utf-8") as f:
+    f.write(post_content)
+
+print(f"-> Yeni kategori tabanlı yazı ve görseller oluşturuldu: {output_path}")
