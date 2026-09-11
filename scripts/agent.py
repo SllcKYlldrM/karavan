@@ -191,30 +191,27 @@ except Exception as e:
     print(f"⚠️ Ana kapak indirilemedi: {e}")
     cover_image = "/images/default-og.jpg"
 
-# 8. Alt Başlık Görsellerini Bulup Üretme ve İçerikle Değiştirme
-image_tags = re.findall(r'\[IMAGE:\s*(.*?)\]', article_body)
-for idx, img_desc in enumerate(image_tags, start=1):
-    sub_img_filename = f"{topic_data['slug']}-part{idx}.jpg"
-    sub_img_path = os.path.join("public/images", sub_img_filename)
-    sub_img_url_path = f"/images/{sub_img_filename}"
-    
-    sub_prompt = f"Technical engineering photograph of {img_desc}, high quality, off-grid caravan or camping context, no text, no watermark"
-    encoded_sub_prompt = urllib.parse.quote(sub_prompt)
-    sub_full_url = f"https://image.pollinations.ai/prompt/{encoded_sub_prompt}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}"
-    
-    try:
-        print(f"-> Alt görsel {idx} indiriliyor: {img_desc}")
-        sub_res = requests.get(sub_full_url)
-        if sub_res.status_code == 200:
-            with open(sub_img_path, "wb") as f:
-                f.write(sub_res.content)
-            markdown_img_tag = f"\n\n![{img_desc}]({sub_img_url_path})\n\n"
-            article_body = article_body.replace(f"[IMAGE: {img_desc}]", markdown_img_tag)
-        else:
-            article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
-    except Exception as e:
-        print(f"⚠️ Alt görsel indirilemedi ({e}), etiket temizleniyor.")
-        article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
+# 8. Ana Kapak Görseli Üretimi ve Kaydı
+main_visual_prompt = f"Professional technical photograph of a modern off-grid caravan system or outdoor camping setup related to {topic_data['title']}, photorealistic, high detail, engineering style, no text, no watermark"
+encoded_main_prompt = urllib.parse.quote(main_visual_prompt)
+main_image_url = f"https://image.pollinations.ai/prompt/{encoded_main_prompt}?width=1200&height=630&nologo=true&seed={random.randint(1, 10000)}"
+
+main_image_filename = f"{topic_data['slug']}.jpg"
+main_image_path = os.path.join("public/images", main_image_filename)
+cover_image = f"/images/{main_image_filename}"
+
+try:
+    print(f"-> Ana kapak görseli indiriliyor...")
+    img_res = requests.get(main_image_url)
+    if img_res.status_code == 200:
+        with open(main_image_path, "wb") as img_file:
+            img_file.write(img_res.content)
+        print("-> Ana kapak görseli kaydedildi.")
+    else:
+        # Eğer indirme başarısız olursa boş bırakmak yerine yerel geçerli bir isim ata
+        print("⚠️ Görsel indirilemedi, alternatif yol atanıyor.")
+except Exception as e:
+    print(f"⚠️ Ana kapak indirilemedi: {e}")
 
 # 9. Frontmatter ve Dosya Kaydı
 pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
