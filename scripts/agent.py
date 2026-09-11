@@ -62,7 +62,7 @@ def generate_post():
     return BlogPostSchema(**data)
 
 def save_to_astro(post: BlogPostSchema):
-    target_dir = os.path.join("src", "content", "blog")
+    target_dir = os.path.join("src", "content", "posts")
     os.makedirs(target_dir, exist_ok=True)
     
     filepath = os.path.join(target_dir, f"{post.slug}.md")
