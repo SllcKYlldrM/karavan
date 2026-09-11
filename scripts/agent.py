@@ -183,7 +183,7 @@ for idx, img_desc in enumerate(image_tags, start=1):
     
     sub_prompt = f"Technical engineering photograph of {img_desc}, high quality, off-grid caravan context, no text, no watermark"
     encoded_sub_prompt = urllib.parse.quote(sub_prompt)
-    sub_full_url = f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){encoded_sub_prompt}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}"
+    sub_full_url = f"https://image.pollinations.ai/prompt/{encoded_sub_prompt}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}"
     
     try:
         print(f"-> Alt görsel {idx} indiriliyor: {img_desc}")
@@ -191,4 +191,10 @@ for idx, img_desc in enumerate(image_tags, start=1):
         if sub_res.status_code == 200:
             with open(sub_img_path, "wb") as f:
                 f.write(sub_res.content)
-            markdown_img_tag = f"\n\n
+            markdown_img_tag = f"\n\n![{img_desc}]({sub_img_url_path})\n\n"
+            article_body = article_body.replace(f"[IMAGE: {img_desc}]", markdown_img_tag)
+        else:
+            article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
+    except Exception as e:
+        print(f"⚠️ Alt görsel indirilemedi ({e}), etiket temizleniyor.")
+        article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
