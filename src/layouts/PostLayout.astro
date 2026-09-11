@@ -18,7 +18,7 @@ export interface Props {
 
 const {
   title,
-  author = "Amara Osei",
+  author = "Editorial Staff",
   description = "",
   ogImage,
   canonicalURL,
@@ -49,16 +49,16 @@ const displayCover = post?.data.ogImage && typeof post.data.ogImage === "string"
   ? post.data.ogImage
   : (typeof ogImage === "string" ? ogImage : "/images/default-og.jpg");
 
-const tags = post?.data.tags || ["engineering"];
-const primaryTag = tags[0] || "politics";
+const tags = post?.data.tags || ["Caravan"];
+const primaryTag = tags[0] || "Engineering";
 
 const validPubDatetime: Date = pubDatetime || post?.data.pubDatetime || new Date();
 const validModDatetime = modDatetime ?? post?.data.modDatetime;
 
-const wordCount = (post as any)?.body ? (post as any).body.split(/\s+/).length : 750;
+const wordCount = (post as any)?.body ? (post as any).body.split(/\s+/).length : 700;
 const readingTime = `${Math.max(1, Math.ceil(wordCount / 200))} min read`;
 
-// Kategori adetlerini dinamik hesaplama
+// Kategori adetleri (Sidebar)
 const tagCounts = allPosts.reduce((acc: Record<string, number>, p) => {
   (p.data.tags || []).forEach((t: string) => {
     acc[t] = (acc[t] || 0) + 1;
@@ -68,15 +68,14 @@ const tagCounts = allPosts.reduce((acc: Record<string, number>, p) => {
 const categories = Object.entries(tagCounts).slice(0, 8);
 const allTags = Object.keys(tagCounts).slice(0, 15);
 
-// Benzer ve popüler yazılar
+// İlgili ve popüler yazılar
 const relatedPosts = sortedPosts
   .filter(p => (post ? p.id !== post.id : true) && p.data.tags?.some((t: string) => tags.includes(t)))
   .slice(0, 2);
 const finalRelated = relatedPosts.length > 0 ? relatedPosts : sortedPosts.slice(0, 2);
-const popularPosts = sortedPosts.slice(0, 5);
+const popularPosts = sortedPosts.filter(p => (post ? p.id !== post.id : true)).slice(0, 5);
 
-const currentUrl = Astro.url.href;
-const shareUrl = encodeURIComponent(currentUrl);
+const shareUrl = encodeURIComponent(Astro.url.href);
 const shareTitle = encodeURIComponent(displayTitle);
 ---
 
@@ -88,17 +87,17 @@ const shareTitle = encodeURIComponent(displayTitle);
 >
   <Header />
 
-  <main class="text-slate-700">
+  <main class="text-slate-700 font-sans">
     <div class="container xl:max-w-7xl mx-auto px-4 flex flex-col gap-4 lg:gap-6">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 py-6">
         
-        <!-- LEFT POST CONTENT (2 COLS) -->
+        <!-- LEFT: ARTICLE COLUMN (2 SPAN) -->
         <div class="lg:col-span-2 py-4">
-          <h1 class="text-2xl md:text-3xl font-bold py-4 text-slate-900 leading-tight">
+          <h1 class="text-2xl md:text-3xl font-bold py-2 text-slate-900 leading-tight">
             {displayTitle}
           </h1>
 
-          <!-- Meta Bar with Icons -->
+          <!-- Meta Bar -->
           <div class="pb-4 w-full flex flex-wrap items-center gap-4 text-sm text-slate-500 border-b border-slate-200">
             <span class="flex items-center gap-1.5 hover:text-black">
               <svg width="1em" height="1em" class="size-3.5" viewBox="0 0 16 16" fill="currentColor">
@@ -114,7 +113,7 @@ const shareTitle = encodeURIComponent(displayTitle);
               <Datetime pubDatetime={validPubDatetime} modDatetime={validModDatetime} />
             </span>
 
-            <a href={`/tags/${primaryTag.toLowerCase()}`} class="flex items-center gap-1.5 hover:text-brand-600 capitalize">
+            <a href={`/tags/${primaryTag.toLowerCase()}`} class="flex items-center gap-1.5 hover:text-skin-accent capitalize">
               <svg width="1em" height="1em" class="size-3.5" viewBox="0 0 16 16" fill="currentColor">
                 <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
               </svg>
@@ -130,13 +129,13 @@ const shareTitle = encodeURIComponent(displayTitle);
             </span>
           </div>
 
-          <!-- Cover Image (Aspect 2/1) -->
-          <div class="aspect-[2/1] overflow-hidden w-full bg-slate-100 rounded-lg my-6">
+          <!-- Cover Image (Exact 2/1 Aspect Ratio) -->
+          <div class="aspect-2/1 overflow-hidden w-full bg-slate-100 rounded-lg my-6">
             <img src={displayCover} alt={displayTitle} class="w-full h-full object-cover" />
           </div>
 
           <!-- Post Content -->
-          <div class="relative post-content pt-2 prose prose-slate max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-img:rounded-lg">
+          <div class="relative post-content pt-2 prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-img:rounded-lg">
             <slot />
           </div>
 
@@ -150,32 +149,33 @@ const shareTitle = encodeURIComponent(displayTitle);
               </li>
               {tags.map((tag: string) => (
                 <li>
-                  <a href={`/tags/${tag.toLowerCase()}`} class="flex py-1 px-3 bg-white hover:bg-slate-100 rounded-sm border border-slate-200 capitalize">
+                  <a href={`/tags/${tag.toLowerCase()}`} class="flex py-1 px-3 bg-white hover:bg-slate-100 rounded-sm border border-slate-200 capitalize text-xs">
                     {tag}
                   </a>
                 </li>
               ))}
             </ul>
 
-            <div class="flex items-center gap-1">
-              <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} aria-label="Share on Facebook" target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity">
-                <svg width="1em" height="1em" class="size-4 text-slate-600" viewBox="0 0 16 16" fill="currentColor"><path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131c.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"/></svg>
+            <!-- Social Share Icons -->
+            <div class="flex items-center gap-1 text-slate-600">
+              <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity" aria-label="Share on Facebook">
+                <svg width="1em" height="1em" class="size-4" viewBox="0 0 16 16" fill="currentColor"><path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131c.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"/></svg>
               </a>
-              <a href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`} aria-label="Share on Twitter/X" target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity">
-                <svg width="1em" height="1em" class="size-4 text-slate-600" viewBox="0 0 16 16" fill="currentColor"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07l-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/></svg>
+              <a href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`} target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity" aria-label="Share on X">
+                <svg width="1em" height="1em" class="size-4" viewBox="0 0 16 16" fill="currentColor"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07l-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/></svg>
               </a>
-              <a href={`https://www.linkedin.com/shareArticle?mini=true&url=${shareUrl}&title=${shareTitle}`} aria-label="Share on LinkedIn" target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity">
-                <svg width="1em" height="1em" class="size-4 text-slate-600" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248c-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586c.173-.431.568-.878 1.232-.878c.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252c-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/></svg>
+              <a href={`https://www.linkedin.com/shareArticle?mini=true&url=${shareUrl}&title=${shareTitle}`} target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity" aria-label="Share on LinkedIn">
+                <svg width="1em" height="1em" class="size-4" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248c-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586c.173-.431.568-.878 1.232-.878c.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252c-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/></svg>
               </a>
-              <a href={`https://api.whatsapp.com/send?text=${shareTitle}%20${shareUrl}`} aria-label="Share on WhatsApp" target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity">
-                <svg width="1em" height="1em" class="size-4 text-slate-600" viewBox="0 0 16 16" fill="currentColor"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326z"/></svg>
+              <a href={`https://api.whatsapp.com/send?text=${shareTitle}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity" aria-label="Share on WhatsApp">
+                <svg width="1em" height="1em" class="size-4" viewBox="0 0 16 16" fill="currentColor"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144l-2.494.654l.666-2.433l-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931a6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646c-.182-.065-.315-.099-.445.099c-.133.197-.513.646-.627.775c-.114.133-.232.148-.43.05c-.197-.1-.836-.308-1.592-.985c-.59-.525-.985-1.175-1.103-1.372c-.114-.198-.011-.304.088-.403c.087-.088.197-.232.296-.346c.1-.114.133-.198.198-.33c.065-.134.034-.248-.015-.347c-.05-.099-.445-1.076-.612-1.47c-.16-.389-.323-.335-.445-.34c-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992c.47.205.84.326 1.129.418c.475.152.904.129 1.246.08c.38-.058 1.171-.48 1.338-.943c.164-.464.164-.86.114-.943c-.049-.084-.182-.133-.38-.232"/></svg>
               </a>
             </div>
           </div>
 
-          <!-- Author Bio Card -->
+          <!-- Author Bio Card (Rounded Avatar + Bio + Socials) -->
           <div class="flex flex-row items-center py-6 md:py-8 border-b border-slate-200">
-            <div class="shrink-0 rounded-full overflow-hidden size-20 bg-slate-900 text-white flex items-center justify-center font-bold text-2xl">
+            <div class="shrink-0 rounded-full overflow-hidden size-20 bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-2xl border border-slate-300">
               {displayAuthor.charAt(0)}
             </div>
             <div class="ms-6">
@@ -187,7 +187,7 @@ const shareTitle = encodeURIComponent(displayTitle);
             </div>
           </div>
 
-          <!-- Related Articles -->
+          <!-- Related Article Section -->
           {finalRelated.length > 0 && (
             <div class="py-6 md:py-8 border-b border-slate-200">
               <h3 class="text-xl font-bold mb-2 text-slate-900">Related Article</h3>
@@ -196,7 +196,7 @@ const shareTitle = encodeURIComponent(displayTitle);
                   <a href={`/posts/${getSlug(item)}`} class="flex gap-3 py-3 border-b last:border-b-0 border-slate-200 group">
                     <img src={getCover(item)} alt={item.data.title} class="size-16 object-cover rounded-sm shrink-0 bg-slate-100" />
                     <div class="flex flex-col gap-1">
-                      <h4 class="capitalize font-bold text-sm text-slate-800 group-hover:text-brand-600 line-clamp-2">
+                      <h4 class="capitalize font-bold text-sm text-slate-800 group-hover:text-skin-accent line-clamp-2 transition-colors">
                         {item.data.title}
                       </h4>
                       <span class="text-slate-400 text-xs">
@@ -210,11 +210,11 @@ const shareTitle = encodeURIComponent(displayTitle);
           )}
         </div>
 
-        <!-- RIGHT SIDEBAR (1 COL) -->
+        <!-- RIGHT: SIDEBAR (1 SPAN) -->
         <aside class="lg:col-span-1 lg:ps-6">
           <div class="flex flex-col gap-4 lg:gap-6 top-24 sticky">
             
-            <!-- Category Widget -->
+            <!-- Widget 1: Category -->
             <div class="bg-slate-50 border border-slate-200 rounded-lg">
               <h3 class="w-full px-6 py-3 border-b border-slate-200 font-bold text-slate-900 text-sm">
                 Category
@@ -223,7 +223,7 @@ const shareTitle = encodeURIComponent(displayTitle);
                 <ul class="flex flex-col text-sm">
                   {categories.map(([catName, count]) => (
                     <li class="relative">
-                      <a href={`/tags/${catName.toLowerCase()}`} class="flex items-center gap-3 justify-between py-1.5 hover:text-brand-600 transition-colors capitalize">
+                      <a href={`/tags/${catName.toLowerCase()}`} class="flex items-center gap-3 justify-between py-1.5 hover:text-skin-accent transition-colors capitalize">
                         <span>{catName}</span>
                         <span class="text-slate-400">({count})</span>
                       </a>
@@ -233,7 +233,7 @@ const shareTitle = encodeURIComponent(displayTitle);
               </div>
             </div>
 
-            <!-- Popular Post Widget -->
+            <!-- Widget 2: Popular Post (Thumbnails like in screenshot) -->
             <div class="bg-slate-50 border border-slate-200 rounded-lg">
               <h3 class="w-full px-6 py-3 border-b border-slate-200 font-bold text-slate-900 text-sm">
                 Popular Post
@@ -243,7 +243,7 @@ const shareTitle = encodeURIComponent(displayTitle);
                   <a href={`/posts/${getSlug(p)}`} class="flex gap-3 py-3 border-b last:border-b-0 border-slate-200 group">
                     <img src={getCover(p)} alt={p.data.title} loading="lazy" class="bg-slate-100 size-16 object-cover rounded-sm shrink-0" />
                     <div class="flex flex-col gap-1">
-                      <h4 class="text-sm font-medium capitalize group-hover:text-brand-600 line-clamp-2 text-slate-800">
+                      <h4 class="text-sm font-medium capitalize group-hover:text-skin-accent line-clamp-2 text-slate-800 transition-colors">
                         {p.data.title}
                       </h4>
                       <span class="text-slate-400 text-xs">
@@ -255,7 +255,7 @@ const shareTitle = encodeURIComponent(displayTitle);
               </div>
             </div>
 
-            <!-- Tags Widget -->
+            <!-- Widget 3: Tags -->
             <div class="bg-slate-50 border border-slate-200 rounded-lg">
               <h3 class="w-full px-6 py-3 border-b border-slate-200 font-bold text-slate-900 text-sm">
                 Tags
@@ -264,7 +264,7 @@ const shareTitle = encodeURIComponent(displayTitle);
                 <ul class="flex flex-wrap items-center gap-2 text-sm">
                   {allTags.map(tag => (
                     <li>
-                      <a href={`/tags/${tag.toLowerCase()}`} class="flex py-1 px-3 rounded-sm bg-white hover:bg-slate-100 border border-slate-200 hover:text-black capitalize text-xs">
+                      <a href={`/tags/${tag.toLowerCase()}`} class="flex py-1 px-3 rounded-sm bg-white hover:bg-slate-100 border border-slate-200 hover:text-black capitalize text-xs transition-colors">
                         {tag}
                       </a>
                     </li>
