@@ -32,9 +32,10 @@ jobs:
         run: |
           python scripts/agent.py
 
-      - name: Taslağı Depoya Kaydet
+     - name: Taslağı Depoya Kaydet
         run: |
           git config --global user.name "AI Content Bot"
           git config --global user.email "bot@users.noreply.github.com"
+          git pull origin main --rebase
           git add src/content/posts/
           git diff --quiet && git diff --staged --quiet || (git commit -m "feat: otonom icerik ve kapak gorseli eklendi" && git push)
