@@ -19,7 +19,7 @@ API_URL = "https://openrouter.ai/api/v1/chat/completions"
 # İhtiyaca göre model kademelendirmesi
 # Rutin içerik: deepseek/deepseek-chat
 # JS Hesaplayıcı/Karmaşık: anthropic/claude-3.5-sonnet
-MODEL_NAME = "deepseek/deepseek-chat"
+MODEL_NAME = "meta-llama/llama-3.3-70b-instruct:free"
 
 PROMPT = """
 You are an expert technical content writer and developer.
