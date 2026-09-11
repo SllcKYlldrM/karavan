@@ -15,7 +15,6 @@ export interface Props {
 
 const { href, frontmatter, data, id, variant = "h2" } = Astro.props;
 
-// Hem AstroPaper standart prop yapısını hem de spread edilen koleksiyon verisini destekle
 const postData = frontmatter ?? data;
 if (!postData) {
   throw new Error("Card bileşenine geçerli bir veri iletilmedi.");
@@ -24,11 +23,12 @@ if (!postData) {
 const { title, pubDatetime, modDatetime, description, ogImage, tags } = postData;
 
 const locale = Astro.currentLocale ?? config.site.lang;
-const postSlug = postData.postSlug ?? id?.replace(/\.[^/.]+$/, "");
-const postHref = href ?? getRelativeLocaleUrl(locale, `posts/${postSlug}`);
+// TypeScript hatasını engellemek için tip güvenli slug çözümlemesi:
+const rawSlug = (postData as Record<string, any>).postSlug ?? id?.replace(/\.[^/.]+$/, "");
+const postHref = href ?? getRelativeLocaleUrl(locale, `posts/${rawSlug}`);
 
 const HeadingTag = variant;
-const coverImageSrc = ogImage && typeof ogImage === "string" ? ogImage : "/images/default-cover.svg";
+const coverImageSrc = ogImage && typeof ogImage === "string" ? ogImage : "/images/default-og.jpg";
 const primaryTag = tags && tags.length > 0 ? tags[0] : null;
 ---
 
