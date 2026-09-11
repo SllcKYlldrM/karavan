@@ -37,11 +37,8 @@ def mark_topic_done(topic_id):
         json.dump(topics, f, indent=2, ensure_ascii=False)
 
 def generate_post(topic):
-    # Model kademelendirmesi: Hesaplayıcı için Claude 3.5, Rehber için DeepSeek-V3
-    if topic.get("type") == "calculator":
-        model_name = "anthropic/claude-3.5-sonnet"
-    else:
-        model_name = "deepseek/deepseek-chat"
+# Hem rehberler hem interaktif JS hesaplayıcılar için kararlı ve ekonomik DeepSeek-V3
+    model_name = "deepseek/deepseek-chat"
 
     prompt = f"""
 You are a senior technical writer and web developer.
