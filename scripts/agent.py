@@ -2,6 +2,7 @@ import os
 import re
 import json
 import glob
+import random
 from datetime import datetime, timezone
 from google import genai
 from google.genai import types
@@ -15,10 +16,11 @@ openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
 if not gemini_api_key and not openrouter_api_key:
     raise ValueError("Hiçbir AI API anahtarı bulunamadı.")
 
-gemini_client = genai.Client(api_key=gemini_api_key) if gemini_api_key else None
+gemini_client = genai.Client(api_key=gemini_api_key) if gemini_client else None
 
 POSTS_DIR = "src/content/posts"
 os.makedirs(POSTS_DIR, exist_ok=True)
+os.makedirs("public/images", exist_ok=True)
 
 # 2. Akıllı Çağrı Fonksiyonu (Gemini -> OpenRouter Fallback)
 def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False) -> str:
@@ -65,7 +67,7 @@ def call_ai(prompt: str, system_instruction: str = None, json_mode: bool = False
     if res.status_code != 200:
         raise RuntimeError(f"OpenRouter API Hatası: {res.status_code} - {res.text}")
         
-    return res.json()["choices"][0]["message"]["content"].strip()
+    return res.json()["choices"].strip()
 
 # 3. Hafıza Kontrolü
 def get_existing_titles():
@@ -107,7 +109,7 @@ if research_raw.endswith("```"): research_raw = research_raw[:-3]
 topic_data = json.loads(research_raw.strip())
 print(f"-> Konu: {topic_data['title']}")
 
-# 5. Kapsamlı İçerik Üretimi (HTML/JS Yok, Zengin Tablo + Adım Adım Hesaplama Örnekleri + FAQ)
+# 5. Kapsamlı İçerik Üretimi (Ana Kapak + Alt Başlık Görsel Yerleri Dahil)
 content_prompt = f"""
 Sen uzman bir Karavan Mühendisisin.
 Konu: "{topic_data['title']}"
@@ -116,12 +118,13 @@ GÖREV:
 Bu konu için son derece kapsamlı, uzun (en az 1200 kelime), derinlemesine teknik bir rehber yaz.
 
 KESİN KURALLAR:
-1. ASLA ham HTML, CSS veya JavaScript kod bloğu EKLEME (tarayıcıda düz metin gibi görünüyorlar, yasaktır).
-2. Matematiksel formülleri LaTeX (`$...$`) şeklinde YAZMA. Bunun yerine düz metin olarak, örneğin (Voltage Drop = (2 x Current x Length x Resistance) / Area) formatında açıkça yaz.
+1. ASLA ham HTML, CSS veya JavaScript kod bloğu EKLEME.
+2. Matematiksel formülleri LaTeX (`$...$`) şeklinde YAZMA. Düz metin olarak yaz (Örn: Voltage Drop = (2 x Current x Length x Resistance) / Area).
 3. İçerikte en az 2 adet detaylı **Markdown Veri/Karşılaştırma Tablosu** bulunsun.
-4. Okuyucunun kendi kendine hesap yapabilmesi için somut, sayısal **Adım Adım Hesaplama Örnekleri (Step-by-Step Calculation Examples)** ekle.
-5. Yazının sonunda en az 4 soruluk detaylı bir **FAQ (Sık Sorulan Sorular)** bölümü olsun.
-6. Dil: İngilizce. Sadece makale gövdesini ver, frontmatter ekleme. Başlığı `# {topic_data['title']}` ile başlat.
+4. Okuyucunun kendi kendine hesap yapabilmesi için somut, sayısal **Adım Adım Hesaplama Örnekleri** ekle.
+5. Yazının ortasındaki önemli alt başlıkların (h2 veya h3) altına, yazıyı zenginleştirmek için tam olarak şu formatta 2 adet görsel yerleştir: `[IMAGE: Kısa ingilizce görsel açıklaması]` (Örn: `[IMAGE: Detailed close-up of caravan electrical wiring and fuse box]`).
+6. Yazının sonunda en az 4 soruluk detaylı bir **FAQ (Sık Sorulan Sorular)** bölümü olsun.
+7. Dil: İngilizce. Sadece makale gövdesini ver, frontmatter ekleme. Başlığı `# {topic_data['title']}` ile başlat.
 """
 article_body = call_ai(content_prompt, system_instruction="Uzun ve teknik Markdown makaleleri yazarsın. HTML ve LaTeX kullanmazsın.")
 if article_body.startswith("```markdown"): article_body = article_body[11:]
@@ -129,38 +132,55 @@ if article_body.startswith("```"): article_body = article_body[3:]
 if article_body.endswith("```"): article_body = article_body[:-3]
 article_body = article_body.strip()
 
-# 6. Gelişmiş Otomatik Kapak Görseli Üretimi (Pollinations.ai)
-# Filigranı kaldırmak için nologo=true ve kaliteyi sabitlemek için rastgele bir seed ekliyoruz.
-import random
-seed_value = random.randint(1, 10000) # Her seferinde farklı ama kaliteli bir deneme için
+# 6. Ana Kapak Görseli Üretimi ve Kaydı
+main_visual_prompt = f"Professional technical photograph of a modern off-grid caravan system related to {topic_data['title']}, photorealistic, high detail, engineering style, no text, no watermark"
+encoded_main_prompt = urllib.parse.quote(main_visual_prompt)
+main_image_url = f"https://image.pollinations.ai/prompt/{encoded_main_prompt}?width=1200&height=630&nologo=true&seed={random.randint(1, 10000)}"
 
-# Konuyu daha iyi anlatan, detaylı bir görsel promptu oluşturuyoruz.
-visual_prompt_details = f"Professional technical photograph of a modern off-grid caravan system related to {topic_data['title']}, photorealistic, high detail, engineering style, no text, no watermark"
-encoded_visual_prompt = urllib.parse.quote(visual_prompt_details)
-
-image_url = f"https://image.pollinations.ai/prompt/{encoded_visual_prompt}?width=1200&height=630&nologo=true&seed={seed_value}"
-
-image_filename = f"{topic_data['slug']}.jpg"
-image_path = os.path.join("public/images", image_filename)
-# public/images klasörünün varlığından emin ol (Workflow zaten oluşturuyor ama garantiye alalım)
-os.makedirs("public/images", exist_ok=True)
+main_image_filename = f"{topic_data['slug']}.jpg"
+main_image_path = os.path.join("public/images", main_image_filename)
+cover_image = f"/images/{main_image_filename}"
 
 try:
-    print(f"-> Görsel indiriliyor: {image_url}")
-    img_res = requests.get(image_url)
+    print(f"-> Ana kapak görseli indiriliyor...")
+    img_res = requests.get(main_image_url)
     if img_res.status_code == 200:
-        with open(image_path, "wb") as img_file:
+        with open(main_image_path, "wb") as img_file:
             img_file.write(img_res.content)
-        cover_image = f"/images/{image_filename}"
-        print(f"-> Görsel başarıyla indirildi ve kaydedildi: {cover_image}")
+        print("-> Ana kapak görseli kaydedildi.")
     else:
-        print(f"⚠️ Görsel indirilemedi, HTTP Kodu: {img_res.status_code}")
-        cover_image = "/images/default-og.jpg" # Yedek görsel
+        cover_image = "/images/default-og.jpg"
 except Exception as e:
-    print(f"⚠️ Görsel indirilemedi: {e}")
+    print(f"⚠️ Ana kapak indirilemedi: {e}")
     cover_image = "/images/default-og.jpg"
 
-# 7. Frontmatter ve Dosya Kaydı
+# 7. Alt Başlık Görsellerini Bulup Üretme ve İçerikle Değiştirme
+image_tags = re.findall(r'\[IMAGE:\s*(.*?)\]', article_body)
+for idx, img_desc in enumerate(image_tags, start=1):
+    sub_img_filename = f"{topic_data['slug']}-part{idx}.jpg"
+    sub_img_path = os.path.join("public/images", sub_img_filename)
+    sub_img_url_path = f"/images/{sub_img_filename}"
+    
+    sub_prompt = f"Technical engineering photograph of {img_desc}, high quality, off-grid caravan context, no text, no watermark"
+    encoded_sub_prompt = urllib.parse.quote(sub_prompt)
+    sub_full_url = f"https://image.pollinations.ai/prompt/{encoded_sub_prompt}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}"
+    
+    try:
+        print(f"-> Alt görsel {idx} indiriliyor: {img_desc}")
+        sub_res = requests.get(sub_full_url)
+        if sub_res.status_code == 200:
+            with open(sub_img_path, "wb") as f:
+                f.write(sub_res.content)
+            # Metin içindeki [IMAGE: ...] etiketini gerçek Markdown resim etiketiyle değiştiriyoruz
+            markdown_img_tag = f"\n\n![{img_desc}]({sub_img_url_path})\n\n"
+            article_body = article_body.replace(f"[IMAGE: {img_desc}]", markdown_img_tag)
+        else:
+            article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
+    except Exception as e:
+        print(f"⚠️ Alt görsel indirilemedi ({e}), etiket temizleniyor.")
+        article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
+
+# 8. Frontmatter ve Dosya Kaydı
 pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan", "off-grid"])])
 safe_description = f"Comprehensive technical guide and engineering standards for {topic_data['title']}."
@@ -185,4 +205,4 @@ output_path = os.path.join(POSTS_DIR, f"{topic_data['slug']}.md")
 with open(output_path, "w", encoding="utf-8") as f:
     f.write(post_content)
 
-print(f"-> Yeni temiz yazı ve görsel oluşturuldu: {output_path}")
+print(f"-> Yeni zenginleştirilmiş yazı ve görseller oluşturuldu: {output_path}")
