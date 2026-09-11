@@ -129,9 +129,26 @@ if article_body.startswith("```"): article_body = article_body[3:]
 if article_body.endswith("```"): article_body = article_body[:-3]
 article_body = article_body.strip()
 
-# 6. Otomatik Kapak Görseli Üretimi (Pollinations.ai)
+# 6. Otomatik Kapak Görseli İndirme ve Kaydetme
 encoded_title = urllib.parse.quote(topic_data['title'])
-cover_image = f"https://image.pollinations.ai/prompt/Professional%20off-grid%20caravan,%20{encoded_title}?width=1200&height=630&nologo=true"
+image_url = f"https://image.pollinations.ai/prompt/Professional%20off-grid%20caravan,%20{encoded_title}?width=1200&height=630&nologo=true"
+
+image_filename = f"{topic_data['slug']}.jpg"
+image_path = os.path.join("public/images", image_filename)
+os.makedirs("public/images", exist_ok=True)
+
+try:
+    img_res = requests.get(image_url)
+    if img_res.status_code == 200:
+        with open(image_path, "wb") as img_file:
+            img_file.write(img_res.content)
+        cover_image = f"/images/{image_filename}"
+        print(f"-> Görsel başarıyla indirildi ve kaydedildi: {cover_image}")
+    else:
+        cover_image = "/images/default-og.jpg" # Yedek görsel
+except Exception as e:
+    print(f"⚠️ Görsel indirilemedi: {e}")
+    cover_image = "/images/default-og.jpg"
 
 # 7. Frontmatter ve Dosya Kaydı
 pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
