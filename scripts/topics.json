@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "type": "calculator",
+    "title": "Caravan Towing Weight Ratio Calculator & Safety Guide",
+    "prompt": "Create an interactive Caravan Towing Weight Ratio Calculator. Include HTML form inputs for Vehicle Kerbweight (kg) and Caravan MTPLM (kg), calculating the ratio percentage with safety warning levels (under 85% safe, 85-100% experienced only, over 100% dangerous). Add vanilla JS and complete practical towing advice.",
+    "status": "pending"
+  },
+  {
+    "id": 2,
+    "type": "guide",
+    "title": "Complete Off-Grid Caravan Solar Power Setup Guide",
+    "prompt": "Write a comprehensive beginner-friendly guide on sizing off-grid caravan solar setups, covering panels, MPPT controllers, lithium batteries, and inverter choices with practical examples.",
+    "status": "pending"
+  },
+  {
+    "id": 3,
+    "type": "calculator",
+    "title": "Daily Caravan Off-Grid Power Consumption Calculator",
+    "prompt": "Build an interactive Off-Grid Power Consumption Calculator for caravans. Allow users to calculate daily amp-hour (Ah) consumption based on appliances (fridge, lights, water pump, devices) with pure HTML and vanilla JS embedded.",
+    "status": "pending"
+  }
+]
