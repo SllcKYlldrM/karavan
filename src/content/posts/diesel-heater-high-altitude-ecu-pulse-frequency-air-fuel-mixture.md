@@ -11,7 +11,6 @@ tags:
   - air-fuel-ratio
   - caravan-hvac
   - hvac-climate control
-ogImage: "/images/default-og.jpg"
 description: "Comprehensive technical guide and engineering standards for Diesel Heater High-Altitude Calibration: Adjusting ECU Pulse Frequency & Air-Fuel Mixture to Prevent Soot Clogging."
 ---
 
