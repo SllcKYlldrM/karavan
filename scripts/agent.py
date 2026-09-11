@@ -7,32 +7,29 @@ from pydantic import BaseModel, Field
 
 # --- Doğrulama Şeması (Pydantic) ---
 class BlogPostSchema(BaseModel):
-    title: str = Field(description="İçeriğin SEO uyumlu İngilizce başlığı")
+    title: str = Field(description="SEO uyumlu İngilizce başlık")
     slug: str = Field(description="URL için küçük harf ve tireli slug")
     description: str = Field(description="1-2 cümlelik meta açıklama")
     tags: list[str] = Field(description="İlgili etiketler listesi")
-    content: str = Field(description="Markdown formatında zengin içerik veya hesaplayıcı kodu")
+    content: str = Field(description="Markdown formatında gövde içeriği")
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# İhtiyaca göre model kademelendirmesi
-# Rutin içerik: deepseek/deepseek-chat
-# JS Hesaplayıcı/Karmaşık: anthropic/claude-3.5-sonnet
-MODEL_NAME = "meta-llama/llama-3.3-70b-instruct:free"
+# Test için OpenRouter'ın en kararlı ücretsiz modeli
+MODEL_NAME = "meta-llama/llama-3.1-8b-instruct:free"
 
 PROMPT = """
 You are an expert technical content writer and developer.
 Generate an engaging, highly useful English blog post about "Top Essential Caravan Equipment & Weight Distribution Tips".
-If applicable, include a lightweight, vanilla HTML/JavaScript calculator snippet embedded directly in the markdown.
 
 Return the response STRICTLY as a valid JSON object with the following keys:
 - "title": string
 - "slug": string (e.g. caravan-weight-distribution-guide)
 - "description": string (short SEO description)
-- "tags": list of strings (e.g. ["caravan", "travel", "calculator"])
-- "content": string (detailed Markdown body, use subheadings, bold text, and clean formatting)
-Do not wrap JSON in markdown blockquotes, just return pure JSON.
+- "tags": list of strings (e.g. ["caravan", "travel", "safety"])
+- "content": string (detailed Markdown body with headings, tips, and bullet points)
+Do not wrap JSON in markdown blockquotes, return pure JSON only.
 """
 
 def generate_post():
@@ -53,27 +50,25 @@ def generate_post():
     }
 
     response = requests.post(API_URL, headers=headers, json=payload, timeout=120)
-    response.raise_for_status()
-    raw_content = response.json()["choices"][0]["message"]["content"].strip()
+    
+    if not response.ok:
+        print("API Yanıtı:", response.text)
+        response.raise_for_status()
 
-    # Markdown json bloğu varsa temizle
+    raw_content = response.json()["choices"][0]["message"]["content"].strip()
     clean_json = re.sub(r"^```json\s*|\s*```$", "", raw_content, flags=re.MULTILINE).strip()
     data = json.loads(clean_json)
     
-    # Pydantic ile şema doğrulaması
-    validated = BlogPostSchema(**data)
-    return validated
+    return BlogPostSchema(**data)
 
 def save_to_astro(post: BlogPostSchema):
-    # AstroPaper blog klasörü
     target_dir = os.path.join("src", "content", "blog")
     os.makedirs(target_dir, exist_ok=True)
     
-    filename = f"{post.slug}.md"
-    filepath = os.path.join(target_dir, filename)
+    filepath = os.path.join(target_dir, f"{post.slug}.md")
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # Human-in-the-Loop: draft her zaman True olarak kaydedilir
+    # Human-in-the-Loop: taslak olarak işaretlenir
     frontmatter = f"""---
 author: AI Editorial
 pubDatetime: {now_iso}
