@@ -5,7 +5,6 @@ import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Datetime from "@/components/Datetime.astro";
 
-// TypeScript hatasını önleyen esnek prop tanımı
 export interface Props {
   title?: string;
   author?: string;
@@ -32,14 +31,13 @@ const sortedPosts = allPosts.sort(
   (a, b) => b.data.pubDatetime.valueOf() - a.data.pubDatetime.valueOf()
 );
 
-// URL slug parametresine göre geçerli yazıyı ve ek verileri bul
 const { slug } = Astro.params;
 const post = allPosts.find(p => {
-  const postSlug = p.data.postSlug ?? p.id?.replace(/\.[^/.]+$/, "");
+  const postSlug = (p.data as any).postSlug ?? p.id?.replace(/\.[^/.]+$/, "");
   return postSlug === slug || p.id === slug;
 });
 
-const getSlug = (p: any) => p.data.postSlug ?? p.id?.replace(/\.[^/.]+$/, "");
+const getSlug = (p: any) => (p.data as any)?.postSlug ?? p.id?.replace(/\.[^/.]+$/, "");
 const getCover = (p: any) =>
   p.data.ogImage && typeof p.data.ogImage === "string"
     ? p.data.ogImage
@@ -54,13 +52,15 @@ const displayCover = post?.data.ogImage && typeof post.data.ogImage === "string"
 const tags = post?.data.tags || [];
 const primaryTag = tags[0] || "Caravan";
 
-// Okuma süresi tahmini
+// Tip güvenli tarih tanımları
+const validPubDatetime: Date = pubDatetime || post?.data.pubDatetime || new Date();
+const validModDatetime = modDatetime ?? post?.data.modDatetime;
+
 const wordCount = (post as any)?.body ? (post as any).body.split(/\s+/).length : 600;
 const readingTime = `${Math.ceil(wordCount / 200)} min read`;
 
-// Benzer yazılar ve popüler liste
 const relatedPosts = sortedPosts
-  .filter(p => (post ? p.id !== post.id : true) && p.data.tags?.some(t => tags.includes(t)))
+  .filter(p => (post ? p.id !== post.id : true) && p.data.tags?.some((t: string) => tags.includes(t)))
   .slice(0, 2);
 const finalRelated = relatedPosts.length > 0 ? relatedPosts : sortedPosts.slice(0, 2);
 const popularPosts = sortedPosts.slice(0, 5);
@@ -74,8 +74,6 @@ const shareTitle = encodeURIComponent(displayTitle);
   description={description || post?.data.description}
   ogImage={displayCover}
   canonicalURL={canonicalURL}
-  pubDatetime={pubDatetime || post?.data.pubDatetime}
-  modDatetime={modDatetime || post?.data.modDatetime}
 >
   <Header />
 
@@ -96,7 +94,7 @@ const shareTitle = encodeURIComponent(displayTitle);
           </span>
           <span class="flex items-center gap-1.5">
             <svg class="size-3.5" viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>
-            <Datetime pubDatetime={pubDatetime || post?.data.pubDatetime} modDatetime={modDatetime || post?.data.modDatetime} />
+            <Datetime pubDatetime={validPubDatetime} modDatetime={validModDatetime} />
           </span>
           <a href={`/tags/${primaryTag.toLowerCase()}`} class="flex items-center gap-1.5 text-skin-accent hover:underline font-medium">
             <svg class="size-3.5" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/></svg>
@@ -113,7 +111,7 @@ const shareTitle = encodeURIComponent(displayTitle);
           <img src={displayCover} alt={displayTitle} class="w-full h-full object-cover" />
         </div>
 
-        <!-- Content Body (Rendered Markdown Slot) -->
+        <!-- Content Body -->
         <div class="relative post-content pt-2 prose prose-slate max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:text-skin-base prose-p:text-skin-base/90 prose-p:leading-relaxed prose-img:rounded-xl">
           <slot />
         </div>
@@ -121,7 +119,7 @@ const shareTitle = encodeURIComponent(displayTitle);
         <!-- Tags & Share Bar -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-3 py-4 border-y border-skin-line/60 mt-10">
           <ul class="flex flex-wrap items-center gap-2 text-xs">
-            {tags.map(tag => (
+            {tags.map((tag: string) => (
               <li>
                 <a href={`/tags/${tag.toLowerCase()}`} class="flex py-1 px-3 bg-skin-card hover:border-skin-accent rounded border border-skin-line/70 text-skin-base transition-colors">
                   #{tag}
