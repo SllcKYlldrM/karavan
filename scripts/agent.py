@@ -46,7 +46,7 @@ Topic: {topic['title']}
 Task details: {topic['prompt']}
 
 If creating a calculator, use self-contained inline <style> and vanilla <script> elements inside standard HTML container so it renders and functions directly within Astro markdown.
-
+Do NOT indent HTML/JS/CSS lines with 4 spaces or tabs, write them completely unindented to prevent markdown code-block conversion.
 Return response STRICTLY as valid JSON with keys:
 - "title": string
 - "slug": string
@@ -85,7 +85,7 @@ No markdown json wrappers, pure JSON only.
 def save_post(post: BlogPostSchema):
     target_dir = os.path.join("src", "content", "posts")
     os.makedirs(target_dir, exist_ok=True)
-    filepath = os.path.join(target_dir, f"{post.slug}.mdx")
+    filepath = os.path.join(target_dir, f"{post.slug}.md")
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     frontmatter = f"""---
