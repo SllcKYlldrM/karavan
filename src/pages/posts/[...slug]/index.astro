@@ -1,539 +1,265 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
-import PostLayout from "@/layouts/PostLayout.astro";
+import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Datetime from "@/components/Datetime.astro";
-import Tag from "@/components/Tag.astro";
-import { getPostSlug, getPostUrl } from "@/utils/getPostPaths";
-import { getSortedPosts } from "@/utils/getSortedPosts";
-import { slugifyStr } from "@/utils/slugify";
-import { toTransitionName } from "@/utils/toTransitionName";
-import EditPost from "./_components/EditPost.astro";
-import ShareLinks from "./_components/ShareLinks.astro";
-import BackButton from "./_components/BackButton.astro";
-import BackToTopButton from "./_components/BackToTopButton.astro";
-import AdjacentPostNav from "./_components/AdjacentPostNav.astro";
-import config from "@/config";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("posts");
-  const sortedPosts = getSortedPosts(posts);
-
-  return sortedPosts.map((post, index) => ({
-    params: { slug: getPostSlug(post.id, post.filePath) },
-    props: {
-      post,
-      prevPost:
-        index < sortedPosts.length - 1
-          ? {
-              id: sortedPosts[index + 1].id,
-              title: sortedPosts[index + 1].data.title,
-              filePath: sortedPosts[index + 1].filePath,
-            }
-          : null,
-      nextPost:
-        index > 0
-          ? {
-              id: sortedPosts[index - 1].id,
-              title: sortedPosts[index - 1].data.title,
-              filePath: sortedPosts[index - 1].filePath,
-            }
-          : null,
-    },
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
+  return posts.map(post => ({
+    params: { slug: (post.data as any).postSlug ?? post.id.replace(/\.[^/.]+$/, "") },
+    props: { post },
   }));
 }
 
-type AdjacentPost = {
-  id: string;
-  title: string;
-  filePath: string | undefined;
-} | null;
-
-type Props = {
+export interface Props {
   post: CollectionEntry<"posts">;
-  prevPost: AdjacentPost;
-  nextPost: AdjacentPost;
-};
-
-const { post, prevPost, nextPost } = Astro.props;
-const locale = Astro.currentLocale ?? config.site.lang;
-
-const {
-  title,
-  description,
-  ogImage: initOgImage,
-  canonicalURL,
-  pubDatetime,
-  modDatetime,
-  timezone,
-  tags,
-  hideEditPost,
-} = post.data;
-
-const { Content } = await render(post);
-
-let coverImageUrl: string | undefined;
-if (typeof initOgImage === "string") {
-  coverImageUrl = initOgImage;
-} else if (initOgImage?.src) {
-  coverImageUrl = initOgImage.src;
 }
 
-let ogImageUrl: string | undefined = coverImageUrl;
+const { post } = Astro.props;
+const { Content } = post.render ? await post.render() : await render(post);
 
-if (!ogImageUrl && config.features.dynamicOgImage) {
-  const postUrl = getPostUrl(post.id, post.filePath, locale).replace(
-    /\/+$/,
-    ""
-  );
-  ogImageUrl = `${postUrl}/index.png`;
-}
+const allPosts = await getCollection("posts", ({ data }) => !data.draft);
+const sortedPosts = allPosts.sort(
+  (a, b) => b.data.pubDatetime.valueOf() - a.data.pubDatetime.valueOf()
+);
 
-const ogImage = ogImageUrl
-  ? (ogImageUrl.startsWith("/") ? new URL(ogImageUrl, Astro.url.origin).href : ogImageUrl)
-  : undefined;
+const getSlug = (p: any) => (p.data as any)?.postSlug ?? p.id?.replace(/\.[^/.]+$/, "");
+const getCover = (p: any) =>
+  p.data.ogImage && typeof p.data.ogImage === "string"
+    ? p.data.ogImage
+    : "/images/default-og.jpg";
+
+const displayTitle = post.data.title;
+const displayAuthor = post.data.author || "Editorial Staff";
+const displayCover = getCover(post);
+const tags = post.data.tags || ["Caravan"];
+const primaryTag = tags[0] || "Engineering";
+
+const wordCount = (post as any)?.body ? (post as any).body.split(/\s+/).length : 700;
+const readingTime = `${Math.max(1, Math.ceil(wordCount / 200))} min read`;
+
+// Kategori adetleri (Sidebar)
+const tagCounts = allPosts.reduce((acc: Record<string, number>, p) => {
+  (p.data.tags || []).forEach((t: string) => {
+    acc[t] = (acc[t] || 0) + 1;
+  });
+  return acc;
+}, {});
+const categories = Object.entries(tagCounts).slice(0, 8);
+const allTags = Object.keys(tagCounts).slice(0, 15);
+
+// İlgili ve Popüler Yazılar
+const relatedPosts = sortedPosts
+  .filter(p => p.id !== post.id && p.data.tags?.some((t: string) => tags.includes(t)))
+  .slice(0, 2);
+const finalRelated = relatedPosts.length > 0 ? relatedPosts : sortedPosts.filter(p => p.id !== post.id).slice(0, 2);
+const popularPosts = sortedPosts.filter(p => p.id !== post.id).slice(0, 5);
+
+const shareUrl = encodeURIComponent(Astro.url.href);
+const shareTitle = encodeURIComponent(displayTitle);
 ---
 
-<PostLayout
-  title={`${title} | ${config.site.title}`}
-  description={description}
-  ogImage={ogImage}
-  canonicalURL={canonicalURL}
-  pubDatetime={pubDatetime}
-  modDatetime={modDatetime}
+<Layout
+  title={`${displayTitle} | Portal`}
+  description={post.data.description}
+  ogImage={displayCover}
+  canonicalURL={post.data.canonicalURL}
 >
   <Header />
 
-  <BackButton />
+  <main class="text-slate-700 font-sans">
+    <div class="container xl:max-w-7xl mx-auto px-4 flex flex-col gap-4 lg:gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 py-6">
+        
+        <!-- SOL: MAKALE ALANI (2 SÜTUN) -->
+        <div class="lg:col-span-2 py-4">
+          <h1 class="text-2xl md:text-3xl font-bold py-2 text-slate-900 leading-tight">
+            {displayTitle}
+          </h1>
 
-  <main
-    id="main-content"
-    class:list={["app-layout", { "mt-8": !config.features.showBackButton }]}
-    data-pagefind-body
-  >
-    {
-      coverImageUrl && (
-        <img
-          src={coverImageUrl}
-          alt={title}
-          class="mb-8 rounded-lg aspect-video object-cover w-full"
-        />
-      )
-    }
+          <!-- Meta Çubuğu -->
+          <div class="pb-4 w-full flex flex-wrap items-center gap-4 text-sm text-slate-500 border-b border-slate-200">
+            <span class="flex items-center gap-1.5 hover:text-black">
+              <svg width="1em" height="1em" class="size-3.5" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 8a3 3 0 1 0 0-6a3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0a2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1s1-4 6-4s6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+              </svg>
+              by {displayAuthor}
+            </span>
 
-    <h1
-      style={{ viewTransitionName: toTransitionName(post.id) }}
-      class="text-accent inline-block text-2xl font-bold sm:text-3xl"
-    >
-      {title}
-    </h1>
+            <span class="flex items-center gap-1.5">
+              <svg width="1em" height="1em" class="size-3.5" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+              </svg>
+              <Datetime pubDatetime={post.data.pubDatetime} modDatetime={post.data.modDatetime} />
+            </span>
 
-    <div class="my-2 flex items-center gap-2">
-      <Datetime {pubDatetime} {modDatetime} {timezone} size="lg" />
-      <span
-        aria-hidden="true"
-        class:list={[
-          "text-muted-foreground max-sm:hidden",
-          { hidden: !config.features.editPost?.enabled || hideEditPost },
-        ]}
-      >
-        |
-      </span>
-      <EditPost {hideEditPost} {post} class="max-sm:hidden" />
+            <a href={`/tags/${primaryTag.toLowerCase()}`} class="flex items-center gap-1.5 text-skin-accent hover:underline capitalize">
+              <svg width="1em" height="1em" class="size-3.5" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
+              </svg>
+              {primaryTag}
+            </a>
+
+            <span class="flex items-center gap-1.5">
+              <svg width="1em" height="1em" class="size-3.5" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
+              </svg>
+              {readingTime}
+            </span>
+          </div>
+
+          <!-- Kapak Görseli (2:1 Oran) -->
+          <div class="aspect-[2/1] overflow-hidden w-full bg-slate-100 rounded-lg my-6">
+            <img src={displayCover} alt={displayTitle} class="w-full h-full object-cover" />
+          </div>
+
+          <!-- Makale Metni -->
+          <div class="relative post-content pt-2 prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-img:rounded-lg">
+            <Content />
+          </div>
+
+          <!-- Etiketler ve Paylaşım Barı -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 py-4 border-y border-slate-200 mt-8">
+            <ul class="flex flex-wrap items-center gap-2 text-sm">
+              <li>
+                <svg width="1em" height="1em" class="size-4 text-slate-400" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M3 2v4.586l7 7L14.586 9l-7-7zM2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 6.586z"/>
+                </svg>
+              </li>
+              {tags.map((tag: string) => (
+                <li>
+                  <a href={`/tags/${tag.toLowerCase()}`} class="flex py-1 px-3 bg-white hover:bg-slate-100 rounded-sm border border-slate-200 capitalize text-xs">
+                    {tag}
+                  </a>
+                </li>
+              ))}
+            </ul>
+
+            <div class="flex items-center gap-1 text-slate-600">
+              <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity" aria-label="Share on Facebook">
+                <svg width="1em" height="1em" class="size-4" viewBox="0 0 16 16" fill="currentColor"><path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131c.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"/></svg>
+              </a>
+              <a href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`} target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity" aria-label="Share on X">
+                <svg width="1em" height="1em" class="size-4" viewBox="0 0 16 16" fill="currentColor"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07l-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/></svg>
+              </a>
+              <a href={`https://www.linkedin.com/shareArticle?mini=true&url=${shareUrl}&title=${shareTitle}`} target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity" aria-label="Share on LinkedIn">
+                <svg width="1em" height="1em" class="size-4" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248c-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586c.173-.431.568-.878 1.232-.878c.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252c-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/></svg>
+              </a>
+              <a href={`https://api.whatsapp.com/send?text=${shareTitle}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity" aria-label="Share on WhatsApp">
+                <svg width="1em" height="1em" class="size-4" viewBox="0 0 16 16" fill="currentColor"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144l-2.494.654l.666-2.433l-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931a6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646c-.182-.065-.315-.099-.445.099c-.133.197-.513.646-.627.775c-.114.133-.232.148-.43.05c-.197-.1-.836-.308-1.592-.985c-.59-.525-.985-1.175-1.103-1.372c-.114-.198-.011-.304.088-.403c.087-.088.197-.232.296-.346c.1-.114.133-.198.198-.33c.065-.134.034-.248-.015-.347c-.05-.099-.445-1.076-.612-1.47c-.16-.389-.323-.335-.445-.34c-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992c.47.205.84.326 1.129.418c.475.152.904.129 1.246.08c.38-.058 1.171-.48 1.338-.943c.164-.464.164-.86.114-.943c-.049-.084-.182-.133-.38-.232"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Yazar Kartı -->
+          <div class="flex flex-row items-center py-6 md:py-8 border-b border-slate-200">
+            <div class="shrink-0 rounded-full overflow-hidden size-20 bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-2xl border border-slate-300">
+              {displayAuthor.charAt(0)}
+            </div>
+            <div class="ms-6">
+              <h4 class="text-xl font-bold text-slate-900">{displayAuthor}</h4>
+              <p class="text-sm text-slate-500 mt-0.5">Senior Technical Correspondent</p>
+              <p class="hidden sm:block text-sm text-slate-500 mt-2 leading-relaxed">
+                Specialized in off-grid mobile architectures, electrical engineering setups, dual-battery banks, and high-altitude climate systems.
+              </p>
+            </div>
+          </div>
+
+          <!-- Benzer Yazılar -->
+          {finalRelated.length > 0 && (
+            <div class="py-6 md:py-8 border-b border-slate-200">
+              <h3 class="text-xl font-bold mb-2 text-slate-900">Related Article</h3>
+              <div class="pt-2 flex flex-col">
+                {finalRelated.map(item => (
+                  <a href={`/posts/${getSlug(item)}`} class="flex gap-3 py-3 border-b last:border-b-0 border-slate-200 group">
+                    <img src={getCover(item)} alt={item.data.title} class="size-16 object-cover rounded-sm shrink-0 bg-slate-100" />
+                    <div class="flex flex-col gap-1">
+                      <h4 class="capitalize font-bold text-sm text-slate-800 group-hover:text-skin-accent line-clamp-2">
+                        {item.data.title}
+                      </h4>
+                      <span class="text-slate-400 text-xs">
+                        <Datetime pubDatetime={item.data.pubDatetime} />
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <!-- SAĞ: SIDEBAR (1 SÜTUN) -->
+        <aside class="lg:col-span-1 lg:ps-6">
+          <div class="flex flex-col gap-4 lg:gap-6 top-24 sticky">
+            
+            <!-- Kategori Kutusu -->
+            <div class="bg-slate-50 border border-slate-200 rounded-lg">
+              <h3 class="w-full px-6 py-3 border-b border-slate-200 font-bold text-slate-900 text-sm">
+                Category
+              </h3>
+              <div class="py-3 px-6">
+                <ul class="flex flex-col text-sm">
+                  {categories.map(([catName, count]) => (
+                    <li class="relative">
+                      <a href={`/tags/${catName.toLowerCase()}`} class="flex items-center gap-3 justify-between py-1.5 hover:text-skin-accent transition-colors capitalize">
+                        <span>{catName}</span>
+                        <span class="text-slate-400">({count})</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <!-- Popüler Yazılar (Küçük Resimli) -->
+            <div class="bg-slate-50 border border-slate-200 rounded-lg">
+              <h3 class="w-full px-6 py-3 border-b border-slate-200 font-bold text-slate-900 text-sm">
+                Popular Post
+              </h3>
+              <div class="py-3 px-6 flex flex-col">
+                {popularPosts.map(p => (
+                  <a href={`/posts/${getSlug(p)}`} class="flex gap-3 py-3 border-b last:border-b-0 border-slate-200 group">
+                    <img src={getCover(p)} alt={p.data.title} loading="lazy" class="bg-slate-100 size-16 object-cover rounded-sm shrink-0" />
+                    <div class="flex flex-col gap-1">
+                      <h4 class="text-sm font-medium capitalize group-hover:text-skin-accent line-clamp-2 text-slate-800">
+                        {p.data.title}
+                      </h4>
+                      <span class="text-slate-400 text-xs">
+                        <Datetime pubDatetime={p.data.pubDatetime} />
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <!-- Etiketler -->
+            <div class="bg-slate-50 border border-slate-200 rounded-lg">
+              <h3 class="w-full px-6 py-3 border-b border-slate-200 font-bold text-slate-900 text-sm">
+                Tags
+              </h3>
+              <div class="p-6">
+                <ul class="flex flex-wrap items-center gap-2 text-sm">
+                  {allTags.map(tag => (
+                    <li>
+                      <a href={`/tags/${tag.toLowerCase()}`} class="flex py-1 px-3 rounded-sm bg-white hover:bg-slate-100 border border-slate-200 hover:text-black capitalize text-xs transition-colors">
+                        {tag}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </aside>
+
+      </div>
     </div>
-
-    <article
-      id="article"
-      class:list={[
-        "mt-8 w-full",
-        "app-prose max-w-app",
-        "prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)",
-      ]}
-    >
-      <Content />
-    </article>
-
-    <hr class="my-8 border-dashed" />
-
-    <EditPost class="sm:hidden" {hideEditPost} {post} />
-
-    <BackToTopButton />
-
-    <ul class="mt-4 mb-8 flex flex-wrap gap-4 sm:my-8">
-      {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} size="sm" />)}
-    </ul>
-
-    <ShareLinks />
-
-    <hr class="my-8 border-dashed" />
-
-    <AdjacentPostNav {prevPost} {nextPost} />
   </main>
+
   <Footer />
-</PostLayout>
-
-<script is:inline data-astro-rerun>
-  function createProgressBar() {
-    const progressContainer = document.createElement("div");
-    progressContainer.className =
-      "progress-container fixed top-0 z-10 h-1 w-full bg-background";
-
-    const progressBar = document.createElement("div");
-    progressBar.className = "progress-bar h-1 w-0 bg-accent";
-    progressBar.id = "myBar";
-
-    progressContainer.appendChild(progressBar);
-    document.body.appendChild(progressContainer);
-  }
-  createProgressBar();
-
-  function updateScrollProgress() {
-    document.addEventListener("scroll", () => {
-      const winScroll =
-        document.body.scrollTop || document.documentElement.scrollTop;
-      const height =
-        document.documentElement.scrollHeight -
-        document.documentElement.clientHeight;
-      const scrolled = (winScroll / height) * 100;
-      if (document) {
-        const myBar = document.getElementById("myBar");
-        if (myBar) {
-          myBar.style.width = scrolled + "%";
-        }
-      }
-    });
-  }
-  updateScrollProgress();
-
-  function addHeadingLinks() {
-    const headings = Array.from(
-      document.querySelectorAll("h2, h3, h4, h5, h6")
-    );
-    for (const heading of headings) {
-      heading.classList.add("group");
-      const link = document.createElement("a");
-      link.className =
-        "heading-link ms-2 no-underline opacity-75 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100";
-      link.href = "#" + heading.id;
-
-      const span = document.createElement("span");
-      span.ariaHidden = "true";
-      span.innerText = "#";
-      link.appendChild(span);
-      heading.appendChild(link);
-    }
-  }
-  addHeadingLinks();
-
-  function attachCopyButtons() {
-    const copyButtonLabel = "Copy";
-    const codeBlocks = Array.from(document.querySelectorAll("pre"));
-
-    for (const codeBlock of codeBlocks) {
-      const wrapper = document.createElement("div");
-      wrapper.style.position = "relative";
-
-      const computedStyle = getComputedStyle(codeBlock);
-      const hasFileNameOffset =
-        computedStyle.getPropertyValue("--file-name-offset").trim() !== "";
-
-      const topClass = hasFileNameOffset
-        ? "top-(--file-name-offset)"
-        : "-top-3";
-
-      const copyButton = document.createElement("button");
-      copyButton.className = `copy-code absolute end-3 ${topClass} rounded bg-muted border border-muted px-2 py-1 text-xs leading-4 text-foreground font-medium`;
-      copyButton.innerHTML = copyButtonLabel;
-      codeBlock.setAttribute("tabindex", "0");
-      codeBlock.appendChild(copyButton);
-
-      codeBlock?.parentNode?.insertBefore(wrapper, codeBlock);
-      wrapper.appendChild(codeBlock);
-
-      copyButton.addEventListener("click", async () => {
-        await copyCode(codeBlock, copyButton);
-      });
-    }
-
-    async function copyCode(block, button) {
-      const code = block.querySelector("code");
-      const text = code?.innerText;
-
-      await navigator.clipboard.writeText(text ?? "");
-
-      button.innerText = "Copied";
-
-      setTimeout(() => {
-        button.innerText = copyButtonLabel;
-      }, 700);
-    }
-  }
-  attachCopyButtons();
-
-  function initLightbox() {
-    const article = document.getElementById("article");
-    if (!article) return;
-
-    const prefersReducedMotion = () =>
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    let overlay = null;
-    let lastFocused = null;
-
-    requestAnimationFrame(() => {
-      const images = Array.from(article.querySelectorAll("img"));
-      for (const image of images) {
-        if (image.closest("a")) continue;
-        image.setAttribute("role", "button");
-        image.setAttribute("tabindex", "0");
-        image.setAttribute("aria-haspopup", "dialog");
-        image.setAttribute(
-          "aria-label",
-          image.alt ? `Zoom image: ${image.alt}` : "Zoom image"
-        );
-      }
-    });
-
-    function open(src, alt, trigger) {
-      if (overlay) return;
-      lastFocused = trigger ?? document.activeElement;
-
-      overlay = document.createElement("div");
-      overlay.setAttribute("role", "dialog");
-      overlay.setAttribute("aria-modal", "true");
-      overlay.setAttribute(
-        "aria-label",
-        alt ? `Image preview: ${alt}` : "Image preview"
-      );
-      overlay.className =
-        "fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-black/70 backdrop-blur-sm opacity-0 transition-opacity duration-200 motion-reduce:transition-none";
-
-      const closeButton = document.createElement("button");
-      closeButton.type = "button";
-      closeButton.setAttribute("aria-label", "Close image preview");
-      closeButton.className =
-        "absolute end-4 top-4 rounded p-2 text-3xl leading-none text-white";
-      closeButton.innerHTML = "&#10005;";
-      closeButton.addEventListener("click", close);
-
-      const image = document.createElement("img");
-      image.src = src;
-      image.alt = "";
-      image.className =
-        "max-h-[90dvh] max-w-[90dvw] cursor-default object-contain";
-
-      overlay.append(closeButton, image);
-      overlay.addEventListener("click", e => {
-        if (e.target === overlay && currentScale <= 1) close();
-      });
-
-      let currentScale = 1;
-      let translateX = 0;
-      let translateY = 0;
-      let initialDist = 0;
-      let initialScale = 1;
-      let panStartX = 0;
-      let panStartY = 0;
-      let panStartTranslateX = 0;
-      let panStartTranslateY = 0;
-      let lastTapTime = 0;
-
-      function applyTransform() {
-        image.style.transform = `scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
-      }
-
-      function resetTransform() {
-        currentScale = 1;
-        translateX = 0;
-        translateY = 0;
-        image.style.transform = "";
-      }
-
-      overlay.addEventListener(
-        "touchstart",
-        e => {
-          const t = e.touches;
-          if (t.length === 2) {
-            initialDist = Math.hypot(
-              t[1].clientX - t[0].clientX,
-              t[1].clientY - t[0].clientY
-            );
-            initialScale = currentScale;
-          } else if (t.length === 1) {
-            const now = Date.now();
-            if (now - lastTapTime < 300) {
-              e.preventDefault();
-              if (currentScale > 1) {
-                resetTransform();
-              } else {
-                currentScale = 2;
-                translateX = 0;
-                translateY = 0;
-                applyTransform();
-              }
-              lastTapTime = 0;
-              panStartX = t[0].clientX;
-              panStartY = t[0].clientY;
-              panStartTranslateX = translateX;
-              panStartTranslateY = translateY;
-            } else {
-              lastTapTime = now;
-              if (currentScale > 1) {
-                panStartX = t[0].clientX;
-                panStartY = t[0].clientY;
-                panStartTranslateX = translateX;
-                panStartTranslateY = translateY;
-              }
-            }
-          }
-        },
-        { passive: false }
-      );
-
-      overlay.addEventListener(
-        "touchmove",
-        e => {
-          const t = e.touches;
-          if (t.length === 2) {
-            e.preventDefault();
-            const dist = Math.hypot(
-              t[1].clientX - t[0].clientX,
-              t[1].clientY - t[0].clientY
-            );
-            currentScale = Math.min(
-              4,
-              Math.max(1, initialScale * (dist / initialDist))
-            );
-            applyTransform();
-          } else if (t.length === 1) {
-            if (currentScale > 1) {
-              e.preventDefault();
-              translateX =
-                panStartTranslateX + (t[0].clientX - panStartX) / currentScale;
-              translateY =
-                panStartTranslateY + (t[0].clientY - panStartY) / currentScale;
-              const maxX = Math.max(
-                0,
-                (image.clientWidth - overlay.clientWidth / currentScale) / 2
-              );
-              const maxY = Math.max(
-                0,
-                (image.clientHeight - overlay.clientHeight / currentScale) / 2
-              );
-              translateX = Math.min(maxX, Math.max(-maxX, translateX));
-              translateY = Math.min(maxY, Math.max(-maxY, translateY));
-              applyTransform();
-            } else {
-              e.preventDefault();
-            }
-          }
-        },
-        { passive: false }
-      );
-
-      overlay.addEventListener("touchend", e => {
-        if (e.touches.length === 0 && currentScale <= 1.05) {
-          resetTransform();
-        }
-      });
-
-      overlay.addEventListener("touchcancel", e => {
-        if (e.touches.length === 0 && currentScale <= 1.05) {
-          resetTransform();
-        }
-      });
-
-      document.body.appendChild(overlay);
-      document.body.style.overflow = "hidden";
-      document.addEventListener("keydown", onKeyDown);
-      window.__closeLightbox = close;
-
-      requestAnimationFrame(() => overlay?.classList.add("opacity-100"));
-      closeButton.focus();
-    }
-
-    function close() {
-      if (!overlay) return;
-      const el = overlay;
-      overlay = null;
-      window.__closeLightbox = null;
-
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = "";
-      lastFocused?.focus();
-      lastFocused = null;
-
-      if (prefersReducedMotion()) {
-        el.remove();
-        return;
-      }
-      const remove = () => el.remove();
-      el.addEventListener("transitionend", remove, { once: true });
-      setTimeout(remove, 250);
-      el.classList.remove("opacity-100");
-    }
-
-    function onKeyDown(e) {
-      if (e.key === "Escape") {
-        close();
-      } else if (e.key === "Tab") {
-        trapFocus(e);
-      }
-    }
-
-    function trapFocus(e) {
-      if (!overlay) return;
-      const focusables = overlay.querySelectorAll(
-        'a[href], button, [tabindex]:not([tabindex="-1"])'
-      );
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    }
-
-    function triggerFromEvent(e) {
-      const image = e.target.closest("img");
-      if (!image || !article.contains(image) || image.closest("a")) return null;
-      return image;
-    }
-
-    function activate(image) {
-      open(image.currentSrc || image.src, image.alt, image);
-    }
-
-    article.addEventListener("click", e => {
-      const image = triggerFromEvent(e);
-      if (!image) return;
-      e.preventDefault();
-      activate(image);
-    });
-
-    article.addEventListener("keydown", e => {
-      if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
-      const image = triggerFromEvent(e);
-      if (!image) return;
-      e.preventDefault();
-      activate(image);
-    });
-  }
-  initLightbox();
-
-  if (!window.__lightboxSwapBound) {
-    window.__lightboxSwapBound = true;
-    document.addEventListener("astro:before-swap", () =>
-      window.__closeLightbox?.()
-    );
-  }
-
-  document.addEventListener("astro:after-swap", () =>
-    window.scrollTo({ left: 0, top: 0, behavior: "instant" })
-  );
-</script>
+</Layout>
