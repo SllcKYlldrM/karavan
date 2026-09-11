@@ -129,15 +129,24 @@ if article_body.startswith("```"): article_body = article_body[3:]
 if article_body.endswith("```"): article_body = article_body[:-3]
 article_body = article_body.strip()
 
-# 6. Otomatik Kapak Görseli İndirme ve Kaydetme
-encoded_title = urllib.parse.quote(topic_data['title'])
-image_url = f"https://image.pollinations.ai/prompt/Professional%20off-grid%20caravan,%20{encoded_title}?width=1200&height=630&nologo=true"
+# 6. Gelişmiş Otomatik Kapak Görseli Üretimi (Pollinations.ai)
+# Filigranı kaldırmak için nologo=true ve kaliteyi sabitlemek için rastgele bir seed ekliyoruz.
+import random
+seed_value = random.randint(1, 10000) # Her seferinde farklı ama kaliteli bir deneme için
+
+# Konuyu daha iyi anlatan, detaylı bir görsel promptu oluşturuyoruz.
+visual_prompt_details = f"Professional technical photograph of a modern off-grid caravan system related to {topic_data['title']}, photorealistic, high detail, engineering style, no text, no watermark"
+encoded_visual_prompt = urllib.parse.quote(visual_prompt_details)
+
+image_url = f"https://image.pollinations.ai/prompt/{encoded_visual_prompt}?width=1200&height=630&nologo=true&seed={seed_value}"
 
 image_filename = f"{topic_data['slug']}.jpg"
 image_path = os.path.join("public/images", image_filename)
+# public/images klasörünün varlığından emin ol (Workflow zaten oluşturuyor ama garantiye alalım)
 os.makedirs("public/images", exist_ok=True)
 
 try:
+    print(f"-> Görsel indiriliyor: {image_url}")
     img_res = requests.get(image_url)
     if img_res.status_code == 200:
         with open(image_path, "wb") as img_file:
@@ -145,6 +154,7 @@ try:
         cover_image = f"/images/{image_filename}"
         print(f"-> Görsel başarıyla indirildi ve kaydedildi: {cover_image}")
     else:
+        print(f"⚠️ Görsel indirilemedi, HTTP Kodu: {img_res.status_code}")
         cover_image = "/images/default-og.jpg" # Yedek görsel
 except Exception as e:
     print(f"⚠️ Görsel indirilemedi: {e}")
