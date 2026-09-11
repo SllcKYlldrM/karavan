@@ -17,7 +17,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # Test için OpenRouter'ın en kararlı ücretsiz modeli
-MODEL_NAME = "meta-llama/llama-3.1-8b-instruct:free"
+MODEL_NAME = "deepseek/deepseek-chat"
 
 PROMPT = """
 You are an expert technical content writer and developer.
