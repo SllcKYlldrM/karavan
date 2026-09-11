@@ -4,7 +4,7 @@ pubDatetime: 2026-09-11T11:44:46Z
 title: "Top Essential Caravan Equipment & Weight Distribution Tips"
 postSlug: "caravan-weight-distribution-guide"
 featured: false
-draft: true
+draft: false
 tags:
   - caravan
   - travel
