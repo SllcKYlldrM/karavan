@@ -216,16 +216,12 @@ for idx, img_desc in enumerate(re.findall(r'\[IMAGE:\s*(.*?)\]', article_body), 
         print(f"⚠️ Alt görsel {idx} indirilemedi, etiket temizleniyor.")
         article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
 
-# --- ADIM 5: Dosya Kaydı (default-og.jpg Güvenceli) ---
+# --- ADIM 5: Dosya Kaydı (En Güvenli Yöntem) ---
 pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan"])])
 
-# Görsel diske başarıyla indiyse onu al, inmediyse default-og.jpg ata
-if os.path.exists(main_image_path) and os.path.getsize(main_image_path) > 1000:
-    final_og_image = cover_image
-else:
-    final_og_image = "/images/default-og.jpg"
-    print("⚠️ Görsel inmedi, varsayılan 'default-og.jpg' devrede.")
+# Sadece gerçek kapak görseli başarıyla indiyse ogImage ekle, aksi halde alanı boş bırak
+og_image_line = f'ogImage: "{cover_image}"' if (os.path.exists(main_image_path) and os.path.getsize(main_image_path) > 1000) else ''
 
 post_content = f"""---
 author: AI Editorial
@@ -236,7 +232,7 @@ featured: false
 draft: false
 tags:
 {tags_formatted}
-ogImage: "{final_og_image}"
+{og_image_line}
 description: "Comprehensive technical guide for {topic_data['title']}."
 ---
 
@@ -246,5 +242,3 @@ description: "Comprehensive technical guide for {topic_data['title']}."
 output_path = os.path.join(POSTS_DIR, f"{topic_data['slug']}.md")
 with open(output_path, "w", encoding="utf-8") as f:
     f.write(post_content)
-
-print(f"-> 🚀 Başarıyla tamamlandı ve yayınlandı: {output_path}")
