@@ -216,16 +216,15 @@ for idx, img_desc in enumerate(re.findall(r'\[IMAGE:\s*(.*?)\]', article_body), 
         print(f"⚠️ Alt görsel {idx} indirilemedi, etiket temizleniyor.")
         article_body = article_body.replace(f"[IMAGE: {img_desc}]", "")
 
-# --- ADIM 5: Dosya Kaydı (Varsayılan Görsel Güvenceli) ---
+# --- ADIM 5: Dosya Kaydı (Varsayılan SVG Güvenceli) ---
 pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan"])])
 
-# Eğer kapak görseli başarılı şekilde inmişse onu kullan, inmemişse standart default-cover.jpg ata
 if os.path.exists(main_image_path) and os.path.getsize(main_image_path) > 1000:
     final_og_image = cover_image
 else:
-    final_og_image = "/images/default-cover.jpg"
-    print("⚠️ Kapak görseli indirilemediği için varsayılan 'default-og.jpg' görseli atanıyor.")
+    final_og_image = "/images/default-cover.svg"
+    print("⚠️ Kapak görseli indirilemediği için varsayılan 'default-cover.svg' görseli atanıyor.")
 
 post_content = f"""---
 author: AI Editorial
