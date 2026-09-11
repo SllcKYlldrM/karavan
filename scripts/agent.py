@@ -5,34 +5,60 @@ from datetime import datetime, timezone
 import requests
 from pydantic import BaseModel, Field
 
-# --- Doğrulama Şeması (Pydantic) ---
-class BlogPostSchema(BaseModel):
-    title: str = Field(description="SEO uyumlu İngilizce başlık")
-    slug: str = Field(description="URL için küçük harf ve tireli slug")
-    description: str = Field(description="1-2 cümlelik meta açıklama")
-    tags: list[str] = Field(description="İlgili etiketler listesi")
-    content: str = Field(description="Markdown formatında gövde içeriği")
-
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+TOPICS_FILE = os.path.join("scripts", "topics.json")
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-# Test için OpenRouter'ın en kararlı ücretsiz modeli
-MODEL_NAME = "deepseek/deepseek-chat"
+class BlogPostSchema(BaseModel):
+    title: str = Field(description="SEO-friendly title")
+    slug: str = Field(description="URL slug")
+    description: str = Field(description="Meta description")
+    tags: list[str] = Field(description="Tags list")
+    content: str = Field(description="Full markdown content (including raw HTML/JS if calculator)")
 
-PROMPT = """
-You are an expert technical content writer and developer.
-Generate an engaging, highly useful English blog post about "Top Essential Caravan Equipment & Weight Distribution Tips".
+def get_next_topic():
+    if not os.path.exists(TOPICS_FILE):
+        return None
+    with open(TOPICS_FILE, "r", encoding="utf-8") as f:
+        topics = json.load(f)
+    for topic in topics:
+        if topic.get("status") == "pending":
+            return topic
+    return None
 
-Return the response STRICTLY as a valid JSON object with the following keys:
+def mark_topic_done(topic_id):
+    with open(TOPICS_FILE, "r", encoding="utf-8") as f:
+        topics = json.load(f)
+    for topic in topics:
+        if topic.get("id") == topic_id:
+            topic["status"] = "completed"
+            break
+    with open(TOPICS_FILE, "w", encoding="utf-8") as f:
+        json.dump(topics, f, indent=2, ensure_ascii=False)
+
+def generate_post(topic):
+    # Model kademelendirmesi: Hesaplayıcı için Claude 3.5, Rehber için DeepSeek-V3
+    if topic.get("type") == "calculator":
+        model_name = "anthropic/claude-3.5-sonnet"
+    else:
+        model_name = "deepseek/deepseek-chat"
+
+    prompt = f"""
+You are a senior technical writer and web developer.
+Topic: {topic['title']}
+Task details: {topic['prompt']}
+
+If creating a calculator, use self-contained inline <style> and vanilla <script> elements inside standard HTML container so it renders and functions directly within Astro markdown.
+
+Return response STRICTLY as valid JSON with keys:
 - "title": string
-- "slug": string (e.g. caravan-weight-distribution-guide)
-- "description": string (short SEO description)
-- "tags": list of strings (e.g. ["caravan", "travel", "safety"])
-- "content": string (detailed Markdown body with headings, tips, and bullet points)
-Do not wrap JSON in markdown blockquotes, return pure JSON only.
+- "slug": string
+- "description": string
+- "tags": list of strings
+- "content": string (Markdown body)
+No markdown json wrappers, pure JSON only.
 """
 
-def generate_post():
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
@@ -41,40 +67,36 @@ def generate_post():
     }
 
     payload = {
-        "model": MODEL_NAME,
+        "model": model_name,
         "messages": [
-            {"role": "system", "content": "You output strictly valid JSON matching the requested schema."},
-            {"role": "user", "content": PROMPT}
+            {"role": "system", "content": "You output strictly valid JSON matching schema."},
+            {"role": "user", "content": prompt}
         ],
-        "temperature": 0.7
+        "temperature": 0.4 if topic.get("type") == "calculator" else 0.7
     }
 
-    response = requests.post(API_URL, headers=headers, json=payload, timeout=120)
-    
+    response = requests.post(API_URL, headers=headers, json=payload, timeout=180)
     if not response.ok:
-        print("API Yanıtı:", response.text)
+        print("API Hatası:", response.text)
         response.raise_for_status()
 
-    raw_content = response.json()["choices"][0]["message"]["content"].strip()
-    clean_json = re.sub(r"^```json\s*|\s*```$", "", raw_content, flags=re.MULTILINE).strip()
+    raw = response.json()["choices"][0]["message"]["content"].strip()
+    clean_json = re.sub(r"^```json\s*|\s*```$", "", raw, flags=re.MULTILINE).strip()
     data = json.loads(clean_json)
-    
     return BlogPostSchema(**data)
 
-def save_to_astro(post: BlogPostSchema):
+def save_post(post: BlogPostSchema):
     target_dir = os.path.join("src", "content", "posts")
     os.makedirs(target_dir, exist_ok=True)
-    
     filepath = os.path.join(target_dir, f"{post.slug}.md")
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # Human-in-the-Loop: taslak olarak işaretlenir
     frontmatter = f"""---
 author: AI Editorial
 pubDatetime: {now_iso}
 title: "{post.title}"
 postSlug: "{post.slug}"
-featured: false
+featured: true
 draft: true
 tags:
 {chr(10).join([f'  - {tag}' for tag in post.tags])}
@@ -85,8 +107,14 @@ description: "{post.description}"
 """
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(frontmatter)
-    print(f"Başarıyla taslak oluşturuldu: {filepath}")
+    print(f"Yazı oluşturuldu: {filepath}")
 
 if __name__ == "__main__":
-    post = generate_post()
-    save_to_astro(post)
+    topic = get_next_topic()
+    if not topic:
+        print("İşlenecek yeni konu bulunamadı.")
+    else:
+        print(f"İşleniyor: {topic['title']} (Tip: {topic['type']})")
+        post = generate_post(topic)
+        save_post(post)
+        mark_topic_done(topic["id"])
