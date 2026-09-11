@@ -104,7 +104,7 @@ pubDatetime: {now_iso}
 title: "{post.title}"
 postSlug: "{post.slug}"
 featured: true
-draft: true
+draft: false
 tags:
 {chr(10).join([f'  - {tag}' for tag in post.tags])}
 description: "{post.description}"
