@@ -73,13 +73,14 @@ const {
 
 const { Content } = await render(post);
 
-let ogImageUrl: string | undefined;
-
+let coverImageUrl: string | undefined;
 if (typeof initOgImage === "string") {
-  ogImageUrl = initOgImage;
+  coverImageUrl = initOgImage;
 } else if (initOgImage?.src) {
-  ogImageUrl = initOgImage.src;
+  coverImageUrl = initOgImage.src;
 }
+
+let ogImageUrl: string | undefined = coverImageUrl;
 
 if (!ogImageUrl && config.features.dynamicOgImage) {
   const postUrl = getPostUrl(post.id, post.filePath, locale).replace(
@@ -90,21 +91,14 @@ if (!ogImageUrl && config.features.dynamicOgImage) {
 }
 
 const ogImage = ogImageUrl
-  ? new URL(ogImageUrl, Astro.url.origin).href
+  ? (ogImageUrl.startsWith("/") ? new URL(ogImageUrl, Astro.url.origin).href : ogImageUrl)
   : undefined;
 ---
 
-<PostLayout
-  title={`${title} | ${config.site.title}`}
-  description={description}
-  ogImage={ogImage}
-  canonicalURL={canonicalURL}
-  pubDatetime={pubDatetime}
-  modDatetime={modDatetime}
->
-  <Header />
+<PostLayout ${config.site.title}`} canonicalURL="{canonicalURL}" description="{description}" modDatetime="{modDatetime}" ogImage="{ogImage}" pubDatetime="{pubDatetime}" title="{`${title}" |>
+  <Header/>
 
-  <BackButton />
+  <BackButton/>
 
   <main
     id="main-content"
@@ -112,9 +106,9 @@ const ogImage = ogImageUrl
     data-pagefind-body
   >
     {
-      ogImage && (
+      coverImageUrl && (
         <img
-          src={ogImage}
+          src={coverImageUrl}
           alt={title}
           class="mb-8 rounded-lg aspect-video object-cover w-full"
         />
@@ -129,7 +123,7 @@ const ogImage = ogImageUrl
     </h1>
 
     <div class="my-2 flex items-center gap-2">
-      <Datetime {pubDatetime} {modDatetime} {timezone} size="lg" />
+      <Datetime size="lg" {modDatetime} {pubDatetime} {timezone}/>
       <span
         aria-hidden="true"
         class:list={[
@@ -139,7 +133,7 @@ const ogImage = ogImageUrl
       >
         |
       </span>
-      <EditPost {hideEditPost} {post} class="max-sm:hidden" />
+      <EditPost class="max-sm:hidden" {hideEditPost} {post}/>
     </div>
 
     <article
@@ -150,26 +144,26 @@ const ogImage = ogImageUrl
         "prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)",
       ]}
     >
-      <Content />
+      <Content/>
     </article>
 
     <hr class="my-8 border-dashed" />
 
-    <EditPost class="sm:hidden" {hideEditPost} {post} />
+    <EditPost class="sm:hidden" {hideEditPost} {post}/>
 
-    <BackToTopButton />
+    <BackToTopButton/>
 
     <ul class="mt-4 mb-8 flex flex-wrap gap-4 sm:my-8">
-      {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} size="sm" />)}
+      {tags.map(tag => <Tag size="sm" tag="{slugifyStr(tag)}" tagName="{tag}"/>)}
     </ul>
 
-    <ShareLinks />
+    <ShareLinks/>
 
     <hr class="my-8 border-dashed" />
 
-    <AdjacentPostNav {prevPost} {nextPost} />
+    <AdjacentPostNav {nextPost} {prevPost}/>
   </main>
-  <Footer />
+  <Footer/>
 </PostLayout>
 
 <script is:inline data-astro-rerun>
