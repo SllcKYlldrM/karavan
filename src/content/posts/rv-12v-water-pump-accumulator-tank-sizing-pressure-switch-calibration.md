@@ -12,7 +12,6 @@ tags:
   - Pressure Switch Calibration
   - RV Water System
   - Off-Grid Plumbing
-ogImage: "/images/rv-12v-water-pump-accumulator-tank-sizing-pressure-switch-calibration.jpg"
 description: "Comprehensive technical guide for 12V RV Water Pump Rapid Cycling Elimination: Sizing Accumulator Tanks & Calibrating Pressure Switch Cut-In/Cut-Out Differentials."
 ---
 
