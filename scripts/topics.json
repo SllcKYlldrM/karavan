@@ -4,7 +4,7 @@
     "type": "calculator",
     "title": "Caravan Towing Weight Ratio Calculator & Safety Guide",
     "prompt": "Create an interactive Caravan Towing Weight Ratio Calculator. Include HTML form inputs for Vehicle Kerbweight (kg) and Caravan MTPLM (kg), calculating the ratio percentage with safety warning levels (under 85% safe, 85-100% experienced only, over 100% dangerous). Add vanilla JS and complete practical towing advice.",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "id": 2,
