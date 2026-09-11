@@ -3,21 +3,56 @@
     "id": 1,
     "type": "calculator",
     "title": "Caravan Towing Weight Ratio Calculator & Safety Guide",
-    "prompt": "Create an interactive Caravan Towing Weight Ratio Calculator. Include HTML form inputs for Vehicle Kerbweight (kg) and Caravan MTPLM (kg), calculating the ratio percentage with safety warning levels (under 85% safe, 85-100% experienced only, over 100% dangerous). Add vanilla JS and complete practical towing advice.",
+    "prompt": "Create an interactive Caravan Towing Weight Ratio Calculator. Include HTML form inputs for Vehicle Kerbweight (kg) and Caravan MTPLM (kg), calculate ratio percentage and towing safety zone with color-coded alerts.",
     "status": "completed"
   },
   {
     "id": 2,
     "type": "guide",
     "title": "Complete Off-Grid Caravan Solar Power Setup Guide",
-    "prompt": "Write a comprehensive beginner-friendly guide on sizing off-grid caravan solar setups, covering panels, MPPT controllers, lithium batteries, and inverter choices with practical examples.",
-    "status": "pending"
+    "prompt": "Write a comprehensive beginner-friendly guide on sizing off-grid caravan solar setups, covering panels, MPPT controllers, lithium batteries, and inverters.",
+    "status": "completed"
   },
   {
     "id": 3,
     "type": "calculator",
     "title": "Daily Caravan Off-Grid Power Consumption Calculator",
-    "prompt": "Build an interactive Off-Grid Power Consumption Calculator for caravans. Allow users to calculate daily amp-hour (Ah) consumption based on appliances (fridge, lights, water pump, devices) with pure HTML and vanilla JS embedded.",
+    "prompt": "Build an interactive Off-Grid Power Consumption Calculator for caravans. Allow users to calculate daily amp-hour (Ah) consumption based on appliances, run hours, and battery capacity.",
+    "status": "pending"
+  },
+  {
+    "id": 4,
+    "type": "calculator",
+    "title": "Caravan Freshwater Autonomy & Tank Size Calculator",
+    "prompt": "Create an interactive calculator determining how many days onboard fresh water will last based on crew size, shower habits, dishwashing, and tank capacity.",
+    "status": "pending"
+  },
+  {
+    "id": 5,
+    "type": "calculator",
+    "title": "Caravan Payload & Loading Weight Distribution Calculator",
+    "prompt": "Create a payload safety calculator checking remaining payload after accessories, passengers, and gear to prevent dangerous overloading.",
+    "status": "pending"
+  },
+  {
+    "id": 6,
+    "type": "calculator",
+    "title": "Caravan Noseweight Balance & Towball Safety Calculator",
+    "prompt": "Create an interactive noseweight safety calculator verifying if hitch weight falls within the critical 5-7% gross weight range to eliminate trailer sway.",
+    "status": "pending"
+  },
+  {
+    "id": 7,
+    "type": "calculator",
+    "title": "Caravan Inverter Size & Continuous Wattage Calculator",
+    "prompt": "Build an inverter sizing calculator calculating continuous and surge wattage requirements for 230V appliances running off 12V batteries.",
+    "status": "pending"
+  },
+  {
+    "id": 8,
+    "type": "calculator",
+    "title": "Caravan LPG Propane Gas Consumption Estimator",
+    "prompt": "Create an interactive LPG gas consumption calculator estimating remaining cylinder days based on heating, fridge, and cooking usage in cold vs mild weather.",
     "status": "pending"
   }
 ]
