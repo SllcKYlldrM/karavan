@@ -1,11 +1,13 @@
 ---
-author: AI Editorial
+author: Alex Morgan
 pubDatetime: 2026-09-11T17:19:43Z
 title: "Optimizing Off-Grid Caravan DC-DC Charger Efficiency: Advanced Wiring & Grounding Techniques"
 postSlug: "off-grid-caravan-dc-dc-charger-efficiency-wiring-grounding"
+category: Power & Solar Systems
 featured: false
 draft: false
 tags:
+  - Power & Solar Systems
   - dc-dc charger
   - caravan electrics
   - voltage drop mitigation

@@ -1,0 +1,154 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Datetime from "./Datetime.astro";
+
+type Post = CollectionEntry<"posts">;
+
+interface Props {
+  posts: Post[];
+}
+
+const { posts } = Astro.props;
+const getSlug = (post: Post) => post.data.postSlug ?? post.id.replace(/\.[^/.]+$/, "");
+const getCover = (post: Post) =>
+  post.data.ogImage && typeof post.data.ogImage === "string"
+    ? post.data.ogImage
+    : "/images/default-og.jpg";
+---
+
+<div
+  id="hero-slider"
+  class="group relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-skin-line/50 bg-skin-card shadow-sm sm:aspect-[21/9]"
+  data-slider
+>
+  {posts.map((post, index) => (
+    <article
+      class:list={[
+        "hero-slide pointer-events-none absolute inset-0 cursor-pointer opacity-0 transition-opacity duration-700",
+        { "pointer-events-auto opacity-100": index === 0 },
+      ]}
+      data-slide={index}
+      data-href={`/posts/${getSlug(post)}`}
+      aria-hidden={index === 0 ? "false" : "true"}
+      tabindex={index === 0 ? 0 : -1}
+    >
+      <img
+        src={getCover(post)}
+        alt={post.data.title}
+        loading={index === 0 ? "eager" : "lazy"}
+        class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent"></div>
+      <div class="absolute right-0 bottom-0 left-0 p-6 sm:p-10">
+        {post.data.tags?.[0] && (
+          <span class="inline-block rounded-md bg-skin-accent px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-sm">
+            {post.data.tags[0]}
+          </span>
+        )}
+        <h1 class="mt-3 max-w-3xl text-xl leading-tight font-bold text-white drop-shadow-sm sm:text-3xl lg:text-4xl">
+          <a href={`/posts/${getSlug(post)}`} class="hover:underline">
+            {post.data.title}
+          </a>
+        </h1>
+        <p class="mt-2 max-w-2xl text-xs leading-relaxed text-slate-300 line-clamp-2 sm:text-sm">
+          {post.data.description}
+        </p>
+        <div class="mt-4 flex items-center gap-3 text-xs font-medium text-slate-400">
+          <span>{post.data.author || "Editorial"}</span>
+          <span>•</span>
+          <Datetime pubDatetime={post.data.pubDatetime} modDatetime={post.data.modDatetime} />
+        </div>
+      </div>
+      <a
+        href={`/posts/${getSlug(post)}`}
+        class="absolute inset-0 z-[5] block"
+        aria-label={post.data.title}
+      ></a>
+    </article>
+  ))}
+
+  <div class="absolute right-6 bottom-5 z-10 flex items-center gap-2 sm:right-10">
+    {posts.map((_, index) => (
+      <button
+        type="button"
+        class:list={[
+          "hero-dot h-2 rounded-full bg-white/60 transition-all",
+          { "w-7 bg-white": index === 0, "w-2": index !== 0 },
+        ]}
+        data-slide-target={index}
+        aria-label={`Show featured post ${index + 1}`}
+        aria-current={index === 0 ? "true" : "false"}
+      ></button>
+    ))}
+  </div>
+
+  <button type="button" class="absolute inset-y-0 start-0 z-10 hidden w-16 items-center justify-center text-2xl text-white/80 hover:text-white sm:flex" data-slider-prev aria-label="Previous featured post">&#8592;</button>
+  <button type="button" class="absolute inset-y-0 end-0 z-10 hidden w-16 items-center justify-center text-2xl text-white/80 hover:text-white sm:flex" data-slider-next aria-label="Next featured post">&#8594;</button>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-slider]").forEach(slider => {
+    const slides = Array.from(slider.querySelectorAll<HTMLElement>("[data-slide]"));
+    const dots = Array.from(slider.querySelectorAll<HTMLButtonElement>("[data-slide-target]"));
+    const previous = slider.querySelector<HTMLButtonElement>("[data-slider-prev]");
+    const next = slider.querySelector<HTMLButtonElement>("[data-slider-next]");
+    if (slides.length < 2) return;
+
+    let activeIndex = 0;
+    let timer: number | undefined;
+    const showSlide = (index: number) => {
+      activeIndex = (index + slides.length) % slides.length;
+      slides.forEach((slide, slideIndex) => {
+        const active = slideIndex === activeIndex;
+        slide.classList.toggle("opacity-100", active);
+        slide.classList.toggle("opacity-0", !active);
+        slide.classList.toggle("pointer-events-auto", active);
+        slide.classList.toggle("pointer-events-none", !active);
+        slide.setAttribute("aria-hidden", String(!active));
+        slide.setAttribute("tabindex", active ? "0" : "-1");
+      });
+      dots.forEach((dot, dotIndex) => {
+        const active = dotIndex === activeIndex;
+        dot.classList.toggle("w-7", active);
+        dot.classList.toggle("w-2", !active);
+        dot.classList.toggle("bg-white", active);
+        dot.classList.toggle("bg-white/60", !active);
+        dot.setAttribute("aria-current", String(active));
+      });
+    };
+    const stop = () => {
+      if (timer !== undefined) window.clearInterval(timer);
+      timer = undefined;
+    };
+    const start = () => {
+      stop();
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        timer = window.setInterval(() => showSlide(activeIndex + 1), 6000);
+      }
+    };
+
+    dots.forEach((dot, index) => dot.addEventListener("click", () => { showSlide(index); start(); }));
+    previous?.addEventListener("click", () => { showSlide(activeIndex - 1); start(); });
+    next?.addEventListener("click", () => { showSlide(activeIndex + 1); start(); });
+    slides.forEach(slide => {
+      const href = slide.dataset.href;
+      if (!href) return;
+      const openPost = (event: Event) => {
+        if ((event.target as HTMLElement).closest("a, button")) return;
+        window.location.href = href;
+      };
+      slide.addEventListener("click", openPost);
+      slide.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openPost(event);
+        }
+      });
+    });
+    slider.addEventListener("mouseenter", stop);
+    slider.addEventListener("mouseleave", start);
+    slider.addEventListener("focusin", stop);
+    slider.addEventListener("focusout", start);
+    start();
+  });
+</script>

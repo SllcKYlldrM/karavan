@@ -35,6 +35,15 @@ CATEGORIES = {
     "Smart RV & IoT": "ESP32 Otomasyon, MQTT Takip, Alarm Devreleri"
 }
 
+CATEGORY_AUTHORS = {
+    "Power & Solar Systems": "Alex Morgan",
+    "Engineering Calculators": "Daniel Brooks",
+    "Build & Conversion": "Oliver Reed",
+    "Water & Plumbing Systems": "Maya Carter",
+    "HVAC & Climate Control": "Ethan Cole",
+    "Smart RV & IoT": "Nora Bennett",
+}
+
 def call_gemini(prompt: str, json_mode: bool = False) -> str:
     config_kwargs = {}
     if json_mode:
@@ -86,6 +95,27 @@ def download_image_safely(url, save_path, max_retries=3):
             time.sleep(4)
             
     return False
+
+def normalize_article_body(body: str) -> str:
+    """Remove model fences and the duplicate leading H1 used by the page template."""
+    body = body.strip()
+    body = re.sub(r"^```(?:markdown)?\s*", "", body, flags=re.IGNORECASE)
+    body = re.sub(r"\s*```$", "", body)
+    body = re.sub(r"^\s*#\s+[^\n]+\r?\n+", "", body, count=1)
+    return body.strip()
+
+def normalize_tags(raw_tags, category):
+    """Keep the selected category as the canonical first tag and remove duplicates."""
+    values = [category, "Caravan", "Off-Grid"] + (raw_tags or [])
+    tags = []
+    seen = set()
+    for value in values:
+        tag = str(value).strip()
+        key = tag.casefold()
+        if tag and key not in seen:
+            tags.append(tag)
+            seen.add(key)
+    return tags[:8]
 
 def get_existing_posts_summary():
     summaries = []
@@ -142,7 +172,7 @@ content_prompt = (
     "2. İçerikte en az 2 adet detaylı Markdown Veri/Karşılaştırma Tablosu bulunsun.\n"
     "3. Somut sayısal hesaplama adımları ekle.\n"
     "4. Görsel yerleri için tam olarak şu formatı kullan: [IMAGE: Kısa ingilizce görsel açıklaması]\n"
-    "5. Sadece makale gövdesini yaz, `# Başlık` ile başlat."
+    "5. Sadece makale gövdesini yaz; `# Başlık` kullanma, çünkü sayfa şablonu başlığı zaten H1 olarak basıyor. Giriş paragrafı veya `##` başlığıyla başla."
 )
 
 print("-> [Adım 2] OpenRouter makaleyi kaleme alıyor...")
@@ -154,7 +184,7 @@ for revision_count in range(max_revisions + 1):
         "Aşağıdaki makaleyi SEO uygunluğu, teknik doğruluk, kelime uzunluğu, tablo varlığı ve kurallara uyum açısından denetle.\n"
         "KURALLAR:\n"
         "- HTML etiketleri veya LaTeX ($...$) var mı? Varsa tamamen düz metne çevir.\n"
-        "- Markdown tabloları ve başlık hiyerarşisi tam mı?\n\n"
+        "- Markdown tabloları ve başlık hiyerarşisi tam mı? İlk satırda H1 (`# Başlık`) var mı? Varsa kaldır.\n\n"
         "Eğer makale eksiksizse ve kurallara uyuyorsa, başa 'ONAYLANDI' yaz ve hemen ardından düzeltilmiş nihai makaleyi ver.\n"
         "Eğer eksikler veya kural ihlalleri varsa, başa 'REVIZE_GEREKLI' yaz ve nelerin düzeltilmesi gerektiğini OpenRouter için detaylıca açıkla.\n\n"
         f"{article_body}"
@@ -185,10 +215,7 @@ for revision_count in range(max_revisions + 1):
             article_body = qa_response
         break
 
-if article_body.startswith("```markdown"): article_body = article_body[11:]
-if article_body.startswith("```"): article_body = article_body[3:]
-if article_body.endswith("```"): article_body = article_body[:-3]
-article_body = article_body.strip()
+article_body = normalize_article_body(article_body)
 
 # --- ADIM 4: Görsel İndirme (Garantili Retry Döngüsü) ---
 main_visual_prompt = f"Professional technical engineering photograph of {topic_data['title']}, high detail, no text, no watermark"
@@ -196,7 +223,7 @@ main_image_filename = f"{topic_data['slug']}.jpg"
 main_image_path = os.path.join("public/images", main_image_filename)
 cover_image = f"/images/{main_image_filename}"
 
-main_url = f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){urllib.parse.quote(main_visual_prompt)}?width=1200&height=630&nologo=true&seed={random.randint(1, 10000)}"
+main_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(main_visual_prompt)}?width=1200&height=600&nologo=true&seed={random.randint(1, 10000)}"
 
 download_image_safely(main_url, main_image_path, max_retries=3)
 
@@ -207,7 +234,7 @@ for idx, img_desc in enumerate(re.findall(r'\[IMAGE:\s*(.*?)\]', article_body), 
     sub_url_path = f"/images/{sub_img_filename}"
     
     sub_prompt = f"Technical engineering photograph of {img_desc}, high quality, off-grid caravan or camping context, no text, no watermark"
-    sub_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(sub_prompt)}?width=1000&height=600&nologo=true&seed={random.randint(1, 10000)}"
+    sub_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(sub_prompt)}?width=1000&height=500&nologo=true&seed={random.randint(1, 10000)}"
     
     if download_image_safely(sub_url, sub_path, max_retries=3):
         markdown_img_tag = f"\n\n![{img_desc}]({sub_url_path})\n\n"
@@ -218,16 +245,18 @@ for idx, img_desc in enumerate(re.findall(r'\[IMAGE:\s*(.*?)\]', article_body), 
 
 # --- ADIM 5: Dosya Kaydı (En Güvenli Yöntem) ---
 pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-tags_formatted = "\n".join([f"  - {tag.strip()}" for tag in topic_data.get("tags", ["caravan"])])
+normalized_tags = normalize_tags(topic_data.get("tags"), selected_category)
+tags_formatted = "\n".join([f"  - {tag}" for tag in normalized_tags])
 
 # Sadece gerçek kapak görseli başarıyla indiyse ogImage ekle, aksi halde alanı boş bırak
 og_image_line = f'ogImage: "{cover_image}"' if (os.path.exists(main_image_path) and os.path.getsize(main_image_path) > 1000) else ''
 
 post_content = f"""---
-author: AI Editorial
+author: {CATEGORY_AUTHORS[selected_category]}
 pubDatetime: {pub_datetime}
 title: "{topic_data['title']}"
 postSlug: "{topic_data['slug']}"
+category: {selected_category}
 featured: false
 draft: false
 tags:

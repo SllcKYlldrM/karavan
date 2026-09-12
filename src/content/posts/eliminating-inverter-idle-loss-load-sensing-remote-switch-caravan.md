@@ -1,11 +1,13 @@
 ---
-author: AI Editorial
+author: Alex Morgan
 pubDatetime: 2026-09-11T19:43:56Z
 title: "Eliminating Inverter Idle Power Loss: Designing a Load-Sensing Automatic Remote Switch for Off-Grid Caravan Systems"
 postSlug: "eliminating-inverter-idle-loss-load-sensing-remote-switch-caravan"
+category: Power & Solar Systems
 featured: false
 draft: false
 tags:
+  - Power & Solar Systems
   - Inverter Standby Drain
   - 12V Electrical Engineering
   - Off-Grid Caravan Automation

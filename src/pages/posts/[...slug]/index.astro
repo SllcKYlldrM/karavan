@@ -4,6 +4,7 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Datetime from "@/components/Datetime.astro";
+import { slugifyStr } from "@/utils/slugify";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
@@ -19,7 +20,7 @@ export interface Props {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
----
+
 const allPosts = await getCollection("posts", ({ data }) => !data.draft);
 const sortedPosts = allPosts.sort(
   (a, b) => b.data.pubDatetime.valueOf() - a.data.pubDatetime.valueOf()
@@ -32,22 +33,125 @@ const getCover = (p: any) =>
     : "/images/default-og.jpg";
 
 const displayTitle = post.data.title;
-const displayAuthor = post.data.author || "Editorial Staff";
+const authorBySlug: Record<string, string> = {
+  "rv-12v-water-pump-accumulator-tank-sizing-pressure-switch-calibration": "Maya Carter",
+  "preventing-mppt-thermal-throttling-caravan-electrical-compartments": "Alex Morgan",
+  "off-grid-caravan-solar-power-setup-guide": "Alex Morgan",
+  "off-grid-caravan-dc-dc-charger-efficiency-wiring-grounding": "Alex Morgan",
+  "lifepo4-low-temperature-protection-thermal-pad-heating-circuit": "Alex Morgan",
+  "caravan-12v-cable-size-voltage-drop-calculator": "Daniel Brooks",
+  "caravan-weight-distribution-guide": "Daniel Brooks",
+  "caravan-towing-weight-ratio-calculator-safety-guide": "Daniel Brooks",
+  "eliminating-inverter-idle-loss-load-sensing-remote-switch-caravan": "Alex Morgan",
+  "diesel-heater-high-altitude-ecu-pulse-frequency-air-fuel-mixture": "Ethan Cole",
+};
+const postSlug = (post.data as any).postSlug ?? post.id.replace(/\.[^/.]+$/, "");
+const displayAuthor = authorBySlug[postSlug] ?? post.data.author ?? "Editorial Staff";
 const displayCover = getCover(post);
 const tags = post.data.tags || ["Caravan"];
 const primaryTag = tags[0] || "Engineering";
+const authorProfiles: Record<string, { role: string; bio: string; image: string }> = {
+  "Alex Morgan": {
+    role: "Power Systems Researcher",
+    bio: "Specializes in solar charging, LiFePO4 battery systems, inverter efficiency, and off-grid electrical architecture.",
+    image: "/images/authors/alex-morgan.png",
+  },
+  "Daniel Brooks": {
+    role: "Caravan Systems Analyst",
+    bio: "Focuses on engineering calculators, cable sizing, towing safety, weight distribution, and practical field measurements.",
+    image: "/images/authors/daniel-brooks.png",
+  },
+  "Oliver Reed": {
+    role: "Conversion & Build Specialist",
+    bio: "Covers insulation, structural conversion, ventilation, materials, and the practical engineering of mobile living spaces.",
+    image: "/images/authors/oliver-reed.png",
+  },
+  "Maya Carter": {
+    role: "Water Systems Researcher",
+    bio: "Specializes in RV plumbing, pump control, accumulator sizing, pressure management, and reliable off-grid water systems.",
+    image: "/images/authors/maya-carter.png",
+  },
+  "Ethan Cole": {
+    role: "Climate Systems Engineer",
+    bio: "Researches diesel heaters, HVAC performance, thermal management, altitude effects, and mobile climate control.",
+    image: "/images/authors/ethan-cole.png",
+  },
+  "Nora Bennett": {
+    role: "Smart RV Systems Researcher",
+    bio: "Focuses on ESP32 automation, MQTT telemetry, alarms, remote monitoring, and connected off-grid systems.",
+    image: "/images/authors/nora-bennett.png",
+  },
+};
+const authorProfile = authorProfiles[displayAuthor] ?? {
+  role: "Technical Correspondent",
+  bio: "Researches practical engineering systems for reliable, efficient, and comfortable off-grid travel.",
+  image: "",
+};
 
 const wordCount = (post as any)?.body ? (post as any).body.split(/\s+/).length : 700;
 const readingTime = `${Math.max(1, Math.ceil(wordCount / 200))} min read`;
 
-// Kategori adetleri (Sidebar)
-const tagCounts = allPosts.reduce((acc: Record<string, number>, p) => {
-  (p.data.tags || []).forEach((t: string) => {
-    acc[t] = (acc[t] || 0) + 1;
-  });
-  return acc;
-}, {});
-const categories = Object.entries(tagCounts).slice(0, 8);
+const categoryDefinitions = [
+  {
+    name: "Power & Solar Systems",
+    keywords: ["solar", "mppt", "battery", "lifepo4", "inverter", "dc-dc", "electrical", "charger", "bms"],
+  },
+  {
+    name: "Engineering Calculators",
+    keywords: ["calculator", "cable size", "voltage drop", "towing", "weight distribution"],
+  },
+  {
+    name: "Build & Conversion",
+    keywords: ["insulation", "chassis", "ventilation", "conversion", "equipment"],
+  },
+  {
+    name: "Water & Plumbing Systems",
+    keywords: ["water", "plumbing", "pump", "accumulator", "pressure switch"],
+  },
+  {
+    name: "HVAC & Climate Control",
+    keywords: ["heater", "hvac", "climate", "thermal", "air-fuel"],
+  },
+  {
+    name: "Smart RV & IoT",
+    keywords: ["automation", "mqtt", "esp32", "alarm", "load-sensing"],
+  },
+];
+
+const getCategory = (p: (typeof allPosts)[number]) => {
+  if (p.data.category && categoryDefinitions.some(category => category.name === p.data.category)) {
+    return p.data.category;
+  }
+
+  const firstTag = p.data.tags?.[0];
+  const explicitCategory = categoryDefinitions.find(
+    category => category.name.toLowerCase() === firstTag?.toLowerCase()
+  );
+  if (explicitCategory) return explicitCategory.name;
+
+  const searchable = [p.data.title, ...(p.data.tags || [])].join(" ").toLowerCase();
+  return (
+    categoryDefinitions.find(category =>
+      category.keywords.some(keyword => searchable.includes(keyword))
+    )?.name ?? "Build & Conversion"
+  );
+};
+
+const categoryCounts: Record<string, number> = {};
+for (const p of allPosts) {
+  const category = getCategory(p);
+  categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+}
+const categories = categoryDefinitions
+  .map(category => [category.name, categoryCounts[category.name] || 0] as const)
+  .filter(([, count]) => count > 0);
+
+const tagCounts: Record<string, number> = {};
+for (const p of allPosts) {
+  for (const t of p.data.tags || []) {
+    tagCounts[t] = (tagCounts[t] || 0) + 1;
+  }
+}
 const allTags = Object.keys(tagCounts).slice(0, 15);
 
 // İlgili ve Popüler Yazılar
@@ -70,7 +174,7 @@ const shareTitle = encodeURIComponent(displayTitle);
   <Header />
 
   <main class="text-slate-700 font-sans">
-    <div class="container xl:max-w-7xl mx-auto px-4 flex flex-col gap-4 lg:gap-6">
+    <div class="container mx-auto flex max-w-[1480px] flex-col gap-4 px-6 lg:gap-6 sm:px-10 lg:px-12">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 py-6">
         
         <!-- SOL: MAKALE ALANI (2 SÜTUN) -->
@@ -112,7 +216,7 @@ const shareTitle = encodeURIComponent(displayTitle);
           </div>
 
           <!-- Kapak Görseli (2:1 Oran) -->
-          <div class="aspect-[2/1] overflow-hidden w-full bg-slate-100 rounded-lg my-6">
+          <div class="aspect-2/1 overflow-hidden w-full bg-slate-100 rounded-lg my-6">
             <img src={displayCover} alt={displayTitle} class="w-full h-full object-cover" />
           </div>
 
@@ -157,13 +261,17 @@ const shareTitle = encodeURIComponent(displayTitle);
           <!-- Yazar Kartı -->
           <div class="flex flex-row items-center py-6 md:py-8 border-b border-slate-200">
             <div class="shrink-0 rounded-full overflow-hidden size-20 bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-2xl border border-slate-300">
-              {displayAuthor.charAt(0)}
+              {authorProfile.image ? (
+                <img src={authorProfile.image} alt={`${displayAuthor} profile`} class="size-full object-cover" loading="lazy" />
+              ) : (
+                displayAuthor.charAt(0)
+              )}
             </div>
             <div class="ms-6">
               <h4 class="text-xl font-bold text-slate-900">{displayAuthor}</h4>
-              <p class="text-sm text-slate-500 mt-0.5">Senior Technical Correspondent</p>
+              <p class="text-sm text-slate-500 mt-0.5">{authorProfile.role}</p>
               <p class="hidden sm:block text-sm text-slate-500 mt-2 leading-relaxed">
-                Specialized in off-grid mobile architectures, electrical engineering setups, dual-battery banks, and high-altitude climate systems.
+                {authorProfile.bio}
               </p>
             </div>
           </div>
@@ -204,7 +312,7 @@ const shareTitle = encodeURIComponent(displayTitle);
                 <ul class="flex flex-col text-sm">
                   {categories.map(([catName, count]) => (
                     <li class="relative">
-                      <a href={`/tags/${catName.toLowerCase()}`} class="flex items-center gap-3 justify-between py-1.5 hover:text-skin-accent transition-colors capitalize">
+                      <a href={`/tags/${slugifyStr(catName)}`} class="flex items-center gap-3 justify-between py-1.5 hover:text-skin-accent transition-colors capitalize">
                         <span>{catName}</span>
                         <span class="text-slate-400">({count})</span>
                       </a>

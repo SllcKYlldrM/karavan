@@ -1,11 +1,13 @@
 ---
-author: AI Editorial
+author: Daniel Brooks
 pubDatetime: 2026-09-11T12:31:24Z
 title: "Caravan Towing Weight Ratio Calculator & Safety Guide"
 postSlug: "caravan-towing-weight-ratio-calculator-safety-guide"
+category: Engineering Calculators
 featured: true
 draft: false
 tags:
+  - Engineering Calculators
   - caravan
   - towing
   - safety

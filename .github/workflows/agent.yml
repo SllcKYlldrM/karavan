@@ -32,6 +32,22 @@ jobs:
         run: |
           python scripts/agent.py
 
+      - name: Node.js ve pnpm Kurulumu
+        uses: pnpm/action-setup@v4
+        with:
+          version: "10.11.1"
+
+      - name: Node.js Sürümünü Sabitle
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.22.0"
+          cache: "pnpm"
+
+      - name: Üretilen İçeriği Build ile Doğrula
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
       - name: Taslağı Depoya Kaydet
         run: |
           git config --global user.name "AI Content Bot"

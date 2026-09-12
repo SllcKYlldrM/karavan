@@ -1,11 +1,13 @@
 ---
-author: AI Editorial
+author: Alex Morgan
 pubDatetime: 2026-09-11T17:49:53Z
 title: "Preventing MPPT Solar Controller Thermal Throttling in Sealed Caravan Electrical Compartments"
 postSlug: "preventing-mppt-thermal-throttling-caravan-electrical-compartments"
+category: Power & Solar Systems
 featured: false
 draft: false
 tags:
+  - Power & Solar Systems
   - mppt-thermal-management
   - caravan-electrical-design
   - heat-sink-cooling

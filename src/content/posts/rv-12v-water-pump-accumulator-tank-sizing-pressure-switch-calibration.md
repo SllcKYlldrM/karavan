@@ -1,11 +1,13 @@
 ---
-author: AI Editorial
+author: Maya Carter
 pubDatetime: 2026-09-11T20:50:36Z
 title: "12V RV Water Pump Rapid Cycling Elimination: Sizing Accumulator Tanks & Calibrating Pressure Switch Cut-In/Cut-Out Differentials"
 postSlug: "rv-12v-water-pump-accumulator-tank-sizing-pressure-switch-calibration"
+category: Water & Plumbing Systems
 featured: false
 draft: false
 tags:
+  - Water & Plumbing Systems
   - Caravan Plumbing
   - 12V Water Pump
   - Accumulator Tank Sizing

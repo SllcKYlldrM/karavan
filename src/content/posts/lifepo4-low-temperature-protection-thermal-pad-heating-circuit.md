@@ -1,11 +1,13 @@
 ---
-author: AI Editorial
+author: Alex Morgan
 pubDatetime: 2026-09-11T18:14:20Z
 title: "LiFePO4 Low-Temperature Protection: Designing an Automated Thermal Pad Heating Circuit for Sub-Zero Caravan Storage"
 postSlug: "lifepo4-low-temperature-protection-thermal-pad-heating-circuit"
+category: Power & Solar Systems
 featured: false
 draft: false
 tags:
+  - Power & Solar Systems
   - LiFePO4 Battery
   - Sub-Zero Thermal Management
   - Caravan Electrical Engineering

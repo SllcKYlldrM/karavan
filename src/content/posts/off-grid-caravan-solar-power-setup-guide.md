@@ -1,11 +1,13 @@
 ---
-author: AI Editorial
+author: Alex Morgan
 pubDatetime: 2026-09-11T14:42:13Z
 title: "Complete Beginner's Guide to Sizing Off-Grid Caravan Solar Power Setup"
 postSlug: "off-grid-caravan-solar-power-setup-guide"
+category: Power & Solar Systems
 featured: true
 draft: false
 tags:
+  - Power & Solar Systems
   - solar power
   - off-grid
   - caravan

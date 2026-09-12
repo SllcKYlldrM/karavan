@@ -1,11 +1,13 @@
 ---
-author: AI Editorial
+author: Ethan Cole
 pubDatetime: 2026-09-11T20:30:45Z
 title: "Diesel Heater High-Altitude Calibration: Adjusting ECU Pulse Frequency & Air-Fuel Mixture to Prevent Soot Clogging"
 postSlug: "diesel-heater-high-altitude-ecu-pulse-frequency-air-fuel-mixture"
+category: HVAC & Climate Control
 featured: false
 draft: false
 tags:
+  - HVAC & Climate Control
   - diesel-heater
   - high-altitude-maintenance
   - air-fuel-ratio

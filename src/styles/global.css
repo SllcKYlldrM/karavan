@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&family=Sora:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "./theme.css";
 @import "./typography.css";
 @import "rehype-callouts/theme/obsidian";
 
 :root {
-  --font-heading: 'Sora', sans-serif;
+  --font-heading: 'Manrope', sans-serif;
   --font-body: 'Inter', sans-serif;
 }
 
@@ -22,11 +22,18 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    letter-spacing: -0.025em;
   }
   * {
     @apply border-border outline-accent/75;
     scrollbar-width: auto;
     scrollbar-color: var(--color-muted) transparent;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 28rem),
+      linear-gradient(180deg, color-mix(in srgb, var(--background) 92%, white), var(--background));
   }
   a,
   button,
