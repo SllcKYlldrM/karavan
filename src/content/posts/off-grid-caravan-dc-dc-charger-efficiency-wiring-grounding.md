@@ -13,7 +13,7 @@ tags:
   - voltage drop mitigation
   - grounding strategies
   - electrical engineering
-image: "https://image.pollinations.ai/prompt/Professional%20off-grid%20caravan,%20Optimizing%20Off-Grid%20Caravan%20DC-DC%20Charger%20Efficiency%3A%20Advanced%20Wiring%20%26%20Grounding%20Techniques?width=1200&height=630&nologo=true"
+ogImage: "https://image.pollinations.ai/prompt/Professional%20off-grid%20caravan,%20Optimizing%20Off-Grid%20Caravan%20DC-DC%20Charger%20Efficiency%3A%20Advanced%20Wiring%20%26%20Grounding%20Techniques?width=1200&height=630&nologo=true"
 description: "Comprehensive technical guide and engineering standards for Optimizing Off-Grid Caravan DC-DC Charger Efficiency: Advanced Wiring & Grounding Techniques."
 ---
 

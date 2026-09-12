@@ -13,7 +13,7 @@ tags:
   - Off-Grid Caravan Automation
   - Parasitic Power Loss
   - Load Sensing Switch
-image: "/images/eliminating-inverter-idle-loss-load-sensing-remote-switch-caravan.jpg"
+ogImage: "/images/eliminating-inverter-idle-loss-load-sensing-remote-switch-caravan.jpg"
 description: "Comprehensive technical guide and engineering standards for Eliminating Inverter Idle Power Loss: Designing a Load-Sensing Automatic Remote Switch for Off-Grid Caravan Systems."
 ---
 

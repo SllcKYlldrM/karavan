@@ -13,7 +13,7 @@ tags:
   - Caravan Electrical Engineering
   - BMS Low-Temp Cutoff
   - 12V Heating Element Wiring
-image: "/images/lifepo4-low-temperature-protection-thermal-pad-heating-circuit.jpg"
+ogImage: "/images/lifepo4-low-temperature-protection-thermal-pad-heating-circuit.jpg"
 description: "Comprehensive technical guide and engineering standards for LiFePO4 Low-Temperature Protection: Designing an Automated Thermal Pad Heating Circuit for Sub-Zero Caravan Storage."
 ---
 

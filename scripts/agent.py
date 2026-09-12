@@ -131,6 +131,13 @@ def remove_missing_local_images(body: str) -> str:
     body = html_image_pattern.sub(keep_existing, body)
     return markdown_image_pattern.sub(keep_existing, body)
 
+def limit_inline_image_placeholders(body: str, maximum: int = 2) -> str:
+    """Keep at most two generated inline image placeholders per article."""
+    placeholders = list(re.finditer(r"\[IMAGE:\s*.*?\]", body, flags=re.IGNORECASE))
+    for match in reversed(placeholders[maximum:]):
+        body = body[:match.start()] + body[match.end():]
+    return body
+
 TURKISH_LANGUAGE_MARKERS = (
     " ve ", " bir ", " için ", " ile ", " olan ", " bu ", " şu ",
     " nasıl ", " olarak ", " gerekir ", " kullanılır ", " yapılır ",
@@ -218,14 +225,16 @@ content_prompt = (
     "1. HTML veya LaTeX ($...$) KULLANMA. Formülleri düz metin yaz (Örn: Voltage Drop = ...).\n"
     "2. İçerikte en az 2 adet detaylı Markdown Veri/Karşılaştırma Tablosu bulunsun.\n"
     "3. Somut sayısal hesaplama adımları ekle.\n"
-    "4. Görsel yerleri için tam olarak şu formatı kullan: [IMAGE: Kısa ingilizce görsel açıklaması]\n"
-    "5. Sadece makale gövdesini yaz; `# Başlık` kullanma, çünkü sayfa şablonu başlığı zaten H1 olarak basıyor. Giriş paragrafı veya `##` başlığıyla başla."
+    "4. Every calculation must state inputs, units, formula, assumptions, and result. Never invent manufacturer specifications; mark unknown values as assumptions.\n"
+    "5. End with a concise Sources and Assumptions section using official manufacturer or standards references when available.\n"
+    "6. Görsel yerleri için tam olarak şu formatı kullan: [IMAGE: Kısa ingilizce görsel açıklaması]. En fazla 2 görsel işareti kullan.\n"
+    "7. Sadece makale gövdesini yaz; `# Başlık` kullanma, çünkü sayfa şablonu başlığı zaten H1 olarak basıyor. Giriş paragrafı veya `##` başlığıyla başla."
 )
 
 print("-> [Adım 2] OpenRouter makaleyi kaleme alıyor...")
 article_body = call_openrouter(content_prompt, system_instruction="Uzun, teknik ve profesyonel Markdown makaleleri yazarsın.")
 
-max_revisions = 2
+max_revisions = 1
 for revision_count in range(max_revisions + 1):
     qa_prompt = (
         "- The website is English-only. If any Turkish sentence, heading, table text, or Turkish language markers appear, return REVIZE_GEREKLI and require a complete English rewrite.\n"
@@ -264,6 +273,7 @@ for revision_count in range(max_revisions + 1):
         break
 
 article_body = normalize_article_body(article_body)
+article_body = limit_inline_image_placeholders(article_body, maximum=2)
 article_body = remove_missing_local_images(article_body)
 require_english_content(topic_data["title"], article_body)
 

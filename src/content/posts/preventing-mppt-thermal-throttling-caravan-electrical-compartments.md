@@ -13,7 +13,7 @@ tags:
   - heat-sink-cooling
   - off-grid-solar-efficiency
   - dc-system-engineering
-image: "/images/preventing-mppt-thermal-throttling-caravan-electrical-compartments.jpg"
+ogImage: "/images/preventing-mppt-thermal-throttling-caravan-electrical-compartments.jpg"
 description: "Comprehensive technical guide and engineering standards for Preventing MPPT Solar Controller Thermal Throttling in Sealed Caravan Electrical Compartments."
 ---
 
