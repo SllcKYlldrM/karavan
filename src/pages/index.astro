@@ -93,7 +93,7 @@ const allTags = [...new Set(sortedPosts.flatMap(p => p.data.tags || []))].slice(
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
               {subGridPosts.map(post => (
-                <article class="group flex flex-col overflow-hidden rounded-xl border border-skin-line/50 bg-skin-card transition-all duration-300 hover:border-skin-accent hover:shadow-md">
+                <article class="group flex flex-col overflow-hidden rounded-xl border border-skin-line/80 bg-skin-card shadow-sm shadow-slate-900/5 transition-all duration-300 hover:border-skin-accent hover:shadow-md hover:shadow-slate-900/10">
                   <a href={`/posts/${getSlug(post)}`} class="relative aspect-[16/10] w-full overflow-hidden bg-skin-card-muted">
                     <img
                       src={getCover(post)}
