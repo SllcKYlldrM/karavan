@@ -117,6 +117,24 @@ def normalize_article_body(body: str) -> str:
     body = re.sub(r"^\s*#\s+[^\n]+\r?\n+", "", body, count=1)
     return body.strip()
 
+TURKISH_LANGUAGE_MARKERS = (
+    " ve ", " bir ", " için ", " ile ", " olan ", " bu ", " şu ",
+    " nasıl ", " olarak ", " gerekir ", " kullanılır ", " yapılır ",
+    " pompası ", " akümülatör ", " basınç ", " gerilim ", " bağlantı ",
+)
+
+def contains_turkish_content(text: str) -> bool:
+    normalized = f" {text.casefold()} "
+    diacritic_count = sum(normalized.count(char) for char in "çğıöşü")
+    marker_hits = sum(normalized.count(marker) for marker in TURKISH_LANGUAGE_MARKERS)
+    return diacritic_count >= 3 or marker_hits >= 5
+
+def require_english_content(title: str, body: str) -> None:
+    if contains_turkish_content(f"{title}\n{body}"):
+        raise RuntimeError(
+            "Generated content failed the English-only language check; no post was written."
+        )
+
 def normalize_tags(raw_tags, category):
     """Keep the selected category as the canonical first tag and remove duplicates."""
     values = [category, "Caravan", "Off-Grid"] + (raw_tags or [])
@@ -175,6 +193,7 @@ print(f"-> Stratejik Brief: {topic_data['brief']}")
 
 # --- ADIM 2: İçerik Üretimi ve 2 Haklı Revize Döngüsü (OpenRouter & Gemini QA) ---
 content_prompt = (
+    "IMPORTANT LANGUAGE RULE: The website is English-only. Write the title, article body, headings, tables, labels, image descriptions, and every sentence in clear professional English. Never write Turkish, even if this instruction or the brief contains Turkish text.\n\n"
     f"Kategori: {selected_category}\n"
     f"Konu Başlığı: \"{topic_data['title']}\"\n\n"
     f"TEKNİK BİRİEF / YÖNLENDİRME:\n{topic_data['brief']}\n\n"
@@ -194,6 +213,7 @@ article_body = call_openrouter(content_prompt, system_instruction="Uzun, teknik 
 max_revisions = 2
 for revision_count in range(max_revisions + 1):
     qa_prompt = (
+        "- The website is English-only. If any Turkish sentence, heading, table text, or Turkish language markers appear, return REVIZE_GEREKLI and require a complete English rewrite.\n"
         "Aşağıdaki makaleyi SEO uygunluğu, teknik doğruluk, kelime uzunluğu, tablo varlığı ve kurallara uyum açısından denetle.\n"
         "KURALLAR:\n"
         "- HTML etiketleri veya LaTeX ($...$) var mı? Varsa tamamen düz metne çevir.\n"
@@ -229,6 +249,7 @@ for revision_count in range(max_revisions + 1):
         break
 
 article_body = normalize_article_body(article_body)
+require_english_content(topic_data["title"], article_body)
 
 # --- ADIM 4: Görsel İndirme (Garantili Retry Döngüsü) ---
 main_visual_prompt = f"Professional technical engineering photograph of {topic_data['title']}, high detail, no text, no watermark"
