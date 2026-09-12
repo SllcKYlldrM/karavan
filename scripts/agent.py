@@ -79,11 +79,22 @@ def call_openrouter(prompt: str, system_instruction: str = None) -> str:
 
 def download_image_safely(url, save_path, max_retries=3):
     """Görsel gerçekten inene ve doğrulanana kadar yeniden dener."""
+    if os.path.exists(save_path):
+        os.remove(save_path)
+
     for attempt in range(1, max_retries + 1):
         try:
             print(f"-> Görsel indiriliyor (Deneme {attempt}/{max_retries}): {os.path.basename(save_path)}")
             res = requests.get(url, timeout=40)
-            if res.status_code == 200 and len(res.content) > 1000:
+            content_type = res.headers.get("Content-Type", "").lower()
+            is_jpeg = res.content.startswith(b"\xff\xd8\xff")
+            is_png = res.content.startswith(b"\x89PNG\r\n\x1a\n")
+            if (
+                res.status_code == 200
+                and content_type.startswith("image/")
+                and len(res.content) > 1000
+                and (is_jpeg or is_png)
+            ):
                 with open(save_path, "wb") as f:
                     f.write(res.content)
                 print(f"-> Başarıyla indirildi: {os.path.basename(save_path)}")
@@ -94,6 +105,8 @@ def download_image_safely(url, save_path, max_retries=3):
         if attempt < max_retries:
             time.sleep(4)
             
+    if os.path.exists(save_path):
+        os.remove(save_path)
     return False
 
 def normalize_article_body(body: str) -> str:
@@ -225,7 +238,7 @@ cover_image = f"/images/{main_image_filename}"
 
 main_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(main_visual_prompt)}?width=1200&height=600&nologo=true&seed={random.randint(1, 10000)}"
 
-download_image_safely(main_url, main_image_path, max_retries=3)
+main_image_downloaded = download_image_safely(main_url, main_image_path, max_retries=3)
 
 # Alt görseller için de güvenli indirme
 for idx, img_desc in enumerate(re.findall(r'\[IMAGE:\s*(.*?)\]', article_body), start=1):
@@ -249,7 +262,7 @@ normalized_tags = normalize_tags(topic_data.get("tags"), selected_category)
 tags_formatted = "\n".join([f"  - {tag}" for tag in normalized_tags])
 
 # Sadece gerçek kapak görseli başarıyla indiyse ogImage ekle, aksi halde alanı boş bırak
-og_image_line = f'ogImage: "{cover_image}"' if (os.path.exists(main_image_path) and os.path.getsize(main_image_path) > 1000) else ''
+og_image_line = f'ogImage: "{cover_image}"' if main_image_downloaded else ''
 
 post_content = f"""---
 author: {CATEGORY_AUTHORS[selected_category]}
