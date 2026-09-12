@@ -59,9 +59,10 @@ const isActive = (path: string) => {
   >
     <a
       href={getRelativeLocaleUrl(locale, "")}
-      class="absolute py-1 text-xl leading-8 font-extrabold tracking-tight whitespace-nowrap text-accent sm:static sm:my-auto sm:text-2xl sm:leading-none"
+      class="absolute flex h-11 w-40 items-center py-1 sm:static sm:my-auto sm:h-12 sm:w-44"
+      aria-label="VanSpecs home"
     >
-      {site.title}
+      <img src="/images/vanspecs-logo.png" alt={site.title} class="h-full w-full object-contain object-left" />
     </a>
     <nav
       id="nav-menu"

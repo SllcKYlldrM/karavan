@@ -3,7 +3,7 @@ import { defineAstroPaperConfig } from "./src/types/config";
 export default defineAstroPaperConfig({
   site: {
     url: "https://vanspecs.com/",
-    title: "Karavan Off-Grid Portal",
+    title: "VanSpecs",
     description: "Engineering guides for autonomous caravans, off-grid systems, and mobile living.",
     author: "Karavan Editorial Team",
     ogImage: "default-og.jpg",
