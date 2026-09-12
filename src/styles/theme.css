@@ -19,28 +19,28 @@
 /* Light theme values */
 :root,
 [data-theme="light"] {
-  --background: #f5f1e8;
-  --foreground: #26352e;
-  --accent: #2f6b4f;
+  --background: #ffffff;
+  --foreground: #18212b;
+  --accent: #176b4d;
   --accent-foreground: #ffffff;
-  --muted: #e1e5da;
-  --muted-foreground: #69746a;
-  --border: #d8d8c9;
-  --surface: #fbfaf5;
-  --surface-muted: #ebe9dc;
-  --card: #fffdf8;
+  --muted: #f1f3f5;
+  --muted-foreground: #66717c;
+  --border: #e2e6ea;
+  --surface: #f7f8f9;
+  --surface-muted: #eef1f3;
+  --card: #ffffff;
 }
 
 /* Dark theme values */
 [data-theme="dark"] {
-  --background: #17231d;
-  --foreground: #edf1e8;
-  --accent: #b6c978;
+  --background: #0b0d0f;
+  --foreground: #f1f3f5;
+  --accent: #58c596;
   --accent-foreground: #ffffff;
-  --muted: #2d4134;
-  --muted-foreground: #aeb9aa;
-  --border: #405445;
-  --surface: #203126;
-  --surface-muted: #253a2b;
-  --card: #1c2c22;
+  --muted: #1b2025;
+  --muted-foreground: #aab3bc;
+  --border: #2a3138;
+  --surface: #12161a;
+  --surface-muted: #171c21;
+  --card: #111519;
 }
