@@ -112,10 +112,21 @@ def download_image_safely(url, save_path, max_retries=3):
 def normalize_article_body(body: str) -> str:
     """Remove model fences and the duplicate leading H1 used by the page template."""
     body = body.strip()
+    body = re.sub(r"^---\s*\n.*?\n---\s*\n", "", body, count=1, flags=re.DOTALL)
     body = re.sub(r"^```(?:markdown)?\s*", "", body, flags=re.IGNORECASE)
     body = re.sub(r"\s*```$", "", body)
     body = re.sub(r"^\s*#\s+[^\n]+\r?\n+", "", body, count=1)
     return body.strip()
+
+def remove_missing_local_images(body: str) -> str:
+    """Remove Markdown image links that do not exist in public/images."""
+    image_pattern = re.compile(r"!\[([^\]]*)\]\((/images/[^)\s]+)(?:\s+[^)]*)?\)")
+
+    def keep_existing(match):
+        image_path = os.path.join("public", match.group(2).lstrip("/"))
+        return match.group(0) if os.path.isfile(image_path) else ""
+
+    return image_pattern.sub(keep_existing, body)
 
 TURKISH_LANGUAGE_MARKERS = (
     " ve ", " bir ", " için ", " ile ", " olan ", " bu ", " şu ",
@@ -194,6 +205,7 @@ print(f"-> Stratejik Brief: {topic_data['brief']}")
 # --- ADIM 2: İçerik Üretimi ve 2 Haklı Revize Döngüsü (OpenRouter & Gemini QA) ---
 content_prompt = (
     "IMPORTANT LANGUAGE RULE: The website is English-only. Write the title, article body, headings, tables, labels, image descriptions, and every sentence in clear professional English. Never write Turkish, even if this instruction or the brief contains Turkish text.\n\n"
+    "Return only the article body. Do not return YAML frontmatter, a title line, or direct /images/*.jpg links; use the exact [IMAGE: English description] placeholder when an image is needed.\n\n"
     f"Kategori: {selected_category}\n"
     f"Konu Başlığı: \"{topic_data['title']}\"\n\n"
     f"TEKNİK BİRİEF / YÖNLENDİRME:\n{topic_data['brief']}\n\n"
@@ -249,6 +261,7 @@ for revision_count in range(max_revisions + 1):
         break
 
 article_body = normalize_article_body(article_body)
+article_body = remove_missing_local_images(article_body)
 require_english_content(topic_data["title"], article_body)
 
 # --- ADIM 4: Görsel İndirme (Garantili Retry Döngüsü) ---
