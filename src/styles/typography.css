@@ -112,11 +112,29 @@
 
   /* ===== Code Blocks & Syntax Highlighting ===== */
   .astro-code {
-    @apply outline-border flex border bg-(--shiki-light-bg) text-(--shiki-light) [&_span]:text-(--shiki-light);
+    @apply outline-border flex overflow-x-auto rounded-lg border bg-(--shiki-light-bg) text-(--shiki-light);
+
+    /*
+     * Shiki emits light and dark token colors on every span. The previous
+     * utility selector could leave dark token colors on a dark background,
+     * making identifiers effectively invisible. Keep the token palette tied
+     * to the active site theme and give the block a predictable line-height.
+     */
+    & span {
+      color: var(--shiki-light) !important;
+    }
+
+    code {
+      @apply leading-7;
+    }
   }
 
   html[data-theme="dark"] .astro-code {
     @apply bg-(--shiki-dark-bg) text-(--shiki-dark) [&_span]:text-(--shiki-dark);
+
+    & span {
+      color: var(--shiki-dark) !important;
+    }
   }
 
   /* Styles for Shiki transformers */

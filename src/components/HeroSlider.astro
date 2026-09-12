@@ -28,6 +28,7 @@ const getCover = (post: Post) =>
         { "pointer-events-auto opacity-100": index === 0 },
       ]}
       data-slide={index}
+      data-href={`/posts/${getSlug(post)}/`}
       aria-hidden={index === 0 ? "false" : "true"}
       tabindex={index === 0 ? 0 : -1}
     >
@@ -60,7 +61,7 @@ const getCover = (post: Post) =>
       </div>
       <a
         href={`/posts/${getSlug(post)}`}
-        class="absolute inset-0 z-[20] block"
+        class="pointer-events-auto absolute inset-0 z-[20] block"
         aria-label={post.data.title}
       ></a>
     </article>
