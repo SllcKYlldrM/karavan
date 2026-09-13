@@ -1,0 +1,115 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+
+const tools = [
+  {
+    title: "Complete Off-Grid System Planner",
+    description: "Plan daily loads, battery, solar, charging sources, inverter, MPPT, cable and protection checks in one workflow.",
+    href: "/tools/system-planner",
+  },
+  {
+    title: "Solar, Battery and Cable Calculator",
+    description: "Estimate RV energy use, battery capacity, solar panel power and DC cable size.",
+    href: "/tools/solar-calculator",
+  },
+  {
+    title: "Battery Bank Calculator",
+    description: "Estimate usable battery capacity, autonomy and the number of batteries required.",
+    href: "/tools/battery-calculator",
+  },
+  {
+    title: "Cable and Fuse Calculator",
+    description: "Estimate DC cable size, voltage drop, ampacity and fuse class for RV circuits.",
+    href: "/tools/cable-calculator",
+  },
+  {
+    title: "Inverter Sizing Calculator",
+    description: "Estimate continuous power, surge rating and battery-side current for an RV inverter.",
+    href: "/tools/inverter-calculator",
+  },
+  {
+    title: "DC-DC Charger and Alternator Calculator",
+    description: "Estimate alternator reserve, driving charge, cable size and fuse guidance for a DC-DC charger.",
+    href: "/tools/dc-dc-calculator",
+  },
+  {
+    title: "Water Tank and Autonomy Calculator",
+    description: "Estimate daily water use, tank autonomy, water payload and grey-water capacity.",
+    href: "/tools/water-calculator",
+  },
+  {
+    title: "Caravan Towing and Payload Calculator",
+    description: "Screen towing ratio, vehicle payload, MTPLM headroom and nose-weight margins.",
+    href: "/tools/towing-calculator",
+  },
+  {
+    title: "Diesel Heater Fuel and Runtime Calculator",
+    description: "Estimate heater runtime, daily diesel consumption and 12V electrical demand.",
+    href: "/tools/heater-calculator",
+  },
+  {
+    title: "LPG Bottle Runtime Calculator",
+    description: "Estimate LPG runtime and daily gas consumption for caravan appliances.",
+    href: "/tools/gas-calculator",
+  },
+  {
+    title: "AC Shore Power and Generator Load Calculator",
+    description: "Estimate AC current, startup load, source VA and breaker margin.",
+    href: "/tools/ac-load-calculator",
+  },
+  {
+    title: "12V Water Pump and Accumulator Calculator",
+    description: "Estimate pump duty, runtime, starts and daily electrical demand.",
+    href: "/tools/pump-calculator",
+  },
+  {
+    title: "Caravan Payload and Weight Calculator",
+    description: "Estimate loaded mass, payload, nose weight and axle-group load.",
+    href: "/tools/weight-calculator",
+  },
+];
+const toolsUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
+const itemListSchema = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "VanSpecs Engineering Calculators",
+  url: toolsUrl,
+  itemListElement: tools.map((tool, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    name: tool.title,
+    url: new URL(tool.href, Astro.site ?? Astro.url).href,
+  })),
+});
+---
+
+<Layout
+  title="Engineering Calculators | VanSpecs"
+  description="Practical engineering calculators for off-grid caravan power, batteries and wiring."
+>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={itemListSchema}></script>
+  </Fragment>
+  <Header />
+  <main id="main-content" class="mx-auto w-full max-w-[1480px] px-6 py-10 sm:px-10 lg:px-12">
+    <div class="mx-auto max-w-5xl">
+      <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-skin-accent">VanSpecs tools</p>
+      <h1 class="text-3xl font-bold tracking-tight text-skin-base sm:text-4xl">Engineering Calculators</h1>
+      <p class="mt-4 max-w-2xl text-base leading-7 text-skin-base/75">
+        Browser-based tools for planning practical off-grid caravan systems.
+      </p>
+      <div class="mt-8 grid gap-5 sm:grid-cols-2">
+        {tools.map(tool => (
+          <a href={tool.href} class="group rounded-2xl border border-skin-line bg-skin-card p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-skin-accent hover:shadow-md">
+            <h2 class="text-xl font-bold text-skin-base group-hover:text-skin-accent">{tool.title}</h2>
+            <p class="mt-3 text-sm leading-6 text-skin-base/75">{tool.description}</p>
+            <span class="mt-5 inline-block text-sm font-semibold text-skin-accent">Open calculator →</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </main>
+  <Footer />
+</Layout>

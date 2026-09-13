@@ -1,0 +1,113 @@
+---
+import CalculatorSafetyNotice from "@/components/calculator/CalculatorSafetyNotice.astro";
+import { dcDcPresets } from "@/utils/calculator/dc-dc";
+---
+
+<section class="rounded-2xl border border-skin-line bg-skin-card p-5 shadow-sm sm:p-7" data-dc-dc-calculator>
+  <div class="mb-6 max-w-2xl">
+    <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-skin-accent">Engineering calculator</p>
+    <h2 class="text-2xl font-bold tracking-tight text-skin-base sm:text-3xl">DC-DC charger and alternator sizing</h2>
+    <p class="mt-3 text-sm leading-6 text-skin-base/75">Estimate alternator input current, daily driving charge and cable/fuse guidance without assuming the alternator’s full rated output is available.</p>
+  </div>
+
+  <div class="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="text-xs font-semibold text-skin-base/75 sm:col-span-2">DC-DC charger preset
+        <select data-setting="preset" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base">{dcDcPresets.map(preset => <option value={preset.id} data-output={preset.outputAmps} data-efficiency={preset.efficiency} data-source-url={preset.sourceUrl}>{preset.name}</option>)}</select>
+        <a class="mt-1 inline-block text-[11px] font-medium text-skin-accent hover:underline" data-source target="_blank" rel="noreferrer">View manufacturer data</a>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Charger output current (A)
+        <input type="number" min="1" step="1" value="50" data-setting="chargerOutputAmps" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Charger efficiency (%)
+        <input type="number" min="50" max="100" step="1" value="98.5" data-setting="chargerEfficiency" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Battery voltage
+        <select data-setting="batteryVoltage" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base"><option value="12">12V</option><option value="24">24V</option><option value="48">48V</option></select>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Alternator voltage (V)
+        <input type="number" min="9" step="0.1" value="14" data-setting="alternatorVoltage" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Alternator rated output (A)
+        <input type="number" min="1" step="1" value="150" data-setting="alternatorRatedAmps" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Vehicle base load (A)
+        <input type="number" min="0" step="1" value="60" data-setting="vehicleBaseLoadAmps" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Alternator reserve allowed
+        <select data-setting="alternatorReserveFactor" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base"><option value="0.8" selected>80%</option><option value="0.7">70%</option><option value="0.6">60%</option></select>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Driving/charging hours per day
+        <input type="number" min="0" step="0.1" value="2" data-setting="drivingHours" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Cable length, one way (m)
+        <input type="number" min="0.1" step="0.1" value="3" data-setting="cableLengthOneWay" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Maximum voltage drop
+        <select data-setting="maxVoltageDrop" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base"><option value="0.02">2%</option><option value="0.03" selected>3%</option></select>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Cable ampacity (A)
+        <input type="number" min="1" step="1" value="100" data-setting="cableAmpacity" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+        <span class="mt-1 block text-[11px] font-normal text-skin-base/60">Planning input used for both cables; verify input and output cable ampacity separately.</span>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Existing input fuse (A)
+        <input type="number" min="0" step="1" value="80" data-setting="existingInputFuseAmps" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-lg font-bold text-skin-base">Charging estimate</h3>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Alternator input current</p><strong class="mt-1 block text-2xl text-skin-base" data-result="inputCurrentAmps">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Safe max charger output</p><strong class="mt-1 block text-2xl text-skin-base" data-result="maximumSafeOutputAmps">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Daily charge gain</p><strong class="mt-1 block text-2xl text-skin-base" data-result="dailyChargeAh">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Daily charge energy</p><strong class="mt-1 block text-2xl text-skin-base" data-result="dailyChargeWh">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Input / output cable</p><strong class="mt-1 block text-2xl text-skin-base" data-result="cableArea">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Input / output fuse guide</p><strong class="mt-1 block text-2xl text-skin-base" data-result="fuseAmps">—</strong></div>
+      </div>
+      <div class="rounded-xl border border-skin-line bg-skin-fill p-4 text-sm leading-6 text-skin-base/75"><strong class="text-skin-base">Checks:</strong> <span data-result="status">—</span></div>
+    </div>
+  </div>
+</section>
+
+<CalculatorSafetyNotice />
+
+<script>
+  import { calculateDcDc } from "@/utils/calculator/dc-dc";
+
+  document.querySelectorAll<HTMLElement>("[data-dc-dc-calculator]").forEach(calculator => {
+    if (calculator.dataset.initialized === "true") return;
+    calculator.dataset.initialized = "true";
+    const read = (name: string, fallback: number) => {
+      const value = Number((calculator.querySelector(`[data-setting="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)?.value);
+      return Number.isFinite(value) ? value : fallback;
+    };
+    const set = (name: string, value: string) => {
+      const target = calculator.querySelector<HTMLElement>(`[data-result="${name}"]`);
+      if (target) target.textContent = value;
+    };
+    const calculate = () => {
+      const result = calculateDcDc({ batteryVoltage: read("batteryVoltage", 12), alternatorVoltage: read("alternatorVoltage", 14), chargerOutputAmps: read("chargerOutputAmps", 50), chargerEfficiency: read("chargerEfficiency", 98.5) / 100, drivingHours: read("drivingHours", 2), alternatorRatedAmps: read("alternatorRatedAmps", 150), vehicleBaseLoadAmps: read("vehicleBaseLoadAmps", 60), alternatorReserveFactor: read("alternatorReserveFactor", 0.8), cableLengthOneWay: read("cableLengthOneWay", 3), maxVoltageDrop: read("maxVoltageDrop", 0.03), cableAmpacity: read("cableAmpacity", 100), existingInputFuseAmps: read("existingInputFuseAmps", 80) });
+      set("inputCurrentAmps", `${Math.ceil(result.inputCurrentAmps)} A`);
+      set("maximumSafeOutputAmps", `${Math.floor(result.maximumSafeOutputAmps)} A`);
+      set("dailyChargeAh", `${Math.ceil(result.dailyChargeAh)} Ah`);
+      set("dailyChargeWh", `${Math.ceil(result.dailyChargeWh)} Wh`);
+      set("cableArea", `${result.inputCableArea} / ${result.outputCableArea} mm²`);
+      set("fuseAmps", `${result.inputFuseAmps} / ${result.outputFuseAmps} A`);
+      set("status", `${result.alternatorOk ? "Alternator reserve: OK." : "Charger input exceeds the reserved alternator capacity."} ${result.cableAmpacityOk ? "Entered cable ampacity is sufficient for this planning estimate." : "Entered cable ampacity is insufficient."} ${result.fuseOk ? "Fuse/cable planning range is within the entered ampacity; verify the manufacturer's protection limits." : "Fuse/cable relationship needs correction."}`);
+    };
+    calculator.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-setting]").forEach(input => input.addEventListener("input", calculate));
+    calculator.querySelector<HTMLSelectElement>("[data-setting=\"preset\"]")?.addEventListener("change", event => {
+      const option = (event.target as HTMLSelectElement).selectedOptions[0];
+      const output = calculator.querySelector<HTMLInputElement>("[data-setting=\"chargerOutputAmps\"]");
+      const efficiency = calculator.querySelector<HTMLInputElement>("[data-setting=\"chargerEfficiency\"]");
+      if (output) output.value = option.dataset.output ?? output.value;
+      if (efficiency) efficiency.value = `${Number(option.dataset.efficiency ?? (Number(efficiency.value) / 100)) * 100}`;
+      const source = calculator.querySelector<HTMLAnchorElement>("[data-source]");
+      if (source) { source.href = option.dataset.sourceUrl ?? ""; source.hidden = !source.href; }
+      calculate();
+    });
+    calculator.querySelector<HTMLSelectElement>("[data-setting=\"preset\"]")?.dispatchEvent(new Event("change"));
+    calculate();
+  });
+</script>

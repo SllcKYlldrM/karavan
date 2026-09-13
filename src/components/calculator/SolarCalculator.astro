@@ -1,0 +1,553 @@
+---
+import { appliancePresets } from "@/data/calculator/appliances";
+import { batteryPresets, inverterPresets, mpptPresets, solarPanelPresets } from "@/data/calculator/solar-products";
+
+import CalculatorSafetyNotice from "@/components/calculator/CalculatorSafetyNotice.astro";
+
+interface Props {
+  planner?: boolean;
+}
+
+const { planner = false } = Astro.props;
+const defaultDevices = ["fridge", "lighting", "water-pump"];
+---
+
+<section class="rounded-2xl border border-skin-line bg-skin-card p-5 shadow-sm sm:p-7" data-solar-calculator>
+  <div class="mb-6 max-w-2xl">
+    <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-skin-accent">Engineering calculator</p>
+    <h2 class="text-2xl font-bold tracking-tight text-skin-base sm:text-3xl">{planner ? "Complete off-grid system planner" : "Solar, battery and cable sizing"}</h2>
+    <p class="mt-3 text-sm leading-6 text-skin-base/75">
+      {planner ? "Build a complete caravan power plan from daily loads through battery, solar, charging, inverter, MPPT, cable and protection checks." : "Build a practical off-grid power plan in four steps: list your devices, set your battery and sun conditions, then review the panel, inverter, MPPT and cable estimates."}
+    </p>
+  </div>
+
+  <div class="mb-8 grid gap-3 rounded-xl border border-skin-line bg-skin-fill p-4 text-sm leading-6 text-skin-base/75 sm:grid-cols-4">
+    <div><strong class="block text-skin-base">1. Loads</strong>Add devices and daily runtime.</div>
+    <div><strong class="block text-skin-base">2. Battery</strong>Choose voltage, chemistry and autonomy.</div>
+    <div><strong class="block text-skin-base">3. Solar</strong>Enter realistic peak sun hours.</div>
+    <div><strong class="block text-skin-base">4. Protection</strong>Review inverter, MPPT and cable guidance.</div>
+  </div>
+  <div class="mb-6 flex items-center justify-between gap-4 rounded-xl border border-skin-line bg-skin-fill p-4">
+    <div>
+      <strong class="block text-sm text-skin-base">Planning mode</strong>
+      <span class="text-xs text-skin-base/65">Start with common defaults. Open advanced settings when you have datasheets.</span>
+    </div>
+    <button type="button" class="shrink-0 rounded-lg border border-skin-line px-3 py-2 text-xs font-semibold text-skin-accent transition hover:border-skin-accent" data-toggle-advanced aria-expanded="false">Show advanced</button>
+  </div>
+
+  <div class="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+    <div class="space-y-6">
+      <div>
+        <div class="mb-3 flex items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-bold text-skin-base">1. Daily loads</h3>
+            <p class="mt-1 text-sm text-skin-base/65">Start with the appliances you expect to use off-grid.</p>
+          </div>
+          <button type="button" class="rounded-lg border border-skin-line px-3 py-2 text-xs font-semibold text-skin-accent transition hover:border-skin-accent hover:bg-skin-fill" data-add-appliance>
+            + Add device
+          </button>
+        </div>
+        <div class="space-y-3" data-appliance-list>
+          {defaultDevices.map(defaultId => {
+            const preset = appliancePresets.find(device => device.id === defaultId) ?? appliancePresets[0];
+            return (
+              <div class="grid gap-3 rounded-xl border border-skin-line bg-skin-fill p-3 sm:grid-cols-[1.5fr_0.7fr_0.7fr_0.7fr_auto] sm:items-end" data-appliance-row>
+                <label class="text-xs font-semibold text-skin-base/75">
+                  Device
+                  <select class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base outline-none focus:border-skin-accent" data-appliance-select>
+                    {appliancePresets.map(device => (
+                      <option value={device.id} data-watts={device.watts} data-is-ac={device.isAc ? "true" : "false"} selected={device.id === preset.id}>
+                        {device.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label class="text-xs font-semibold text-skin-base/75">
+                  Watts
+                  <input type="number" min="1" step="1" value={preset.watts} class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base outline-none focus:border-skin-accent" data-watts-input />
+                </label>
+                <label class="text-xs font-semibold text-skin-base/75">
+                  Quantity
+                  <input type="number" min="1" step="1" value="1" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base outline-none focus:border-skin-accent" data-quantity-input />
+                </label>
+                <label class="text-xs font-semibold text-skin-base/75">
+                  Hours/day
+                  <input type="number" min="0" step="0.1" value={preset.defaultHours} class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base outline-none focus:border-skin-accent" data-hours-input />
+                </label>
+                <button type="button" class="rounded-lg px-3 py-2.5 text-xs font-semibold text-skin-base/60 transition hover:bg-red-500/10 hover:text-red-500" data-remove-appliance aria-label="Remove device">Remove</button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <h3 class="mb-3 text-lg font-bold text-skin-base">2–3. Battery and solar conditions</h3>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="text-xs font-semibold text-skin-base/75">System voltage
+            <select class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="systemVoltage">
+              <option value="12">12V</option><option value="24">24V</option><option value="48">48V</option>
+            </select>
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Off-grid autonomy (days)
+            <input type="number" min="1" step="1" value="1" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="autonomyDays" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Usable battery discharge
+            <select class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="usableDepthOfDischarge">
+              <option value="0.8">80% — LiFePO4</option><option value="0.5">50% — AGM / lead-acid</option>
+            </select>
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Peak sun hours/day
+            <input type="number" min="1" step="0.1" value="4" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="sunHours" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">System efficiency
+            <input type="number" min="50" max="100" step="1" value="80" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="systemEfficiency" data-percent />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Inverter efficiency
+            <input type="number" min="50" max="100" step="1" value="90" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="inverterEfficiency" data-percent />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Main DC cable length, one way (m)
+            <input type="number" min="0.1" step="0.1" value="3" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="cableLength" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Max. voltage drop
+            <select class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="maxVoltageDrop">
+              <option value="0.02">2%</option><option value="0.025" selected>2.5%</option><option value="0.03">3%</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div data-advanced-section hidden>
+        <h3 class="mb-3 text-lg font-bold text-skin-base">4. Battery and inverter checks</h3>
+        <p class="mb-4 text-sm leading-6 text-skin-base/65">Select your equipment when available. These checks compare the estimated DC demand with the battery discharge limit and inverter voltage, continuous and peak ratings.</p>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="text-xs font-semibold text-skin-base/75">Battery preset
+            <select class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="batteryPreset">
+              {batteryPresets.map(battery => <option value={battery.id} data-capacity={battery.capacityAh} data-max-discharge={battery.maxContinuousDischarge} data-dod={battery.usableDepthOfDischarge} data-voltage={battery.nominalVoltage} data-source-url={battery.sourceUrl}>{battery.name}</option>)}
+            </select>
+            <a class="mt-1 inline-block text-[11px] font-medium text-skin-accent hover:underline" data-battery-source target="_blank" rel="noreferrer">View manufacturer data</a>
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Battery quantity
+            <input type="number" min="1" step="1" value="1" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="batteryCount" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Battery capacity (Ah)
+            <input type="number" min="1" step="1" value="200" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="batteryCapacityAh" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Battery max continuous discharge (A)
+            <input type="number" min="1" step="1" value="400" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="batteryMaxContinuousDischarge" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Battery nominal voltage (V)
+            <input type="number" min="1" step="0.1" value="12.8" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="batteryNominalVoltage" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Inverter preset
+            <select class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="inverterPreset">
+              {inverterPresets.map(inverter => <option value={inverter.id} data-voltage={inverter.nominalVoltage} data-continuous={inverter.continuousWatts} data-peak={inverter.peakWatts} data-efficiency={inverter.efficiency} data-source-url={inverter.sourceUrl}>{inverter.name}</option>)}
+            </select>
+            <a class="mt-1 inline-block text-[11px] font-medium text-skin-accent hover:underline" data-inverter-source target="_blank" rel="noreferrer">View manufacturer data</a>
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Inverter continuous output (W)
+            <input type="number" min="1" step="50" value="1600" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="inverterContinuousWatts" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Inverter peak output (W)
+            <input type="number" min="1" step="50" value="3500" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="inverterPeakWatts" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Inverter nominal voltage (V)
+            <input type="number" min="1" step="1" value="12" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="inverterNominalVoltage" />
+          </label>
+        </div>
+      </div>
+
+      <div data-advanced-section hidden>
+        <h3 class="mb-3 text-lg font-bold text-skin-base">5. Other charging sources</h3>
+        <p class="mb-4 text-sm leading-6 text-skin-base/65">Add driving and campsite charging to avoid sizing the solar array for energy that another source already supplies.</p>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="text-xs font-semibold text-skin-base/75">DC-DC charger output (A)
+            <input type="number" min="0" step="1" value="0" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="dcDcChargerAmps" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Driving/charging hours per day
+            <input type="number" min="0" step="0.1" value="0" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="drivingHours" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Alternator spare current (A)
+            <input type="number" min="0" step="1" value="40" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="alternatorSpareAmps" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">DC-DC efficiency (%)
+            <input type="number" min="50" max="100" step="1" value="90" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="dcDcEfficiency" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Shore/generator charger output (A)
+            <input type="number" min="0" step="1" value="0" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="shoreChargerAmps" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Shore charging hours per day
+            <input type="number" min="0" step="0.1" value="0" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="shoreChargingHours" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Shore charger efficiency (%)
+            <input type="number" min="50" max="100" step="1" value="90" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="shoreChargingEfficiency" />
+          </label>
+        </div>
+      </div>
+
+      <div data-advanced-section hidden>
+        <h3 class="mb-3 text-lg font-bold text-skin-base">6. Panel and MPPT compatibility</h3>
+        <p class="mb-4 text-sm leading-6 text-skin-base/65">Use the values printed on your panel and controller datasheets. The calculator checks cold-weather panel voltage, parallel-array current and controller charge-current limits.</p>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="text-xs font-semibold text-skin-base/75">Panel preset
+            <select class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="panelPreset">
+              {solarPanelPresets.map(panel => <option value={panel.id} data-watts={panel.watts} data-voc={panel.voc} data-isc={panel.isc}>{panel.name}</option>)}
+            </select>
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Panel quantity
+            <input type="number" min="1" step="1" value="2" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="panelCount" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Panel watts
+            <input type="number" min="1" step="1" value="200" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="panelWatts" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Panel Voc (V)
+            <input type="number" min="1" step="0.1" value="24" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="panelVoc" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Panel Isc (A)
+            <input type="number" min="0.1" step="0.1" value="10.5" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="panelIsc" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Panels in series
+            <input type="number" min="1" step="1" value="1" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="panelsInSeries" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">MPPT preset
+            <select class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="mpptPreset">
+              {mpptPresets.map(mppt => <option value={mppt.id} data-max-voltage={mppt.maxPvVoltage} data-max-isc={mppt.maxPvShortCircuitCurrent} data-charge-current={mppt.chargeCurrent} data-source-url={mppt.sourceUrl}>{mppt.name}</option>)}
+            </select>
+            <a class="mt-1 inline-block text-[11px] font-medium text-skin-accent hover:underline" data-mppt-source target="_blank" rel="noreferrer">View manufacturer data</a>
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">MPPT max PV voltage (V)
+            <input type="number" min="1" step="1" value="100" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="mpptMaxPvVoltage" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">MPPT max PV short-circuit current (A)
+            <input type="number" min="1" step="0.1" value="35" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="mpptMaxPvShortCircuitCurrent" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">MPPT rated charge current (A)
+            <input type="number" min="1" step="1" value="30" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="mpptChargeCurrent" />
+          </label>
+          <label class="text-xs font-semibold text-skin-base/75">Cold-weather Voc multiplier
+            <input type="number" min="1" max="1.5" step="0.01" value="1.15" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" data-setting="coldVocMultiplier" />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="flex items-start justify-between gap-4">
+        <h3 class="text-lg font-bold text-skin-base">Your system estimate</h3>
+        <div class="flex shrink-0 gap-2">
+          <button type="button" class="rounded-lg border border-skin-line px-3 py-2 text-xs font-semibold text-skin-accent transition hover:border-skin-accent" data-print-results>Print / PDF</button>
+          <button type="button" class="rounded-lg border border-skin-line px-3 py-2 text-xs font-semibold text-skin-accent transition hover:border-skin-accent" data-copy-results>Copy summary</button>
+        </div>
+      </div>
+      <p class="-mt-2 text-sm text-skin-base/65">Use these values as a planning range, then verify each component against its datasheet.</p>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Daily energy</p><strong class="mt-1 block text-2xl text-skin-base" data-result="dailyWh">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Solar energy still required</p><strong class="mt-1 block text-2xl text-skin-base" data-result="solarRequiredWh">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Battery capacity</p><strong class="mt-1 block text-2xl text-skin-base" data-result="batteryAh">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Solar array</p><strong class="mt-1 block text-2xl text-skin-base" data-result="panelWatts">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Recommended inverter class</p><strong class="mt-1 block text-2xl text-skin-base" data-result="inverterWatts">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Battery-side current</p><strong class="mt-1 block text-2xl text-skin-base" data-result="batteryCurrent">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Battery cable ampacity guide</p><strong class="mt-1 block text-2xl text-skin-base" data-result="requiredBatteryAmpacity">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Battery-side fuse guide</p><strong class="mt-1 block text-2xl text-skin-base" data-result="recommendedFuseAmps">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">MPPT controller class</p><strong class="mt-1 block text-2xl text-skin-base" data-result="mpptAmps">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">MPPT protection guide</p><strong class="mt-1 block text-2xl text-skin-base" data-result="mpptFuseAmps">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Configured panel array</p><strong class="mt-1 block text-2xl text-skin-base" data-result="arrayWatts">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Estimated peak current</p><strong class="mt-1 block text-2xl text-skin-base" data-result="maxCurrent">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Minimum cable by voltage drop</p><strong class="mt-1 block text-2xl text-skin-base" data-result="cableArea">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Voltage drop</p><strong class="mt-1 block text-2xl text-skin-base" data-result="voltageDrop">—</strong></div>
+      </div>
+      <div class="grid gap-3 rounded-xl border border-skin-line bg-skin-fill p-4 text-sm sm:grid-cols-2">
+        <div><span class="text-skin-base/65">DC energy</span><strong class="mt-1 block text-skin-base" data-result="dailyDcWh">—</strong></div>
+        <div><span class="text-skin-base/65">AC energy after inverter losses</span><strong class="mt-1 block text-skin-base" data-result="dailyAcWh">—</strong></div>
+        <div><span class="text-skin-base/65">DC-DC charging contribution</span><strong class="mt-1 block text-skin-base" data-result="dcDcChargingWh">—</strong></div>
+        <div><span class="text-skin-base/65">Shore/generator contribution</span><strong class="mt-1 block text-skin-base" data-result="shoreChargingWh">—</strong></div>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-3">
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs font-semibold text-skin-base/65">Minimum</p><strong class="mt-1 block text-lg text-skin-base" data-result="minimumSystem">—</strong><p class="mt-1 text-xs text-skin-base/60">Lowest viable planning point</p></div>
+        <div class="rounded-xl border-2 border-skin-accent bg-skin-fill p-4"><p class="text-xs font-semibold text-skin-accent">Balanced</p><strong class="mt-1 block text-lg text-skin-base" data-result="balancedSystem">—</strong><p class="mt-1 text-xs text-skin-base/60">Recommended everyday range</p></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs font-semibold text-skin-base/65">Expandable</p><strong class="mt-1 block text-lg text-skin-base" data-result="expandableSystem">—</strong><p class="mt-1 text-xs text-skin-base/60">Extra weather and growth margin</p></div>
+      </div>
+      <div class="rounded-xl border border-skin-line bg-skin-fill p-4 text-sm leading-6 text-skin-base/75">
+        <strong class="text-skin-base">How to read this:</strong> choose the next standard product size above the estimate. For example, a 37A MPPT estimate points to a 40A-class controller. Panel series/parallel voltage, battery BMS limits, inverter surge rating and manufacturer cable tables still need a final compatibility check.
+      </div>
+      <div class="rounded-xl border border-skin-line bg-skin-fill p-4 text-sm leading-6" data-compatibility-status>
+        <strong class="text-skin-base">Equipment compatibility</strong>
+        <p class="mt-2 text-skin-base/75" data-result="compatibility">—</p>
+        <p class="mt-2 text-skin-base/75" data-result="batteryCompatibility">—</p>
+        <p class="mt-2 text-skin-base/75" data-result="chargingCompatibility">—</p>
+      </div>
+      <div class="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm leading-6 text-skin-base/80" data-validation-warnings hidden></div>
+      <div class="hidden rounded-xl border border-skin-line bg-skin-card p-6 text-sm leading-7 text-skin-base print:block" data-print-summary>
+        <h3 class="text-xl font-bold text-skin-base">VanSpecs Off-Grid System Plan</h3>
+        <p class="mt-1 text-skin-base/65">Generated from the values entered in the calculator.</p>
+        <div class="mt-4 grid gap-x-8 gap-y-1 sm:grid-cols-2">
+          <div>Daily energy: <strong data-summary="dailyWh">—</strong></div>
+          <div>Solar energy required: <strong data-summary="solarRequiredWh">—</strong></div>
+          <div>Battery capacity: <strong data-summary="batteryAh">—</strong></div>
+          <div>Solar array: <strong data-summary="panelWatts">—</strong></div>
+          <div>Inverter class: <strong data-summary="inverterWatts">—</strong></div>
+          <div>MPPT class: <strong data-summary="mpptAmps">—</strong></div>
+          <div>Battery-side cable ampacity: <strong data-summary="requiredBatteryAmpacity">—</strong></div>
+          <div>Battery-side fuse guide: <strong data-summary="recommendedFuseAmps">—</strong></div>
+          <div>Panel connection: <strong data-summary="compatibility">—</strong></div>
+        </div>
+        <p class="mt-4 border-t border-skin-line pt-3 text-xs leading-5 text-skin-base/65">Planning estimate only. Verify manufacturer datasheets, cable ampacity, fuse ratings, temperature derating, BMS limits and local electrical requirements before installation.</p>
+      </div>
+      <div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6 text-skin-base/80">
+        <strong class="text-skin-base">Safety note:</strong> This tool uses round-trip copper resistance and a target voltage drop. The final cable must be the larger of the voltage-drop result and the installation ampacity requirement. Verify fuse protection, temperature derating, cable bundling, terminals and local electrical requirements before installation.
+      </div>
+      <div class="hidden rounded-xl border border-skin-line bg-skin-fill p-4" data-affiliate-recommendations></div>
+    </div>
+  </div>
+</section>
+
+<CalculatorSafetyNotice />
+
+<script>
+  import { calculateSolarSystem, getSolarSystemWarnings } from "@/utils/calculator/solar";
+
+  document.querySelectorAll<HTMLElement>("[data-solar-calculator]").forEach(calculator => {
+    if (calculator.dataset.initialized === "true") return;
+    calculator.dataset.initialized = "true";
+
+    const applianceList = calculator.querySelector<HTMLElement>("[data-appliance-list]");
+    const addButton = calculator.querySelector<HTMLButtonElement>("[data-add-appliance]");
+    const firstRow = calculator.querySelector<HTMLElement>("[data-appliance-row]");
+    if (!applianceList || !addButton || !firstRow) return;
+
+    const advancedToggle = calculator.querySelector<HTMLButtonElement>("[data-toggle-advanced]");
+    advancedToggle?.addEventListener("click", () => {
+      const showAdvanced = advancedToggle.getAttribute("aria-expanded") !== "true";
+      advancedToggle.setAttribute("aria-expanded", String(showAdvanced));
+      advancedToggle.textContent = showAdvanced ? "Hide advanced" : "Show advanced";
+      calculator.querySelectorAll<HTMLElement>("[data-advanced-section]").forEach(section => {
+        section.hidden = !showAdvanced;
+      });
+    });
+    calculator.querySelector<HTMLButtonElement>("[data-print-results]")?.addEventListener("click", () => window.print());
+
+    const readNumber = (element: Element | null, fallback: number) => {
+      const value = Number((element as HTMLInputElement | HTMLSelectElement | null)?.value);
+      return Number.isFinite(value) ? value : fallback;
+    };
+
+    const calculate = () => {
+      const loads = Array.from(applianceList.querySelectorAll<HTMLElement>("[data-appliance-row]")).map(row => {
+        const select = row.querySelector<HTMLSelectElement>("[data-appliance-select]");
+        const option = select?.selectedOptions[0];
+        const wattsInput = row.querySelector<HTMLInputElement>("[data-watts-input]");
+        return {
+          watts: readNumber(wattsInput, Number(option?.dataset.watts ?? 0)),
+          quantity: readNumber(row.querySelector("[data-quantity-input]"), 1),
+          hours: readNumber(row.querySelector("[data-hours-input]"), 0),
+          isAc: option?.dataset.isAc === "true",
+        };
+      });
+
+      const value = (name: string, fallback: number) => readNumber(calculator.querySelector(`[data-setting="${name}"]`), fallback);
+      const settingData = (name: string, key: string, fallback: number) => {
+        const select = calculator.querySelector<HTMLSelectElement>(`[data-setting="${name}"]`);
+        return Number(select?.selectedOptions[0]?.dataset[key]) || fallback;
+      };
+      const calculationInput = {
+        loads,
+        systemVoltage: value("systemVoltage", 12),
+        autonomyDays: value("autonomyDays", 1),
+        usableDepthOfDischarge: value("usableDepthOfDischarge", 0.8),
+        sunHours: value("sunHours", 4),
+        systemEfficiency: value("systemEfficiency", 80) / 100,
+        cableLength: value("cableLength", 3),
+        maxVoltageDrop: value("maxVoltageDrop", 0.025),
+        inverterEfficiency: value("inverterEfficiency", 90) / 100,
+        panelWatts: value("panelWatts", 200),
+        panelVoc: value("panelVoc", 24),
+        panelIsc: value("panelIsc", 10.5),
+        panelCount: value("panelCount", 2),
+        panelsInSeries: value("panelsInSeries", 1),
+        mpptMaxPvVoltage: value("mpptMaxPvVoltage", settingData("mpptPreset", "maxVoltage", 100)),
+        mpptMaxPvShortCircuitCurrent: value("mpptMaxPvShortCircuitCurrent", settingData("mpptPreset", "maxIsc", 35)),
+        mpptChargeCurrent: value("mpptChargeCurrent", settingData("mpptPreset", "chargeCurrent", 30)),
+        coldVocMultiplier: value("coldVocMultiplier", 1.15),
+        batteryCapacityAh: value("batteryCapacityAh", settingData("batteryPreset", "capacity", 200)),
+        batteryMaxContinuousDischarge: value("batteryMaxContinuousDischarge", settingData("batteryPreset", "maxDischarge", 400)),
+        batteryCount: value("batteryCount", 1),
+        batteryNominalVoltage: value("batteryNominalVoltage", settingData("batteryPreset", "voltage", 12.8)),
+        inverterContinuousWatts: value("inverterContinuousWatts", settingData("inverterPreset", "continuous", 1600)),
+        inverterPeakWatts: value("inverterPeakWatts", settingData("inverterPreset", "peak", 3500)),
+        inverterNominalVoltage: value("inverterNominalVoltage", settingData("inverterPreset", "voltage", 12)),
+        dcDcChargerAmps: value("dcDcChargerAmps", 0),
+        drivingHours: value("drivingHours", 0),
+        alternatorSpareAmps: value("alternatorSpareAmps", 40),
+        dcDcEfficiency: value("dcDcEfficiency", 90) / 100,
+        shoreChargerAmps: value("shoreChargerAmps", 0),
+        shoreChargingHours: value("shoreChargingHours", 0),
+        shoreChargingEfficiency: value("shoreChargingEfficiency", 90) / 100,
+      };
+      const result = calculateSolarSystem(calculationInput);
+
+      const setResult = (name: string, text: string) => {
+        const target = calculator.querySelector<HTMLElement>(`[data-result="${name}"]`);
+        if (target) target.textContent = text;
+      };
+      setResult("dailyWh", `${Math.ceil(result.dailyWh)} Wh`);
+      setResult("solarRequiredWh", `${Math.ceil(result.solarRequiredWh)} Wh/day`);
+      setResult("dailyDcWh", `${Math.ceil(result.dailyDcWh)} Wh/day`);
+      setResult("dailyAcWh", `${Math.ceil(result.dailyAcWh)} Wh/day`);
+      setResult("dcDcChargingWh", `${Math.ceil(result.dcDcChargingWh)} Wh/day`);
+      setResult("shoreChargingWh", `${Math.ceil(result.shoreChargingWh)} Wh/day`);
+      setResult("batteryAh", `${Math.ceil(result.batteryAh)} Ah`);
+      setResult("panelWatts", `${Math.ceil(result.panelWatts)} W`);
+      setResult("arrayWatts", `${Math.ceil(result.arrayWatts)} W`);
+      setResult("inverterWatts", `${Math.ceil(result.inverterWatts)} W+`);
+      setResult("batteryCurrent", `${Math.ceil(result.batteryCurrent)} A`);
+      setResult("requiredBatteryAmpacity", `${Math.ceil(result.requiredBatteryAmpacity)} A+`);
+      setResult("recommendedFuseAmps", `${result.recommendedFuseAmps} A max guide`);
+      setResult("mpptAmps", `${result.mpptAmps} A`);
+      setResult("mpptFuseAmps", `${result.mpptFuseAmps} A max guide`);
+      setResult("maxCurrent", `${Math.ceil(result.maxCurrent)} A`);
+      setResult("cableArea", `${result.cableArea} mm²`);
+      setResult("voltageDrop", `${result.voltageDrop.toFixed(2)}%`);
+      const compatibility = result.mpptVoltageOk && result.mpptCurrentOk && result.mpptChargeCurrentOk
+        ? `Compatible at ${result.seriesCount}S × ${result.parallelCount}P. Cold-array Voc: ${result.coldArrayVoc.toFixed(1)}V; array Isc: ${result.arrayIsc.toFixed(1)}A.`
+        : `Review required: ${[
+            !result.mpptVoltageOk ? `cold-array Voc ${result.coldArrayVoc.toFixed(1)}V exceeds MPPT limit` : "",
+            !result.mpptCurrentOk ? `array Isc ${result.arrayIsc.toFixed(1)}A exceeds MPPT PV short-circuit limit` : "",
+            !result.mpptChargeCurrentOk ? `estimated charge current needs a larger MPPT than the selected model` : "",
+          ].filter(Boolean).join("; ")}.`;
+      setResult("compatibility", compatibility);
+      setResult("batteryCompatibility", [
+        result.batteryCapacityOk ? "Battery continuous-discharge limit: OK." : "Battery continuous-discharge limit: review required.",
+        result.batteryVoltageOk ? "Battery voltage: OK." : "Battery voltage does not match the selected system voltage.",
+        result.inverterVoltageOk ? "Inverter voltage: OK." : "Inverter voltage does not match the selected system voltage.",
+        result.inverterPeakOk ? "Inverter peak rating: OK for estimated load." : "Inverter peak rating is below the estimated simultaneous load.",
+      ].join(" "));
+      setResult("chargingCompatibility", result.dcDcAlternatorOk
+        ? "DC-DC charger versus alternator spare-current limit: OK."
+        : "DC-DC charger output exceeds the entered alternator spare-current limit; reduce charger size or verify the vehicle charging system.");
+      setResult("minimumSystem", `${Math.ceil(result.systemLevels.minimum.batteryAh)}Ah / ${Math.ceil(result.systemLevels.minimum.panelWatts)}W`);
+      setResult("balancedSystem", `${Math.ceil(result.systemLevels.balanced.batteryAh)}Ah / ${Math.ceil(result.systemLevels.balanced.panelWatts)}W`);
+      setResult("expandableSystem", `${Math.ceil(result.systemLevels.expandable.batteryAh)}Ah / ${Math.ceil(result.systemLevels.expandable.panelWatts)}W`);
+      const summaryValues: Record<string, string> = {
+        dailyWh: `${Math.ceil(result.dailyWh)} Wh`,
+        solarRequiredWh: `${Math.ceil(result.solarRequiredWh)} Wh/day`,
+        batteryAh: `${Math.ceil(result.batteryAh)} Ah`,
+        panelWatts: `${Math.ceil(result.panelWatts)} W`,
+        inverterWatts: `${Math.ceil(result.inverterWatts)} W+`,
+        mpptAmps: `${result.mpptAmps} A`,
+        requiredBatteryAmpacity: `${Math.ceil(result.requiredBatteryAmpacity)} A+`,
+        recommendedFuseAmps: `${result.recommendedFuseAmps} A max guide`,
+        compatibility: `${result.seriesCount}S × ${result.parallelCount}P; cold Voc ${result.coldArrayVoc.toFixed(1)}V; Isc ${result.arrayIsc.toFixed(1)}A`,
+      };
+      Object.entries(summaryValues).forEach(([name, text]) => {
+        const target = calculator.querySelector<HTMLElement>(`[data-summary="${name}"]`);
+        if (target) target.textContent = text;
+      });
+      const summaryText = [
+        "VanSpecs Off-Grid System Plan",
+        `Daily energy: ${summaryValues.dailyWh}`,
+        `Solar energy required: ${summaryValues.solarRequiredWh}`,
+        `Battery capacity: ${summaryValues.batteryAh}`,
+        `Solar array: ${summaryValues.panelWatts}`,
+        `Inverter class: ${summaryValues.inverterWatts}`,
+        `MPPT class: ${summaryValues.mpptAmps}`,
+        `Battery-side cable ampacity: ${summaryValues.requiredBatteryAmpacity}`,
+        `Battery-side fuse guide: ${summaryValues.recommendedFuseAmps}`,
+        `Panel connection: ${summaryValues.compatibility}`,
+      ].join("\n");
+      const copyButton = calculator.querySelector<HTMLButtonElement>("[data-copy-results]");
+      if (copyButton) copyButton.onclick = async () => {
+        await navigator.clipboard?.writeText(summaryText);
+        copyButton.textContent = "Copied";
+        window.setTimeout(() => { copyButton.textContent = "Copy summary"; }, 1600);
+      };
+      const warnings = getSolarSystemWarnings(result, calculationInput);
+      const warningBox = calculator.querySelector<HTMLElement>("[data-validation-warnings]");
+      if (warningBox) {
+        warningBox.hidden = warnings.length === 0;
+        warningBox.innerHTML = warnings.length
+          ? `<strong class="text-skin-base">Review before choosing hardware</strong><ul class="mt-2 list-disc space-y-1 pl-5">${warnings.map(warning => `<li>${warning}</li>`).join("")}</ul>`
+          : "";
+      }
+    };
+
+    const wireRow = (row: HTMLElement) => {
+      row.querySelectorAll("input, select").forEach(input => input.addEventListener("input", calculate));
+      row.querySelector<HTMLSelectElement>("[data-appliance-select]")?.addEventListener("change", event => {
+        const select = event.currentTarget as HTMLSelectElement;
+        const option = select.selectedOptions[0];
+        const watts = row.querySelector<HTMLInputElement>("[data-watts-input]");
+        if (watts && option?.dataset.watts) watts.value = option.dataset.watts;
+        calculate();
+      });
+      row.querySelector<HTMLButtonElement>("[data-remove-appliance]")?.addEventListener("click", () => {
+        if (applianceList.querySelectorAll("[data-appliance-row]").length > 1) {
+          row.remove();
+          calculate();
+        }
+      });
+    };
+
+    wireRow(firstRow);
+    calculator.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-setting]").forEach(input => input.addEventListener("input", calculate));
+    calculator.querySelector<HTMLSelectElement>('[data-setting="panelPreset"]')?.addEventListener("change", event => {
+      const select = event.currentTarget as HTMLSelectElement;
+      const option = select.selectedOptions[0];
+      for (const [name, key] of [["panelWatts", "watts"], ["panelVoc", "voc"], ["panelIsc", "isc"]] as const) {
+        const input = calculator.querySelector<HTMLInputElement>(`[data-setting="${name}"]`);
+        if (input && option?.dataset[key]) input.value = option.dataset[key]!;
+      }
+      calculate();
+    });
+    calculator.querySelector<HTMLSelectElement>('[data-setting="mpptPreset"]')?.addEventListener("change", event => {
+      const select = event.currentTarget as HTMLSelectElement;
+      const option = select.selectedOptions[0];
+      const source = calculator.querySelector<HTMLAnchorElement>("[data-mppt-source]");
+      if (source) {
+        source.href = option?.dataset.sourceUrl ?? "#";
+        source.hidden = !option?.dataset.sourceUrl;
+      }
+      for (const [name, key] of [["mpptMaxPvVoltage", "maxVoltage"], ["mpptMaxPvShortCircuitCurrent", "maxIsc"], ["mpptChargeCurrent", "chargeCurrent"]] as const) {
+        const input = calculator.querySelector<HTMLInputElement>(`[data-setting="${name}"]`);
+        if (input && option?.dataset[key]) input.value = option.dataset[key]!;
+      }
+      calculate();
+    });
+    const syncProductPreset = (presetName: string, sourceSelector: string, fields: Array<[string, string]>) => {
+      const select = calculator.querySelector<HTMLSelectElement>(`[data-setting="${presetName}"]`);
+      if (!select) return;
+      const sync = () => {
+        const option = select.selectedOptions[0];
+        const source = calculator.querySelector<HTMLAnchorElement>(sourceSelector);
+        if (source) {
+          source.href = option?.dataset.sourceUrl ?? "#";
+          source.hidden = !option?.dataset.sourceUrl;
+        }
+        for (const [name, key] of fields) {
+          const input = calculator.querySelector<HTMLInputElement>(`[data-setting="${name}"]`);
+          if (input && option?.dataset[key]) input.value = option.dataset[key]!;
+        }
+        calculate();
+      };
+      select.addEventListener("change", sync);
+      sync();
+    };
+    syncProductPreset("batteryPreset", "[data-battery-source]", [["batteryCapacityAh", "capacity"], ["batteryMaxContinuousDischarge", "maxDischarge"], ["batteryNominalVoltage", "voltage"], ["usableDepthOfDischarge", "dod"]]);
+    syncProductPreset("inverterPreset", "[data-inverter-source]", [["inverterContinuousWatts", "continuous"], ["inverterPeakWatts", "peak"], ["inverterNominalVoltage", "voltage"], ["inverterEfficiency", "efficiency"]]);
+    calculator.querySelector<HTMLSelectElement>('[data-setting="mpptPreset"]')?.dispatchEvent(new Event("change"));
+    addButton.addEventListener("click", () => {
+      const row = firstRow.cloneNode(true) as HTMLElement;
+      row.querySelectorAll<HTMLInputElement>("input").forEach(input => {
+        if (input.hasAttribute("data-watts-input")) input.value = "100";
+        if (input.hasAttribute("data-quantity-input")) input.value = "1";
+        if (input.hasAttribute("data-hours-input")) input.value = "1";
+      });
+      const select = row.querySelector<HTMLSelectElement>("[data-appliance-select]");
+      if (select) select.value = "custom";
+      applianceList.appendChild(row);
+      wireRow(row);
+      calculate();
+    });
+
+    calculate();
+  });
+</script>

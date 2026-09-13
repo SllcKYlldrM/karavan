@@ -1,0 +1,24 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import SolarCalculator from "@/components/calculator/SolarCalculator.astro";
+
+const toolUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
+const homeUrl = new URL("/", Astro.site ?? Astro.url).href;
+const toolsUrl = new URL("/tools", Astro.site ?? Astro.url).href;
+const toolSchema = JSON.stringify({ "@context": "https://schema.org", "@type": "WebApplication", name: "VanSpecs Complete Off-Grid System Planner", applicationCategory: "UtilitiesApplication", operatingSystem: "Web", url: toolUrl, description: "Plan an off-grid caravan electrical system from daily loads through battery, solar, charging, inverter, MPPT, cable and protection checks.", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, featureList: ["Daily load estimate", "Battery and solar sizing", "MPPT compatibility", "Inverter and DC-DC checks", "Cable and fuse planning"] });
+const breadcrumbSchema = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: homeUrl }, { "@type": "ListItem", position: 2, name: "Tools", item: toolsUrl }, { "@type": "ListItem", position: 3, name: "Complete System Planner", item: toolUrl }] });
+---
+
+<Layout title="Complete Off-Grid System Planner | VanSpecs" description="Plan an off-grid caravan electrical system from daily loads through battery, solar, charging, inverter, MPPT, cable and protection checks.">
+  <Fragment slot="head"><script is:inline type="application/ld+json" set:html={toolSchema}></script><script is:inline type="application/ld+json" set:html={breadcrumbSchema}></script></Fragment>
+  <Header />
+  <main id="main-content" class="mx-auto w-full max-w-[1480px] px-6 py-10 sm:px-10 lg:px-12">
+    <div class="mx-auto max-w-5xl">
+      <nav class="mb-6 text-sm text-skin-base/65" aria-label="Breadcrumb"><a href="/" class="hover:text-skin-accent">Home</a><span class="mx-2" aria-hidden="true">/</span><a href="/tools" class="hover:text-skin-accent">Tools</a><span class="mx-2" aria-hidden="true">/</span><span>Complete system planner</span></nav>
+      <SolarCalculator planner />
+    </div>
+  </main>
+  <Footer />
+</Layout>

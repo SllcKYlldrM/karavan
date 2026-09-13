@@ -229,6 +229,20 @@ const allTags = [...new Set(sortedPosts.flatMap(p => p.data.tags || []))].slice(
           </div>
         )}
 
+        <div class="rounded-2xl border border-skin-line/60 bg-skin-card p-5 shadow-xs">
+          <h3 class="border-b border-skin-line/50 pb-3 font-bold text-sm uppercase tracking-wider text-skin-base flex items-center gap-2">
+            <span class="inline-block h-2 w-2 rounded-full bg-skin-accent"></span>
+            Featured Calculators
+          </h3>
+          <div class="divide-y divide-skin-line/40 pt-1">
+            <a href="/tools/system-planner" class="block py-3 text-sm font-semibold text-skin-base transition-colors hover:text-skin-accent">Complete Off-Grid System Planner</a>
+            <a href="/tools/solar-calculator" class="block py-3 text-sm font-semibold text-skin-base transition-colors hover:text-skin-accent">Solar and Battery Calculator</a>
+            <a href="/tools/weight-calculator" class="block py-3 text-sm font-semibold text-skin-base transition-colors hover:text-skin-accent">Payload and Weight Calculator</a>
+            <a href="/tools/water-calculator" class="block py-3 text-sm font-semibold text-skin-base transition-colors hover:text-skin-accent">Water Tank Autonomy Calculator</a>
+          </div>
+          <a href="/tools" class="mt-2 inline-block text-xs font-bold text-skin-accent hover:underline">View all calculators →</a>
+        </div>
+
         <!-- SİDEBAR 3: PORTAL HAKKINDA KUTUSU -->
         <div class="rounded-2xl border border-skin-line/60 bg-skin-card p-6 shadow-xs text-center">
           <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-skin-accent/10 text-skin-accent">
@@ -241,8 +255,14 @@ const allTags = [...new Set(sortedPosts.flatMap(p => p.data.tags || []))].slice(
             Guides covering 12V electrical systems, LiFePO4 battery management, and water system optimization.
           </p>
           <a
+            href="/tools"
+            class="mt-4 inline-block w-full rounded-lg border border-skin-accent px-4 py-2.5 text-xs font-bold text-skin-accent transition-colors hover:bg-skin-accent hover:text-white"
+          >
+            Explore Engineering Calculators &rarr;
+          </a>
+          <a
             href="/posts"
-            class="mt-4 inline-block w-full rounded-lg bg-skin-accent px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-opacity hover:opacity-90"
+            class="mt-2 inline-block w-full rounded-lg bg-skin-accent px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-opacity hover:opacity-90"
           >
             View All Articles &rarr;
           </a>

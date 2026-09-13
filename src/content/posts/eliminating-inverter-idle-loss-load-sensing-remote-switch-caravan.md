@@ -4,6 +4,7 @@ pubDatetime: 2026-09-11T19:43:56Z
 title: "Eliminating Inverter Idle Power Loss: Designing a Load-Sensing Automatic Remote Switch for Off-Grid Caravan Systems"
 postSlug: "eliminating-inverter-idle-loss-load-sensing-remote-switch-caravan"
 category: Power & Solar Systems
+calculator: inverter-sizing
 featured: false
 draft: false
 tags:

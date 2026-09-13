@@ -3,6 +3,7 @@ author: Nora Bennett
 pubDatetime: 2026-09-12T23:44:42Z
 title: "Designing an ESP32 RV AC Shore Power Smart Load Shedder: Integrating Modbus Energy Meters, Relay Interlocking, and MQTT Telemetry"
 postSlug: "esp32-rv-ac-shore-power-smart-load-shedder-modbus-mqtt"
+calculator: ac-load
 category: Smart RV & IoT
 featured: false
 draft: false

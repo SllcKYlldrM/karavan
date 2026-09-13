@@ -1,0 +1,81 @@
+---
+import CalculatorSafetyNotice from "@/components/calculator/CalculatorSafetyNotice.astro";
+---
+
+<section class="rounded-2xl border border-skin-line bg-skin-card p-5 shadow-sm sm:p-7" data-gas-calculator>
+  <div class="mb-6 max-w-2xl">
+    <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-skin-accent">Planning calculator</p>
+    <h2 class="text-2xl font-bold tracking-tight text-skin-base sm:text-3xl">LPG bottle runtime estimate</h2>
+    <p class="mt-3 text-sm leading-6 text-skin-base/75">Estimate propane or LPG usage for selected appliances from editable bottle, load, efficiency and reserve assumptions.</p>
+  </div>
+
+  <div class="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="text-xs font-semibold text-skin-base/75">Bottle capacity (kg)
+        <input type="number" min="0" step="0.1" value="11" data-setting="bottleCapacityKg" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Useful appliance heat/load (kW)
+        <input type="number" min="0" step="0.01" value="2" data-setting="appliancePowerKw" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Number of appliances at this load
+        <input type="number" min="0" step="1" value="1" data-setting="appliancesInUse" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Runtime per day (hours)
+        <input type="number" min="0" max="24" step="0.5" value="4" data-setting="hoursPerDay" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">System efficiency
+        <input type="number" min="1" max="100" step="1" value="85" data-setting="efficiencyPercent" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Gas reserve
+        <select data-setting="reserveFactor" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base"><option value="0.1">10%</option><option value="0.2" selected>20%</option><option value="0.3">30%</option></select>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75 sm:col-span-2">Energy content assumption (kWh/kg)
+        <input type="number" min="0" step="0.1" value="12.8" data-setting="energyPerKgKwh" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-lg font-bold text-skin-base">Runtime estimate</h3>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Usable gas</p><strong class="mt-1 block text-2xl text-skin-base" data-result="usableGasKg">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Runtime</p><strong class="mt-1 block text-2xl text-skin-base" data-result="runtimeHours">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Runtime at daily use</p><strong class="mt-1 block text-2xl text-skin-base" data-result="runtimeDays">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Daily gas use</p><strong class="mt-1 block text-2xl text-skin-base" data-result="dailyGasKg">—</strong></div>
+      </div>
+      <div class="rounded-xl border border-skin-line bg-skin-fill p-4 text-sm leading-6 text-skin-base/75"><strong class="text-skin-base">Daily useful energy:</strong> <span data-result="dailyEnergyKwh">—</span> · <strong class="text-skin-base">Combined load:</strong> <span data-result="totalPowerKw">—</span></div>
+      <ul class="space-y-2 text-sm leading-6 text-red-700 dark:text-red-300" data-result="warnings"></ul>
+      <div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6 text-skin-base/80"><strong class="text-skin-base">Safety note:</strong> LPG is a fire, explosion and asphyxiation hazard. Use certified equipment, a suitable regulator, fixed ventilation, a gas detector and a carbon-monoxide alarm. Close the cylinder valve when the system is not in use.</div>
+    </div>
+  </div>
+  <CalculatorSafetyNotice />
+</section>
+
+<script>
+  import { calculateGas } from "@/utils/calculator/gas";
+
+  document.querySelectorAll<HTMLElement>("[data-gas-calculator]").forEach(calculator => {
+    if (calculator.dataset.initialized === "true") return;
+    calculator.dataset.initialized = "true";
+    const read = (name: string, fallback: number) => {
+      const value = Number((calculator.querySelector(`[data-setting="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)?.value);
+      return Number.isFinite(value) ? value : fallback;
+    };
+    const set = (name: string, value: string) => {
+      const target = calculator.querySelector<HTMLElement>(`[data-result="${name}"]`);
+      if (target) target.textContent = value;
+    };
+    const calculate = () => {
+      const result = calculateGas({ bottleCapacityKg: read("bottleCapacityKg", 11), appliancePowerKw: read("appliancePowerKw", 2), appliancesInUse: read("appliancesInUse", 1), hoursPerDay: read("hoursPerDay", 4), efficiency: read("efficiencyPercent", 85) / 100, reserveFactor: read("reserveFactor", 0.2), energyPerKgKwh: read("energyPerKgKwh", 12.8) });
+      set("usableGasKg", `${result.usableGasKg.toFixed(1)} kg`);
+      set("runtimeHours", `${result.runtimeHours.toFixed(1)} hours`);
+      set("runtimeDays", `${result.runtimeDays.toFixed(1)} days`);
+      set("dailyGasKg", `${result.dailyGasKg.toFixed(2)} kg/day`);
+      set("dailyEnergyKwh", `${result.dailyEnergyKwh.toFixed(1)} kWh`);
+      set("totalPowerKw", `${result.totalPowerKw.toFixed(2)} kW`);
+      const warnings = calculator.querySelector<HTMLElement>('[data-result="warnings"]');
+      if (warnings) warnings.innerHTML = result.warnings.map(warning => `<li>• ${warning}</li>`).join("");
+    };
+    calculator.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-setting]").forEach(input => input.addEventListener("input", calculate));
+    calculate();
+  });
+</script>

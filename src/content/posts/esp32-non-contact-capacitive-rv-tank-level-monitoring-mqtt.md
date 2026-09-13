@@ -3,6 +3,7 @@ author: Nora Bennett
 pubDatetime: 2026-09-12T12:31:00Z
 title: "Designing a Corrosion-Free ESP32 Non-Contact Capacitive RV Tank Level Monitoring System with MQTT Telemetry"
 postSlug: "esp32-non-contact-capacitive-rv-tank-level-monitoring-mqtt"
+calculator: water-sizing
 category: Smart RV & IoT
 featured: false
 draft: false

@@ -3,6 +3,7 @@ author: Daniel Brooks
 pubDatetime: 2026-09-11T11:59:40Z
 title: "Top Essential Caravan Equipment & Weight Distribution Tips"
 postSlug: "caravan-weight-distribution-guide"
+calculator: weight-sizing
 category: Engineering Calculators
 featured: false
 draft: false

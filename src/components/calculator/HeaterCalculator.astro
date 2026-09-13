@@ -1,0 +1,78 @@
+---
+import CalculatorSafetyNotice from "@/components/calculator/CalculatorSafetyNotice.astro";
+---
+
+<section class="rounded-2xl border border-skin-line bg-skin-card p-5 shadow-sm sm:p-7" data-heater-calculator>
+  <div class="mb-6 max-w-2xl">
+    <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-skin-accent">Planning calculator</p>
+    <h2 class="text-2xl font-bold tracking-tight text-skin-base sm:text-3xl">Diesel heater fuel and runtime</h2>
+    <p class="mt-3 text-sm leading-6 text-skin-base/75">Estimate usable fuel, runtime, daily diesel consumption and 12V electrical demand from your heater's measured values.</p>
+  </div>
+
+  <div class="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="text-xs font-semibold text-skin-base/75">Fuel tank capacity (L)
+        <input type="number" min="0" step="0.1" value="10" data-setting="tankCapacityLitres" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Fuel burn (L/hour)
+        <input type="number" min="0" step="0.001" value="0.15" data-setting="fuelBurnLitresPerHour" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Runtime per day (hours)
+        <input type="number" min="0" max="24" step="0.5" value="8" data-setting="hoursPerDay" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Fuel reserve
+        <select data-setting="reserveFactor" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base"><option value="0.1">10%</option><option value="0.2" selected>20%</option><option value="0.3">30%</option></select>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Average electrical draw (A)
+        <input type="number" min="0" step="0.1" value="1.5" data-setting="heaterCurrentAmps" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Electrical system voltage (V)
+        <input type="number" min="0" step="0.1" value="12" data-setting="heaterVoltage" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-lg font-bold text-skin-base">Runtime estimate</h3>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Usable fuel</p><strong class="mt-1 block text-2xl text-skin-base" data-result="usableFuelLitres">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Runtime</p><strong class="mt-1 block text-2xl text-skin-base" data-result="runtimeHours">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Runtime at daily use</p><strong class="mt-1 block text-2xl text-skin-base" data-result="runtimeDays">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Daily fuel</p><strong class="mt-1 block text-2xl text-skin-base" data-result="dailyFuelLitres">—</strong></div>
+      </div>
+      <div class="rounded-xl border border-skin-line bg-skin-fill p-4 text-sm leading-6 text-skin-base/75"><strong class="text-skin-base">Electrical demand:</strong> <span data-result="dailyElectricalAh">—</span> / <span data-result="dailyElectricalWh">—</span></div>
+      <ul class="space-y-2 text-sm leading-6 text-red-700 dark:text-red-300" data-result="warnings"></ul>
+      <div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6 text-skin-base/80"><strong class="text-skin-base">Safety note:</strong> Fuel-burn and current values vary by heater model, power setting, altitude, startup cycles, battery voltage and temperature. Maintain combustion-air and exhaust clearances and use a working carbon-monoxide alarm.</div>
+    </div>
+  </div>
+  <CalculatorSafetyNotice />
+</section>
+
+<script>
+  import { calculateHeater } from "@/utils/calculator/heater";
+
+  document.querySelectorAll<HTMLElement>("[data-heater-calculator]").forEach(calculator => {
+    if (calculator.dataset.initialized === "true") return;
+    calculator.dataset.initialized = "true";
+    const read = (name: string, fallback: number) => {
+      const value = Number((calculator.querySelector(`[data-setting="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)?.value);
+      return Number.isFinite(value) ? value : fallback;
+    };
+    const set = (name: string, value: string) => {
+      const target = calculator.querySelector<HTMLElement>(`[data-result="${name}"]`);
+      if (target) target.textContent = value;
+    };
+    const calculate = () => {
+      const result = calculateHeater({ tankCapacityLitres: read("tankCapacityLitres", 10), fuelBurnLitresPerHour: read("fuelBurnLitresPerHour", 0.15), hoursPerDay: read("hoursPerDay", 8), reserveFactor: read("reserveFactor", 0.2), heaterCurrentAmps: read("heaterCurrentAmps", 1.5), heaterVoltage: read("heaterVoltage", 12) });
+      set("usableFuelLitres", `${result.usableFuelLitres.toFixed(1)} L`);
+      set("runtimeHours", `${result.runtimeHours.toFixed(1)} hours`);
+      set("runtimeDays", `${result.runtimeDays.toFixed(1)} days`);
+      set("dailyFuelLitres", `${result.dailyFuelLitres.toFixed(2)} L/day`);
+      set("dailyElectricalAh", `${result.dailyElectricalAh.toFixed(1)} Ah/day`);
+      set("dailyElectricalWh", `${result.dailyElectricalWh.toFixed(0)} Wh/day`);
+      const warnings = calculator.querySelector<HTMLElement>('[data-result="warnings"]');
+      if (warnings) warnings.innerHTML = result.warnings.map(warning => `<li>• ${warning}</li>`).join("");
+    };
+    calculator.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-setting]").forEach(input => input.addEventListener("input", calculate));
+    calculate();
+  });
+</script>

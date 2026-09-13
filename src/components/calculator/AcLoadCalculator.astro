@@ -1,0 +1,80 @@
+---
+import CalculatorSafetyNotice from "@/components/calculator/CalculatorSafetyNotice.astro";
+---
+
+<section class="rounded-2xl border border-skin-line bg-skin-card p-5 shadow-sm sm:p-7" data-ac-load-calculator>
+  <div class="mb-6 max-w-2xl">
+    <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-skin-accent">Planning calculator</p>
+    <h2 class="text-2xl font-bold tracking-tight text-skin-base sm:text-3xl">AC shore power and generator load</h2>
+    <p class="mt-3 text-sm leading-6 text-skin-base/75">Estimate continuous current, startup current, source VA and breaker margin from the loads you expect to run together.</p>
+  </div>
+
+  <div class="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="text-xs font-semibold text-skin-base/75">System voltage (V)
+        <input type="number" min="0" step="1" value="230" data-setting="systemVoltage" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Continuous load (W)
+        <input type="number" min="0" step="1" value="1500" data-setting="continuousLoadWatts" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Additional startup/inrush load (W)
+        <input type="number" min="0" step="1" value="1200" data-setting="largestStartupWatts" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Other startup load (W)
+        <input type="number" min="0" step="1" value="0" data-setting="otherStartupWatts" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Power factor
+        <input type="number" min="0.1" max="1" step="0.01" value="0.9" data-setting="powerFactor" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Planning margin
+        <select data-setting="marginFactor" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base"><option value="1.1">10%</option><option value="1.25" selected>25%</option><option value="1.5">50%</option></select>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75 sm:col-span-2">Breaker or supply limit (A)
+        <input type="number" min="0" step="0.1" value="10" data-setting="breakerAmps" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-lg font-bold text-skin-base">Load estimate</h3>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Continuous current</p><strong class="mt-1 block text-2xl text-skin-base" data-result="continuousCurrentAmps">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Startup current</p><strong class="mt-1 block text-2xl text-skin-base" data-result="startupCurrentAmps">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Recommended source</p><strong class="mt-1 block text-2xl text-skin-base" data-result="recommendedSourceVa">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Breaker margin</p><strong class="mt-1 block text-2xl text-skin-base" data-result="breakerMarginAmps">—</strong></div>
+      </div>
+      <div class="rounded-xl border border-skin-line bg-skin-fill p-4 text-sm leading-6 text-skin-base/75"><strong class="text-skin-base">Estimated startup load:</strong> <span data-result="startupLoadWatts">—</span></div>
+      <ul class="space-y-2 text-sm leading-6 text-red-700 dark:text-red-300" data-result="warnings"></ul>
+      <div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6 text-skin-base/80"><strong class="text-skin-base">Safety note:</strong> Never bypass a breaker or RCD/GFCI to accommodate a calculated load. Generator and shore-power systems need correct earthing, transfer isolation, cable protection and local-code inspection.</div>
+    </div>
+  </div>
+  <CalculatorSafetyNotice />
+</section>
+
+<script>
+  import { calculateAcLoad } from "@/utils/calculator/ac-load";
+
+  document.querySelectorAll<HTMLElement>("[data-ac-load-calculator]").forEach(calculator => {
+    if (calculator.dataset.initialized === "true") return;
+    calculator.dataset.initialized = "true";
+    const read = (name: string, fallback: number) => {
+      const value = Number((calculator.querySelector(`[data-setting="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)?.value);
+      return Number.isFinite(value) ? value : fallback;
+    };
+    const set = (name: string, value: string) => {
+      const target = calculator.querySelector<HTMLElement>(`[data-result="${name}"]`);
+      if (target) target.textContent = value;
+    };
+    const calculate = () => {
+      const result = calculateAcLoad({ systemVoltage: read("systemVoltage", 230), continuousLoadWatts: read("continuousLoadWatts", 1500), largestStartupWatts: read("largestStartupWatts", 1200), otherStartupWatts: read("otherStartupWatts", 0), powerFactor: read("powerFactor", 0.9), marginFactor: read("marginFactor", 1.25), breakerAmps: read("breakerAmps", 10) });
+      set("continuousCurrentAmps", `${result.continuousCurrentAmps.toFixed(1)} A`);
+      set("startupCurrentAmps", `${result.startupCurrentAmps.toFixed(1)} A`);
+      set("recommendedSourceVa", `${Math.ceil(result.recommendedSourceVa)} VA`);
+      set("breakerMarginAmps", `${result.breakerMarginAmps.toFixed(1)} A`);
+      set("startupLoadWatts", `${Math.ceil(result.startupLoadWatts)} W`);
+      const warnings = calculator.querySelector<HTMLElement>('[data-result="warnings"]');
+      if (warnings) warnings.innerHTML = result.warnings.map(warning => `<li>• ${warning}</li>`).join("");
+    };
+    calculator.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-setting]").forEach(input => input.addEventListener("input", calculate));
+    calculate();
+  });
+</script>

@@ -4,6 +4,18 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Datetime from "@/components/Datetime.astro";
+import SolarCalculator from "@/components/calculator/SolarCalculator.astro";
+import BatteryCalculator from "@/components/calculator/BatteryCalculator.astro";
+import CableCalculator from "@/components/calculator/CableCalculator.astro";
+import InverterCalculator from "@/components/calculator/InverterCalculator.astro";
+import TowingCalculator from "@/components/calculator/TowingCalculator.astro";
+import HeaterCalculator from "@/components/calculator/HeaterCalculator.astro";
+import GasCalculator from "@/components/calculator/GasCalculator.astro";
+import AcLoadCalculator from "@/components/calculator/AcLoadCalculator.astro";
+import PumpCalculator from "@/components/calculator/PumpCalculator.astro";
+import WeightCalculator from "@/components/calculator/WeightCalculator.astro";
+import WaterCalculator from "@/components/calculator/WaterCalculator.astro";
+import DcDcCalculator from "@/components/calculator/DcDcCalculator.astro";
 import { slugifyStr } from "@/utils/slugify";
 
 export async function getStaticPaths() {
@@ -163,6 +175,30 @@ const popularPosts = sortedPosts.filter(p => p.id !== post.id).slice(0, 5);
 
 const shareUrl = encodeURIComponent(Astro.url.href);
 const shareTitle = encodeURIComponent(displayTitle);
+const articleSchema = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: displayTitle,
+  description: post.data.description,
+  image: [new URL(displayCover, Astro.site ?? Astro.url).href],
+  datePublished: post.data.pubDatetime.toISOString(),
+  dateModified: (post.data.modDatetime ?? post.data.pubDatetime).toISOString(),
+  author: {
+    "@type": "Person",
+    name: displayAuthor,
+    ...(authorProfile.image
+      ? { image: new URL(authorProfile.image, Astro.site ?? Astro.url).href }
+      : {}),
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "VanSpecs",
+    logo: { "@type": "ImageObject", url: new URL("/images/fav.png", Astro.site ?? Astro.url).href },
+  },
+  articleSection: getCategory(post),
+  keywords: tags.join(", "),
+  mainEntityOfPage: { "@type": "WebPage", "@id": new URL(Astro.url.pathname, Astro.site ?? Astro.url).href },
+});
 ---
 
 <Layout
@@ -171,6 +207,9 @@ const shareTitle = encodeURIComponent(displayTitle);
   ogImage={displayCover}
   canonicalURL={post.data.canonicalURL}
 >
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={articleSchema}></script>
+  </Fragment>
   <Header />
 
   <main class="font-app text-skin-base">
@@ -224,6 +263,67 @@ const shareTitle = encodeURIComponent(displayTitle);
           <div class="app-prose post-content mx-auto w-full max-w-[72ch] pt-2 text-[17px] leading-8 prose-headings:font-bold prose-headings:text-skin-base prose-p:text-skin-base/85 prose-p:leading-8 prose-img:rounded-lg">
             <Content />
           </div>
+
+          {post.data.calculator === "solar-system" && (
+            <div class="mt-10">
+              <SolarCalculator />
+            </div>
+          )}
+          {post.data.calculator === "battery-sizing" && (
+            <div class="mt-10">
+              <BatteryCalculator />
+            </div>
+          )}
+          {post.data.calculator === "cable-sizing" && (
+            <div class="mt-10">
+              <CableCalculator />
+            </div>
+          )}
+          {post.data.calculator === "inverter-sizing" && (
+            <div class="mt-10">
+              <InverterCalculator />
+            </div>
+          )}
+          {post.data.calculator === "towing-safety" && (
+            <div class="mt-10">
+              <TowingCalculator />
+            </div>
+          )}
+          {post.data.calculator === "heater-runtime" && (
+            <div class="mt-10">
+              <HeaterCalculator />
+            </div>
+          )}
+          {post.data.calculator === "gas-runtime" && (
+            <div class="mt-10">
+              <GasCalculator />
+            </div>
+          )}
+          {post.data.calculator === "ac-load" && (
+            <div class="mt-10">
+              <AcLoadCalculator />
+            </div>
+          )}
+          {post.data.calculator === "pump-sizing" && (
+            <div class="mt-10">
+              <PumpCalculator />
+            </div>
+          )}
+          {post.data.calculator === "weight-sizing" && (
+            <div class="mt-10">
+              <WeightCalculator />
+            </div>
+          )}
+          {post.data.calculator === "water-sizing" && (
+            <div class="mt-10">
+              <WaterCalculator />
+            </div>
+          )}
+          {post.data.calculator === "dc-dc-sizing" && (
+            <div class="mt-10">
+              <DcDcCalculator />
+            </div>
+          )}
 
           <!-- Etiketler ve Paylaşım Barı -->
           <div class="mt-8 flex flex-col items-center justify-between gap-3 border-y border-skin-line py-4 sm:flex-row">

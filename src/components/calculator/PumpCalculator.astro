@@ -1,0 +1,77 @@
+---
+import CalculatorSafetyNotice from "@/components/calculator/CalculatorSafetyNotice.astro";
+---
+
+<section class="rounded-2xl border border-skin-line bg-skin-card p-5 shadow-sm sm:p-7" data-pump-calculator>
+  <div class="mb-6 max-w-2xl">
+    <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-skin-accent">Planning calculator</p>
+    <h2 class="text-2xl font-bold tracking-tight text-skin-base sm:text-3xl">12V water pump and accumulator cycling</h2>
+    <p class="mt-3 text-sm leading-6 text-skin-base/75">Estimate pump duty, daily runtime, accumulator starts and electrical demand from editable pump and usage values.</p>
+  </div>
+
+  <div class="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="text-xs font-semibold text-skin-base/75">Pump flow (L/min)
+        <input type="number" min="0" step="0.1" value="10" data-setting="pumpFlowLitresPerMinute" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Peak water demand (L/min)
+        <input type="number" min="0" step="0.1" value="6" data-setting="peakDemandLitresPerMinute" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Daily water use (L/day)
+        <input type="number" min="0" step="1" value="60" data-setting="dailyWaterUseLitres" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Accumulator drawdown per cycle (L)
+        <input type="number" min="0" step="0.1" value="1.5" data-setting="accumulatorDrawdownLitres" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Pump voltage (V)
+        <input type="number" min="0" step="0.1" value="12" data-setting="pumpVoltage" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Pump running current (A)
+        <input type="number" min="0" step="0.1" value="5" data-setting="pumpCurrentAmps" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-lg font-bold text-skin-base">Pump estimate</h3>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Peak duty estimate</p><strong class="mt-1 block text-2xl text-skin-base" data-result="dutyRatio">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Daily runtime</p><strong class="mt-1 block text-2xl text-skin-base" data-result="dailyRuntimeMinutes">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Estimated starts/day</p><strong class="mt-1 block text-2xl text-skin-base" data-result="estimatedStartsPerDay">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Daily electrical use</p><strong class="mt-1 block text-2xl text-skin-base" data-result="dailyElectricalAh">—</strong></div>
+      </div>
+      <div class="rounded-xl border border-skin-line bg-skin-fill p-4 text-sm leading-6 text-skin-base/75"><strong class="text-skin-base">Daily electrical energy:</strong> <span data-result="dailyElectricalWh">—</span></div>
+      <ul class="space-y-2 text-sm leading-6 text-red-700 dark:text-red-300" data-result="warnings"></ul>
+      <div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6 text-skin-base/80"><strong class="text-skin-base">Safety note:</strong> This estimate does not verify pressure, pipe sizing, potable-water hygiene, tank mounting or electrical protection. Use potable-rated components and follow the pump and accumulator manufacturer's instructions.</div>
+    </div>
+  </div>
+  <CalculatorSafetyNotice />
+</section>
+
+<script>
+  import { calculatePump } from "@/utils/calculator/pump";
+
+  document.querySelectorAll<HTMLElement>("[data-pump-calculator]").forEach(calculator => {
+    if (calculator.dataset.initialized === "true") return;
+    calculator.dataset.initialized = "true";
+    const read = (name: string, fallback: number) => {
+      const value = Number((calculator.querySelector(`[data-setting="${name}"]`) as HTMLInputElement | null)?.value);
+      return Number.isFinite(value) ? value : fallback;
+    };
+    const set = (name: string, value: string) => {
+      const target = calculator.querySelector<HTMLElement>(`[data-result="${name}"]`);
+      if (target) target.textContent = value;
+    };
+    const calculate = () => {
+      const result = calculatePump({ pumpFlowLitresPerMinute: read("pumpFlowLitresPerMinute", 10), peakDemandLitresPerMinute: read("peakDemandLitresPerMinute", 6), dailyWaterUseLitres: read("dailyWaterUseLitres", 60), accumulatorDrawdownLitres: read("accumulatorDrawdownLitres", 1.5), pumpVoltage: read("pumpVoltage", 12), pumpCurrentAmps: read("pumpCurrentAmps", 5) });
+      set("dutyRatio", `${(result.dutyRatio * 100).toFixed(0)}%`);
+      set("dailyRuntimeMinutes", `${result.dailyRuntimeMinutes.toFixed(1)} min`);
+      set("estimatedStartsPerDay", `${result.estimatedStartsPerDay.toFixed(0)}`);
+      set("dailyElectricalAh", `${result.dailyElectricalAh.toFixed(1)} Ah/day`);
+      set("dailyElectricalWh", `${result.dailyElectricalWh.toFixed(0)} Wh/day`);
+      const warnings = calculator.querySelector<HTMLElement>('[data-result="warnings"]');
+      if (warnings) warnings.innerHTML = result.warnings.map(warning => `<li>• ${warning}</li>`).join("");
+    };
+    calculator.querySelectorAll<HTMLInputElement>("[data-setting]").forEach(input => input.addEventListener("input", calculate));
+    calculate();
+  });
+</script>

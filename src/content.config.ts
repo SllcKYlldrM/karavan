@@ -15,6 +15,7 @@ const posts = defineCollection({
       title: z.string(),
       postSlug: z.string().optional(),
       category: z.string().optional(),
+      calculator: z.enum(["solar-system", "battery-sizing", "cable-sizing", "inverter-sizing", "towing-safety", "heater-runtime", "gas-runtime", "ac-load", "pump-sizing", "weight-sizing", "water-sizing", "dc-dc-sizing"]).optional(),
       featured: z.boolean().optional(),
       draft: z.boolean().optional(),
       tags: z.array(z.string()).default(["others"]),

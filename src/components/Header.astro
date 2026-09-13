@@ -16,7 +16,7 @@ const { site, features } = config;
 
 const categories = [
   { label: "Power & Solar", name: "Power & Solar Systems" },
-  { label: "Calculators", name: "Engineering Calculators" },
+  { label: "Calculators", name: "Engineering Calculators", href: "/tools" },
   { label: "Build & Conversion", name: "Build & Conversion" },
   { label: "Water & Plumbing", name: "Water & Plumbing Systems" },
   { label: "HVAC & Climate", name: "HVAC & Climate Control" },
@@ -89,12 +89,13 @@ const isActive = (path: string) => {
         {categories.map(category => (
           <li>
             <a
-              href={getRelativeLocaleUrl(locale, `tags/${category.slug}`)}
+              href={getRelativeLocaleUrl(locale, category.href ?? `tags/${category.slug}`)}
               title={category.name}
               class:list={{
                 "active-nav":
-                  currentPath === `/tags/${category.slug}` ||
-                  currentPath.startsWith(`/tags/${category.slug}/`),
+                  category.href
+                    ? currentPath === category.href || currentPath.startsWith(`${category.href}/`)
+                    : currentPath === `/tags/${category.slug}` || currentPath.startsWith(`/tags/${category.slug}/`),
               }}
             >
               {category.label}

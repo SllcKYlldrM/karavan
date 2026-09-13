@@ -1,0 +1,101 @@
+---
+import CalculatorSafetyNotice from "@/components/calculator/CalculatorSafetyNotice.astro";
+
+const circuitOptions = [
+  ["battery-inverter", "Battery → inverter"],
+  ["battery-distribution", "Battery → DC distribution"],
+  ["mppt-battery", "MPPT → battery"],
+  ["panel-mppt", "Solar panel → MPPT"],
+  ["dc-appliance", "Individual DC appliance"],
+];
+---
+
+<section class="rounded-2xl border border-skin-line bg-skin-card p-5 shadow-sm sm:p-7" data-cable-calculator>
+  <div class="mb-6 max-w-2xl">
+    <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-skin-accent">Engineering calculator</p>
+    <h2 class="text-2xl font-bold tracking-tight text-skin-base sm:text-3xl">Cable and fuse sizing</h2>
+    <p class="mt-3 text-sm leading-6 text-skin-base/75">Estimate the minimum copper cable cross-section and fuse class for a DC circuit using current, round-trip length, voltage-drop target and cable ampacity.</p>
+  </div>
+
+  <div class="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="text-xs font-semibold text-skin-base/75 sm:col-span-2">Circuit type
+        <select data-setting="circuitType" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base">{circuitOptions.map(([value, label]) => <option value={value}>{label}</option>)}</select>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">System voltage
+        <select data-setting="systemVoltage" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base"><option value="12">12V</option><option value="24">24V</option><option value="48">48V</option></select>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Design current (A)
+        <input type="number" min="0" step="0.1" value="100" data-setting="currentAmps" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Cable length, one way (m)
+        <input type="number" min="0" step="0.1" value="3" data-setting="lengthOneWay" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Maximum voltage drop
+        <select data-setting="maxVoltageDrop" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base"><option value="0.02">2% — critical DC circuit</option><option value="0.03" selected>3% — electronics/main feeder</option><option value="0.05">5% — general load</option></select>
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Cable ampacity (A)
+        <input type="number" min="0" step="1" value="125" data-setting="cableAmpacity" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Existing fuse rating (A)
+        <input type="number" min="0" step="1" value="100" data-setting="existingFuseAmps" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base" />
+      </label>
+      <label class="text-xs font-semibold text-skin-base/75">Continuous-load factor
+        <select data-setting="continuousFactor" class="mt-1.5 w-full rounded-lg border border-skin-line bg-skin-card px-3 py-2.5 text-sm text-skin-base"><option value="1.25" selected>125% — continuous load</option><option value="1">100% — intermittent load</option></select>
+      </label>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-lg font-bold text-skin-base">Circuit estimate</h3>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Recommended cable</p><strong class="mt-1 block text-2xl text-skin-base" data-result="recommendedCableArea">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Voltage drop</p><strong class="mt-1 block text-2xl text-skin-base" data-result="voltageDrop">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Minimum ampacity</p><strong class="mt-1 block text-2xl text-skin-base" data-result="minimumAmpacity">—</strong></div>
+        <div class="rounded-xl border border-skin-line bg-skin-fill p-4"><p class="text-xs text-skin-base/65">Fuse class guide</p><strong class="mt-1 block text-2xl text-skin-base" data-result="minimumFuseAmps">—</strong></div>
+      </div>
+      <div class="rounded-xl border border-skin-line bg-skin-fill p-4 text-sm leading-6 text-skin-base/75"><strong class="text-skin-base">Checks:</strong> <span data-result="status">—</span></div>
+      <div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6 text-skin-base/80"><strong class="text-skin-base">Safety note:</strong> Use the larger result from voltage drop and ampacity. The fuse must protect the installed cable and follow the equipment manufacturer’s maximum fuse rating.</div>
+    </div>
+  </div>
+</section>
+
+<CalculatorSafetyNotice />
+
+<script>
+  import { calculateCable } from "@/utils/calculator/cable";
+
+  document.querySelectorAll<HTMLElement>("[data-cable-calculator]").forEach(calculator => {
+    if (calculator.dataset.initialized === "true") return;
+    calculator.dataset.initialized = "true";
+    const read = (name: string, fallback: number) => {
+      const value = Number((calculator.querySelector(`[data-setting="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)?.value);
+      return Number.isFinite(value) ? value : fallback;
+    };
+    const set = (name: string, value: string) => {
+      const target = calculator.querySelector<HTMLElement>(`[data-result="${name}"]`);
+      if (target) target.textContent = value;
+    };
+    const calculate = () => {
+      const result = calculateCable({
+        systemVoltage: read("systemVoltage", 12),
+        currentAmps: read("currentAmps", 100),
+        lengthOneWay: read("lengthOneWay", 3),
+        maxVoltageDrop: read("maxVoltageDrop", 0.03),
+        cableAmpacity: read("cableAmpacity", 125),
+        existingFuseAmps: read("existingFuseAmps", 100),
+        continuousFactor: read("continuousFactor", 1.25),
+      });
+      set("recommendedCableArea", `${result.recommendedCableArea} mm²`);
+      set("voltageDrop", `${result.voltageDrop.toFixed(2)}%`);
+      set("minimumAmpacity", `${Math.ceil(result.minimumAmpacity)} A`);
+      set("minimumFuseAmps", result.fuseSelectionPossible ? `${result.minimumFuseAmps}–${result.maximumFuseAmps} A` : "No safe class");
+      set("status", [
+        result.voltageDropOk ? "Voltage drop: OK." : "Voltage drop: review cable size.",
+        result.ampacityOk ? "Cable ampacity: OK." : "Cable ampacity is insufficient.",
+        result.fuseOk ? "Fuse range fits the cable ampacity; verify manufacturer limits." : "No valid fuse range or existing fuse may not protect the cable correctly.",
+      ].join(" "));
+    };
+    calculator.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-setting]").forEach(input => input.addEventListener("input", calculate));
+    calculate();
+  });
+</script>
