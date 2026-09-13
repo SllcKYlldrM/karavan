@@ -1,0 +1,291 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+
+const posts = await getCollection("posts", ({ data }) => !data.draft);
+const adminPosts = posts
+  .sort((a, b) => b.data.pubDatetime.valueOf() - a.data.pubDatetime.valueOf())
+  .map(post => ({
+    id: post.id,
+    slug: (post.data as any).postSlug ?? post.id.replace(/\.[^/.]+$/, ""),
+    title: post.data.title,
+    author: post.data.author,
+    category: post.data.category ?? post.data.tags?.[0] ?? "Uncategorized",
+    tags: post.data.tags ?? [],
+    description: post.data.description,
+    pubDatetime: post.data.pubDatetime,
+    body: (post as any).body ?? "",
+  }));
+
+const safePostsJson = JSON.stringify(adminPosts).replace(/</g, "\\u003c");
+---
+
+<Layout title="Admin | VanSpecs">
+  <div class="fixed inset-0 z-[100] grid place-items-center bg-slate-950/80 p-4 backdrop-blur-sm" data-login-screen>
+    <form class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl" data-login-form>
+      <div class="mb-6 text-center">
+        <img src="/images/blogo.png" alt="VanSpecs" class="mx-auto h-12 w-48 object-contain" />
+        <h1 class="mt-5 text-xl font-bold text-slate-900">Admin sign in</h1>
+        <p class="mt-1 text-sm text-slate-500">Manage VanSpecs content securely.</p>
+      </div>
+      <label>Password<input class="admin-input" type="password" autocomplete="current-password" data-login-password required /></label>
+      <p class="mt-3 hidden text-sm text-red-600" data-login-error></p>
+      <button class="mt-5 w-full rounded-lg bg-[#1388b9] px-4 py-3 text-sm font-bold text-white hover:bg-[#0d729c]" type="submit">Sign in</button>
+    </form>
+  </div>
+  <div class="admin-shell min-h-screen bg-[#f4f7fb] text-slate-800">
+    <aside class="admin-sidebar fixed inset-y-0 start-0 z-30 flex w-64 -translate-x-full flex-col bg-[#202a33] text-slate-300 transition-transform lg:translate-x-0" data-sidebar>
+      <div class="flex h-16 items-center gap-3 border-b border-white/10 px-5 text-white">
+        <img src="/images/vanspecs-logo.png" alt="VanSpecs" class="h-10 w-36 object-contain object-left" />
+        <span class="sr-only">Admin</span>
+      </div>
+
+      <nav class="flex-1 space-y-1 px-3 py-5 text-sm" aria-label="Admin navigation">
+        <button class="admin-nav-item is-active" data-section-target="dashboard"><span>▦</span> Dashboard</button>
+        <button class="admin-nav-item" data-section-target="posts"><span>▤</span> Posts</button>
+        <button class="admin-nav-item" data-section-target="categories"><span>◈</span> Categories</button>
+        <button class="admin-nav-item" data-section-target="authors"><span>♙</span> Authors</button>
+        <button class="admin-nav-item" data-section-target="media"><span>▧</span> Media</button>
+        <button class="admin-nav-item" data-section-target="settings"><span>⚙</span> Settings</button>
+      </nav>
+
+      <div class="border-t border-white/10 p-4 text-xs text-slate-400">
+        <a href="/" class="hover:text-white">← View VanSpecs</a>
+        <p class="mt-2">Local draft workspace</p>
+      </div>
+    </aside>
+
+    <div class="lg:ms-64">
+      <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur sm:px-6">
+        <div class="flex items-center gap-3">
+          <button type="button" class="rounded-lg p-2 text-xl text-slate-600 hover:bg-slate-100 lg:hidden" data-menu-toggle aria-label="Open admin menu">☰</button>
+          <span class="text-sm font-semibold text-slate-500">Content workspace</span>
+        </div>
+        <div class="flex items-center gap-3 text-sm text-slate-500">
+          <span class="hidden sm:inline">Karavan editorial team</span>
+          <button type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50" data-logout>Sign out</button>
+          <span class="grid size-9 place-items-center rounded-full bg-[#26a9df] font-bold text-white">K</span>
+        </div>
+      </header>
+
+      <main class="p-4 sm:p-6 lg:p-8">
+        <section class="admin-section" data-section="dashboard">
+          <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div><p class="text-sm font-medium text-[#1388b9]">Overview</p><h1 class="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">Dashboard</h1></div>
+            <a href="/posts" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-[#26a9df]">View posts</a>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="admin-stat bg-[#27a9df]"><span>Published posts</span><strong>{adminPosts.length}</strong></div>
+            <div class="admin-stat bg-[#28b77b]"><span>Categories</span><strong>{new Set(adminPosts.map(post => post.category)).size}</strong></div>
+            <div class="admin-stat bg-[#f5b642]"><span>Authors</span><strong>{new Set(adminPosts.map(post => post.author)).size}</strong></div>
+            <div class="admin-stat bg-[#e4552f]"><span>Local drafts</span><strong data-draft-count>0</strong></div>
+          </div>
+          <div class="mt-6 grid gap-6 xl:grid-cols-[1.5fr_1fr]">
+            <div class="admin-card"><div class="admin-card-title"><h2>Latest posts</h2><button type="button" data-open-posts>Manage all</button></div><div class="divide-y divide-slate-100" data-latest-posts></div></div>
+            <div class="admin-card"><div class="admin-card-title"><h2>Quick actions</h2></div><div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-1"><button class="admin-action" type="button" data-open-posts>✎ Edit a post</button><a class="admin-action" href="/" target="_blank" rel="noreferrer">↗ Open live site</a></div></div>
+          </div>
+        </section>
+
+        <section class="admin-section hidden" data-section="posts">
+          <div class="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p class="text-sm font-medium text-[#1388b9]">Content</p><h1 class="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">Posts</h1></div><span class="rounded-full bg-white px-3 py-1 text-sm text-slate-500 shadow-sm">{adminPosts.length} published</span></div>
+          <div class="grid gap-6 xl:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.6fr)]">
+            <div class="admin-card h-fit"><div class="admin-card-title"><h2>All posts</h2></div><label class="block px-5 pb-4"><span class="sr-only">Search posts</span><input class="admin-input" data-post-search placeholder="Search posts..." /></label><div class="max-h-[680px] overflow-y-auto" data-post-list></div></div>
+            <div class="admin-card"><div class="admin-card-title"><h2>Edit post</h2><span class="text-xs font-normal text-slate-400" data-editor-status>Select a post</span></div><form class="space-y-4 p-5" data-post-form>
+              <input type="hidden" data-field="slug" />
+              <div class="grid gap-4 sm:grid-cols-2"><label>Title<input class="admin-input" data-field="title" /></label><label>Author<input class="admin-input" data-field="author" /></label></div>
+              <div class="grid gap-4 sm:grid-cols-2"><label>Category<input class="admin-input" data-field="category" /></label><label>Tags<span class="admin-help">Comma separated</span><input class="admin-input" data-field="tags" /></label></div>
+              <label>Description<textarea class="admin-input min-h-24" data-field="description"></textarea></label>
+              <label>Markdown body<textarea class="admin-input min-h-[360px] font-mono text-xs" data-field="body"></textarea></label>
+              <div class="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4"><button class="rounded-lg bg-[#1388b9] px-4 py-2 text-sm font-bold text-white hover:bg-[#0d729c]" type="submit">Save to GitHub</button><button class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50" type="button" data-reset-post>Reload source</button></div>
+              <p class="text-xs leading-relaxed text-slate-400">Saving creates a commit on the main branch. Cloudflare Pages will build and publish the change automatically.</p>
+            </form></div>
+          </div>
+        </section>
+
+        {[
+          ["categories", "Categories", "Category management will be connected to the content schema."],
+          ["authors", "Authors", "Author profiles and category assignments will be managed here."],
+          ["media", "Media library", "Cover images and author portraits will be listed here."],
+          ["settings", "Settings", "Admin settings will be connected after authentication is added."],
+        ].map(([section, title, message]) => (
+          <section class="admin-section hidden" data-section={section}>
+            <div class="mb-6"><p class="text-sm font-medium text-[#1388b9]">VanSpecs Admin</p><h1 class="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">{title}</h1></div>
+            <div class="admin-card p-8 text-center text-slate-500"><p>{message}</p><p class="mt-2 text-sm text-slate-400">The navigation is ready for the next implementation phase.</p></div>
+          </section>
+        ))}
+      </main>
+    </div>
+  </div>
+
+  <script type="application/json" id="admin-post-data" is:inline set:html={safePostsJson}></script>
+</Layout>
+
+<style>
+  .admin-nav-item { display:flex; width:100%; align-items:center; gap:.75rem; border-radius:.5rem; padding:.75rem .875rem; text-align:left; font-weight:600; transition:background .2s,color .2s; }
+  .admin-nav-item:hover, .admin-nav-item.is-active { background:#26a9df; color:#fff; }
+  .admin-nav-item span { width:1.25rem; text-align:center; font-size:1.1rem; }
+  .admin-stat { display:flex; min-height:112px; flex-direction:column; justify-content:space-between; border-radius:.75rem; padding:1.25rem; color:#fff; box-shadow:0 8px 20px #1f29371a; }
+  .admin-stat span { font-size:.85rem; font-weight:600; opacity:.9; }
+  .admin-stat strong { font-size:2.2rem; line-height:1; }
+  .admin-card { overflow:hidden; border:1px solid #e2e8f0; border-radius:.75rem; background:#fff; box-shadow:0 5px 16px #1f29370d; }
+  .admin-card-title { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e2e8f0; padding:1rem 1.25rem; }
+  .admin-card-title h2 { font-size:1rem; font-weight:700; color:#1e293b; }
+  .admin-card-title button { font-size:.75rem; font-weight:700; color:#1388b9; }
+  .admin-input { margin-top:.4rem; display:block; width:100%; border:1px solid #cbd5e1; border-radius:.5rem; background:#fff; padding:.65rem .75rem; color:#1e293b; outline:none; }
+  .admin-input:focus { border-color:#26a9df; box-shadow:0 0 0 3px #26a9df22; }
+  label { display:block; font-size:.8rem; font-weight:700; color:#475569; }
+  .admin-help { float:right; font-size:.7rem; font-weight:400; color:#94a3b8; }
+  .admin-action { display:block; border-radius:.5rem; background:#f1f5f9; padding:.85rem 1rem; text-align:left; font-size:.85rem; font-weight:700; color:#334155; }
+  .admin-action:hover { background:#e0f2fe; color:#0c6b94; }
+  :global(.admin-post-item) { display:block; width:100%; border-bottom:1px solid #f1f5f9; padding:1rem 1.25rem; text-align:left; }
+  :global(.admin-post-item:hover), :global(.admin-post-item.is-selected) { background:#eff8fc; }
+  :global(.admin-post-item strong) { display:block; overflow:hidden; color:#1e293b; font-size:.85rem; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
+  :global(.admin-post-item small) { display:block; margin-top:.35rem; color:#94a3b8; font-size:.7rem; }
+  :global(.admin-latest) { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem 1.25rem; }
+  :global(.admin-latest strong) { overflow:hidden; font-size:.85rem; text-overflow:ellipsis; white-space:nowrap; }
+</style>
+
+<script>
+  const posts: any[] = [];
+  const drafts: Record<string, any> = {};
+  const draftKey = "";
+  const sections = [...document.querySelectorAll<HTMLElement>("[data-section]")];
+  const navItems = [...document.querySelectorAll<HTMLButtonElement>("[data-section-target]")];
+  const list = document.querySelector<HTMLElement>("[data-post-list]");
+  const form = document.querySelector<HTMLFormElement>("[data-post-form]");
+  const status = document.querySelector<HTMLElement>("[data-editor-status]");
+  let selected = "";
+
+  const showSection = (name: string) => {
+    sections.forEach(section => section.classList.toggle("hidden", section.dataset.section !== name));
+    navItems.forEach(item => item.classList.toggle("is-active", item.dataset.sectionTarget === name));
+    document.querySelector<HTMLElement>("[data-sidebar]")?.classList.remove("translate-x-0");
+    document.querySelector<HTMLElement>("[data-sidebar]")?.classList.add("-translate-x-full");
+  };
+  navItems.forEach(item => item.addEventListener("click", () => showSection(item.dataset.sectionTarget || "dashboard")));
+  document.querySelectorAll<HTMLElement>("[data-open-posts]").forEach(button => button.addEventListener("click", () => showSection("posts")));
+  document.querySelector<HTMLButtonElement>("[data-menu-toggle]")?.addEventListener("click", () => {
+    const sidebar = document.querySelector<HTMLElement>("[data-sidebar]");
+    sidebar?.classList.toggle("-translate-x-full"); sidebar?.classList.toggle("translate-x-0");
+  });
+
+  const getPost = (slug: string) => drafts[slug] ? { ...posts.find((post: any) => post.slug === slug), ...drafts[slug] } : posts.find((post: any) => post.slug === slug);
+  const renderList = (query = "") => {
+    if (!list) return;
+    const filtered = posts.filter((post: any) => `${post.title} ${post.author} ${post.category}`.toLowerCase().includes(query.toLowerCase()));
+    list.innerHTML = filtered.map((post: any) => `<button type="button" class="admin-post-item ${post.slug === selected ? "is-selected" : ""}" data-select-post="${post.slug}"><strong>${post.title}</strong><small>${post.category} · ${post.author}</small></button>`).join("");
+    list.querySelectorAll<HTMLButtonElement>("[data-select-post]").forEach(button => button.addEventListener("click", () => selectPost(button.dataset.selectPost || "")));
+  };
+  const fillForm = (post: any) => {
+    if (!form || !post) return;
+    form.querySelector<HTMLInputElement>('[data-field="slug"]')!.value = post.slug;
+    form.querySelector<HTMLInputElement>('[data-field="title"]')!.value = post.title;
+    form.querySelector<HTMLInputElement>('[data-field="author"]')!.value = post.author;
+    form.querySelector<HTMLInputElement>('[data-field="category"]')!.value = post.category;
+    form.querySelector<HTMLInputElement>('[data-field="tags"]')!.value = post.tags.join(", ");
+    form.querySelector<HTMLTextAreaElement>('[data-field="description"]')!.value = post.description;
+    form.querySelector<HTMLTextAreaElement>('[data-field="body"]')!.value = post.body;
+    if (status) status.textContent = drafts[post.slug] ? "Local draft loaded" : "Source content";
+  };
+  const selectPost = (slug: string) => { selected = slug; fillForm(getPost(slug)); renderList((document.querySelector<HTMLInputElement>("[data-post-search]")?.value || "")); };
+  false && form?.addEventListener("submit", event => {
+    event.preventDefault();
+    const value = (field: string) => (form?.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[data-field="${field}"]`)?.value || "").trim();
+    drafts[selected] = { ...getPost(selected), title: value("title"), author: value("author"), category: value("category"), tags: value("tags").split(",").map(tag => tag.trim()).filter(Boolean), description: value("description"), body: value("body") };
+    localStorage.setItem(draftKey, JSON.stringify(drafts));
+    if (status) status.textContent = "Saved in this browser";
+    const count = document.querySelector<HTMLElement>("[data-draft-count]"); if (count) count.textContent = String(Object.keys(drafts).length);
+    renderList();
+  });
+  false && document.querySelector<HTMLButtonElement>("[data-reset-post]")?.addEventListener("click", () => { delete drafts[selected]; localStorage.setItem(draftKey, JSON.stringify(drafts)); fillForm(getPost(selected)); if (status) status.textContent = "Source content"; renderList(); });
+  false && document.querySelector<HTMLInputElement>("[data-post-search]")?.addEventListener("input", event => renderList((event.target as HTMLInputElement).value));
+
+  const latest = document.querySelector<HTMLElement>("[data-latest-posts]");
+  if (latest) latest.innerHTML = posts.slice(0, 5).map((post: any) => `<div class="admin-latest"><strong>${post.title}</strong><span class="text-xs text-slate-400">${post.category}</span></div>`).join("");
+  const count = document.querySelector<HTMLElement>("[data-draft-count]"); if (count) count.textContent = String(Object.keys(drafts).length);
+  renderList(); fillForm(getPost(selected));
+</script>
+
+<script>
+  const adminLogin = document.querySelector<HTMLElement>("[data-login-screen]");
+  const adminLoginForm = document.querySelector<HTMLFormElement>("[data-login-form]");
+  const adminLoginError = document.querySelector<HTMLElement>("[data-login-error]");
+  const adminList = document.querySelector<HTMLElement>("[data-post-list]");
+  const adminForm = document.querySelector<HTMLFormElement>("[data-post-form]");
+  const adminStatus = document.querySelector<HTMLElement>("[data-editor-status]");
+  let livePosts: any[] = [];
+  let liveSelected = "";
+
+  const adminEscape = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character] || character));
+  const openPosts = () => document.querySelector<HTMLButtonElement>("[data-section-target='posts']")?.click();
+  const currentPost = () => livePosts.find(post => post.slug === liveSelected);
+  const readField = (field: string) => (adminForm?.querySelector<HTMLInputElement | HTMLTextAreaElement>('[data-field="' + field + '"]')?.value || "").trim();
+  const fillAdminForm = (post: any) => {
+    if (!adminForm || !post) return;
+    (adminForm.querySelector<HTMLInputElement>('[data-field="slug"]')!).value = post.slug;
+    (adminForm.querySelector<HTMLInputElement>('[data-field="title"]')!).value = post.title;
+    (adminForm.querySelector<HTMLInputElement>('[data-field="author"]')!).value = post.author;
+    (adminForm.querySelector<HTMLInputElement>('[data-field="category"]')!).value = post.category;
+    (adminForm.querySelector<HTMLInputElement>('[data-field="tags"]')!).value = (post.tags || []).join(", ");
+    (adminForm.querySelector<HTMLTextAreaElement>('[data-field="description"]')!).value = post.description;
+    (adminForm.querySelector<HTMLTextAreaElement>('[data-field="body"]')!).value = post.body;
+    if (adminStatus) adminStatus.textContent = "Loaded from GitHub";
+  };
+  const renderAdminList = () => {
+    if (!adminList) return;
+    const query = document.querySelector<HTMLInputElement>("[data-post-search]")?.value.toLowerCase() || "";
+    const filtered = livePosts.filter(post => (post.title + " " + post.author + " " + post.category).toLowerCase().includes(query));
+    adminList.innerHTML = filtered.map(post => '<div class="admin-post-item ' + (post.slug === liveSelected ? "is-selected" : "") + '"><button type="button" class="block w-full text-left" data-live-edit="' + adminEscape(post.slug) + '"><strong>' + adminEscape(post.title) + '</strong><small>' + adminEscape(post.category) + ' · ' + adminEscape(post.author) + '</small></button><div class="mt-3 flex gap-2 text-xs font-bold"><a class="text-[#1388b9] hover:underline" href="/posts/' + encodeURIComponent(post.slug) + '" target="_blank" rel="noreferrer">View</a><button type="button" class="text-red-600 hover:underline" data-live-delete="' + adminEscape(post.slug) + '">Delete</button></div></div>').join("");
+    adminList.querySelectorAll<HTMLButtonElement>("[data-live-edit]").forEach(button => button.addEventListener("click", () => { liveSelected = button.dataset.liveEdit || ""; openPosts(); fillAdminForm(currentPost()); renderAdminList(); }));
+    adminList.querySelectorAll<HTMLButtonElement>("[data-live-delete]").forEach(button => button.addEventListener("click", async () => {
+      const slug = button.dataset.liveDelete || "";
+      if (!window.confirm("Delete this post from GitHub? This creates a commit and cannot be undone from the panel.")) return;
+      const response = await fetch("/api/admin/posts/" + encodeURIComponent(slug), { method: "DELETE" });
+      const result = await response.json();
+      if (!response.ok) { if (adminStatus) adminStatus.textContent = result.error || "Delete failed"; return; }
+      await loadAdminPosts();
+    }));
+  };
+  async function loadAdminPosts() {
+    const response = await fetch("/api/admin/posts", { cache: "no-store" });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Unable to load posts");
+    livePosts = result;
+    if (!liveSelected || !currentPost()) liveSelected = livePosts[0]?.slug || "";
+    renderAdminList();
+    fillAdminForm(currentPost());
+    const count = document.querySelector<HTMLElement>("[data-draft-count]");
+    if (count) count.textContent = "—";
+    const latest = document.querySelector<HTMLElement>("[data-latest-posts]");
+    if (latest) latest.innerHTML = livePosts.slice(0, 5).map(post => '<div class="admin-latest"><strong>' + adminEscape(post.title) + '</strong><span class="text-xs text-slate-400">' + adminEscape(post.category) + '</span></div>').join("");
+  }
+  adminForm?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const submit = adminForm.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (submit) submit.disabled = true;
+    try {
+      const response = await fetch("/api/admin/posts/" + encodeURIComponent(liveSelected), { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ title: readField("title"), author: readField("author"), category: readField("category"), tags: readField("tags").split(",").map(tag => tag.trim()).filter(Boolean), description: readField("description"), body: readField("body") }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Save failed");
+      if (adminStatus) adminStatus.textContent = "Saved to GitHub. Cloudflare deploy is pending.";
+      await loadAdminPosts();
+    } catch (error) {
+      if (adminStatus) adminStatus.textContent = error instanceof Error ? error.message : "Save failed";
+    } finally {
+      if (submit) submit.disabled = false;
+    }
+  });
+  document.querySelector<HTMLInputElement>("[data-post-search]")?.addEventListener("input", renderAdminList);
+  document.querySelector<HTMLButtonElement>("[data-reset-post]")?.addEventListener("click", () => { fillAdminForm(currentPost()); if (adminStatus) adminStatus.textContent = "Reloaded from GitHub"; });
+  adminLoginForm?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const password = adminLoginForm.querySelector<HTMLInputElement>("[data-login-password]")?.value || "";
+    const response = await fetch("/api/admin/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password }) });
+    const result = await response.json();
+    if (!response.ok) { if (adminLoginError) { adminLoginError.textContent = result.error || "Sign in failed"; adminLoginError.classList.remove("hidden"); } return; }
+    adminLogin?.classList.add("hidden");
+    try { await loadAdminPosts(); } catch (error) { if (adminLoginError) { adminLoginError.textContent = error instanceof Error ? error.message : "Unable to load posts"; adminLoginError.classList.remove("hidden"); } adminLogin?.classList.remove("hidden"); }
+  });
+  document.querySelector<HTMLButtonElement>("[data-logout]")?.addEventListener("click", async () => { await fetch("/api/admin/logout", { method: "POST" }); window.location.reload(); });
+  loadAdminPosts().then(() => adminLogin?.classList.add("hidden")).catch(() => adminLogin?.classList.remove("hidden"));
+</script>
