@@ -52,7 +52,8 @@ const isActive = (path: string) => {
 </a>
 
 <header
-  class="max-sm:sticky max-sm:top-0 max-sm:z-40 max-sm:bg-background/95 max-sm:backdrop-blur-md mx-auto flex w-full max-w-[1480px] flex-col items-center justify-between px-6 sm:flex-row sm:px-10 lg:px-12"
+  data-site-header
+  class="sticky top-0 z-40 mx-auto flex w-full max-w-[1480px] flex-col items-center justify-between bg-background/95 px-6 backdrop-blur-md transition-transform duration-300 will-change-transform sm:flex-row sm:px-10 lg:px-12"
 >
   <div
     class="border-border bg-background/85 relative flex w-full items-baseline justify-between border-b py-4 backdrop-blur sm:items-center sm:px-2 sm:py-5"
@@ -196,9 +197,42 @@ const isActive = (path: string) => {
     });
   }
 
+  function handleHeaderVisibility() {
+    const header = document.querySelector<HTMLElement>("[data-site-header]");
+    if (!header || header.dataset.visibilityInitialized === "true") return;
+
+    header.dataset.visibilityInitialized = "true";
+    let lastScrollY = window.scrollY;
+    let frame = 0;
+
+    const updateHeader = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY <= 8 || currentScrollY < lastScrollY - 4) {
+        header.classList.remove("-translate-y-full");
+      } else if (currentScrollY > lastScrollY + 4) {
+        header.classList.add("-translate-y-full");
+      }
+
+      lastScrollY = currentScrollY;
+      frame = 0;
+    };
+
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (frame === 0) frame = window.requestAnimationFrame(updateHeader);
+      },
+      { passive: true }
+    );
+  }
+
   toggleNav();
   document.addEventListener("astro:after-swap", toggleNav);
 
   handleSkipToContent();
   document.addEventListener("astro:after-swap", handleSkipToContent);
+
+  handleHeaderVisibility();
+  document.addEventListener("astro:after-swap", handleHeaderVisibility);
 </script>

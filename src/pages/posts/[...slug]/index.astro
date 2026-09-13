@@ -173,19 +173,19 @@ const shareTitle = encodeURIComponent(displayTitle);
 >
   <Header />
 
-  <main class="text-slate-700 font-sans">
+  <main class="font-app text-skin-base">
     <div class="container mx-auto flex max-w-[1480px] flex-col gap-4 px-6 lg:gap-6 sm:px-10 lg:px-12">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 py-6">
         
         <!-- SOL: MAKALE ALANI (2 SÜTUN) -->
         <div class="lg:col-span-2 py-4">
-          <h1 class="text-2xl md:text-3xl font-bold py-2 text-slate-900 dark:text-slate-100 leading-tight">
+          <h1 class="py-2 text-2xl leading-tight font-bold text-skin-base md:text-3xl">
             {displayTitle}
           </h1>
 
           <!-- Meta Çubuğu -->
-          <div class="pb-4 w-full flex flex-wrap items-center gap-4 text-sm text-slate-500 border-b border-slate-200">
-            <span class="flex items-center gap-1.5 hover:text-black">
+          <div class="flex w-full flex-wrap items-center gap-4 border-b border-skin-line pb-4 text-sm text-skin-base/65">
+            <span class="flex items-center gap-1.5 hover:text-skin-base">
               <svg width="1em" height="1em" class="size-3.5" viewBox="0 0 16 16" fill="currentColor">
                 <path d="M8 8a3 3 0 1 0 0-6a3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0a2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1s1-4 6-4s6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
               </svg>
@@ -216,33 +216,33 @@ const shareTitle = encodeURIComponent(displayTitle);
           </div>
 
           <!-- Kapak Görseli (2:1 Oran) -->
-          <div class="aspect-2/1 overflow-hidden w-full bg-slate-100 rounded-lg my-6">
-            <img src={displayCover} alt={displayTitle} class="w-full h-full object-cover" />
+          <div class="my-6 aspect-2/1 w-full overflow-hidden rounded-lg bg-skin-card-muted">
+            <img src={displayCover} alt={displayTitle} class="h-full w-full object-cover" />
           </div>
 
           <!-- Makale Metni -->
-          <div class="relative post-content pt-2 prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-img:rounded-lg">
+          <div class="app-prose post-content mx-auto w-full max-w-[72ch] pt-2 text-[17px] leading-8 prose-headings:font-bold prose-headings:text-skin-base prose-p:text-skin-base/85 prose-p:leading-8 prose-img:rounded-lg">
             <Content />
           </div>
 
           <!-- Etiketler ve Paylaşım Barı -->
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 py-4 border-y border-slate-200 mt-8">
+          <div class="mt-8 flex flex-col items-center justify-between gap-3 border-y border-skin-line py-4 sm:flex-row">
             <ul class="flex flex-wrap items-center gap-2 text-sm">
               <li>
-                <svg width="1em" height="1em" class="size-4 text-slate-400" viewBox="0 0 16 16" fill="currentColor">
+                <svg width="1em" height="1em" class="size-4 text-skin-base/55" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M3 2v4.586l7 7L14.586 9l-7-7zM2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 6.586z"/>
                 </svg>
               </li>
               {tags.map((tag: string) => (
                 <li>
-                  <a href={`/tags/${tag.toLowerCase()}`} class="flex py-1 px-3 bg-white hover:bg-slate-100 rounded-sm border border-slate-200 capitalize text-xs">
+                  <a href={`/tags/${tag.toLowerCase()}`} class="flex rounded-sm border border-skin-line bg-skin-fill px-3 py-1 text-xs capitalize text-skin-base transition-colors hover:bg-skin-card-muted hover:text-skin-accent">
                     {tag}
                   </a>
                 </li>
               ))}
             </ul>
 
-            <div class="flex items-center gap-1 text-slate-600">
+            <div class="flex items-center gap-1 text-skin-base/70">
               <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" class="p-2 hover:opacity-70 transition-opacity" aria-label="Share on Facebook">
                 <svg width="1em" height="1em" class="size-4" viewBox="0 0 16 16" fill="currentColor"><path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131c.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"/></svg>
               </a>
@@ -259,8 +259,8 @@ const shareTitle = encodeURIComponent(displayTitle);
           </div>
 
           <!-- Yazar Kartı -->
-          <div class="flex flex-row items-center py-6 md:py-8 border-b border-slate-200">
-            <div class="shrink-0 rounded-full overflow-hidden size-20 bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-2xl border border-slate-300">
+          <div class="flex flex-row items-center border-b border-skin-line py-6 md:py-8">
+            <div class="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-skin-line bg-skin-card-muted text-2xl font-bold text-skin-base">
               {authorProfile.image ? (
                 <img src={authorProfile.image} alt={`${displayAuthor} profile`} class="size-full object-cover" loading="lazy" />
               ) : (
@@ -268,9 +268,9 @@ const shareTitle = encodeURIComponent(displayTitle);
               )}
             </div>
             <div class="ms-6">
-              <h4 class="text-xl font-bold text-slate-900">{displayAuthor}</h4>
-              <p class="text-sm text-slate-500 mt-0.5">{authorProfile.role}</p>
-              <p class="hidden sm:block text-sm text-slate-500 mt-2 leading-relaxed">
+              <h4 class="text-xl font-bold text-skin-base">{displayAuthor}</h4>
+              <p class="mt-0.5 text-sm text-skin-base/70">{authorProfile.role}</p>
+              <p class="mt-2 hidden text-sm leading-relaxed text-skin-base/70 sm:block">
                 {authorProfile.bio}
               </p>
             </div>
@@ -278,17 +278,17 @@ const shareTitle = encodeURIComponent(displayTitle);
 
           <!-- Benzer Yazılar -->
           {finalRelated.length > 0 && (
-            <div class="py-6 md:py-8 border-b border-slate-200">
-              <h3 class="text-xl font-bold mb-2 text-slate-900">Related Article</h3>
+            <div class="border-b border-skin-line py-6 md:py-8">
+              <h3 class="mb-2 text-xl font-bold text-skin-base">Related Article</h3>
               <div class="pt-2 flex flex-col">
                 {finalRelated.map(item => (
-                  <a href={`/posts/${getSlug(item)}`} class="flex gap-3 py-3 border-b last:border-b-0 border-slate-200 group">
-                    <img src={getCover(item)} alt={item.data.title} class="size-16 object-cover rounded-sm shrink-0 bg-slate-100" />
+                  <a href={`/posts/${getSlug(item)}`} class="group flex gap-3 border-b border-skin-line py-3 last:border-b-0">
+                    <img src={getCover(item)} alt={item.data.title} class="size-16 shrink-0 rounded-sm bg-skin-card-muted object-cover" />
                     <div class="flex flex-col gap-1">
-                      <h4 class="capitalize font-bold text-sm text-slate-800 group-hover:text-skin-accent line-clamp-2">
+                      <h4 class="line-clamp-2 text-sm font-bold capitalize text-skin-base group-hover:text-skin-accent">
                         {item.data.title}
                       </h4>
-                      <span class="text-slate-400 text-xs">
+                      <span class="text-xs text-skin-base/60">
                         <Datetime pubDatetime={item.data.pubDatetime} />
                       </span>
                     </div>
@@ -304,8 +304,8 @@ const shareTitle = encodeURIComponent(displayTitle);
           <div class="flex flex-col gap-4 lg:gap-6 top-24 sticky">
             
             <!-- Kategori Kutusu -->
-            <div class="bg-slate-50 border border-slate-200 rounded-lg">
-              <h3 class="w-full px-6 py-3 border-b border-slate-200 font-bold text-slate-900 text-sm">
+            <div class="rounded-lg border border-skin-line bg-skin-card">
+              <h3 class="w-full border-b border-skin-line px-6 py-3 text-sm font-bold text-skin-base">
                 Category
               </h3>
               <div class="py-3 px-6">
@@ -314,7 +314,7 @@ const shareTitle = encodeURIComponent(displayTitle);
                     <li class="relative">
                       <a href={`/tags/${slugifyStr(catName)}`} class="flex items-center gap-3 justify-between py-1.5 hover:text-skin-accent transition-colors capitalize">
                         <span>{catName}</span>
-                        <span class="text-slate-400">({count})</span>
+                        <span class="text-skin-base/60">({count})</span>
                       </a>
                     </li>
                   ))}
@@ -323,16 +323,16 @@ const shareTitle = encodeURIComponent(displayTitle);
             </div>
 
             <!-- Popüler Yazılar (Küçük Resimli) -->
-            <div class="bg-slate-50 border border-slate-200 rounded-lg">
-              <h3 class="w-full px-6 py-3 border-b border-slate-200 font-bold text-slate-900 text-sm">
+            <div class="rounded-lg border border-skin-line bg-skin-card">
+              <h3 class="w-full border-b border-skin-line px-6 py-3 text-sm font-bold text-skin-base">
                 Popular Post
               </h3>
               <div class="py-3 px-6 flex flex-col">
                 {popularPosts.map(p => (
-                  <a href={`/posts/${getSlug(p)}`} class="flex gap-3 py-3 border-b last:border-b-0 border-slate-200 group">
-                    <img src={getCover(p)} alt={p.data.title} loading="lazy" class="bg-slate-100 size-16 object-cover rounded-sm shrink-0" />
+                  <a href={`/posts/${getSlug(p)}`} class="group flex gap-3 border-b border-skin-line py-3 last:border-b-0">
+                    <img src={getCover(p)} alt={p.data.title} loading="lazy" class="size-16 shrink-0 rounded-sm bg-skin-card-muted object-cover" />
                     <div class="flex flex-col gap-1">
-                      <h4 class="text-sm font-medium capitalize group-hover:text-skin-accent line-clamp-2 text-slate-800">
+                      <h4 class="line-clamp-2 text-sm font-medium capitalize text-skin-base group-hover:text-skin-accent">
                         {p.data.title}
                       </h4>
                       <span class="text-slate-400 text-xs">
@@ -345,15 +345,15 @@ const shareTitle = encodeURIComponent(displayTitle);
             </div>
 
             <!-- Etiketler -->
-            <div class="bg-slate-50 border border-slate-200 rounded-lg">
-              <h3 class="w-full px-6 py-3 border-b border-slate-200 font-bold text-slate-900 text-sm">
+            <div class="rounded-lg border border-skin-line bg-skin-card">
+              <h3 class="w-full border-b border-skin-line px-6 py-3 text-sm font-bold text-skin-base">
                 Tags
               </h3>
               <div class="p-6">
                 <ul class="flex flex-wrap items-center gap-2 text-sm">
                   {allTags.map(tag => (
                     <li>
-                      <a href={`/tags/${tag.toLowerCase()}`} class="flex py-1 px-3 rounded-sm bg-white hover:bg-slate-100 border border-slate-200 hover:text-black capitalize text-xs transition-colors">
+                      <a href={`/tags/${tag.toLowerCase()}`} class="flex rounded-sm border border-skin-line bg-skin-fill px-3 py-1 text-xs capitalize text-skin-base transition-colors hover:bg-skin-card-muted hover:text-skin-accent">
                         {tag}
                       </a>
                     </li>
