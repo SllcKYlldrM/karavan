@@ -44,14 +44,14 @@ const description = `Technical guides and planning tools for ${subcategory.toLow
 <Layout title={`${title} | ${config.site.title}`} description={description}>
   <Header />
   <Breadcrumb />
-  <Main pageTitle={subcategory} pageDesc={description}>
+  <Main class="max-w-[1480px] px-6 sm:px-10 lg:px-12" pageTitle={subcategory} pageDesc={description}>
     <div class="mb-8 flex flex-wrap items-center gap-3 text-sm">
       <a href={`/scopes/${scope.slug}`} class="text-skin-accent hover:underline">← {scope.name}</a>
       <span class="text-skin-base/45">/</span>
       <span class="text-skin-base/65">{group.name}</span>
     </div>
     {sortedPosts.length > 0 ? (
-      <ul>{sortedPosts.map(data => <Card {...data} />)}</ul>
+      <ul class="grid grid-cols-1 gap-6 md:grid-cols-2">{sortedPosts.map(data => <Card {...data} />)}</ul>
     ) : (
       <p class="rounded-xl border border-dashed border-skin-line p-6 text-skin-base/70">
         Guides for this subcategory are being prepared.

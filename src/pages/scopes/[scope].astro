@@ -41,7 +41,7 @@ const groups = scope.groups.map(group => ({
 <Layout title={`${scope.name} | ${config.site.title}`}>
   <Header />
   <Breadcrumb />
-  <Main pageTitle={scope.name} pageDesc={`Technical guides and planning tools for ${scope.name.toLowerCase()}.`}>
+  <Main class="max-w-[1480px] px-6 sm:px-10 lg:px-12" pageTitle={scope.name} pageDesc={`Technical guides and planning tools for ${scope.name.toLowerCase()}.`}>
     <div class="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {groups.map(group => (
         <div class="rounded-xl border border-skin-line bg-skin-card p-4 shadow-sm">
@@ -63,7 +63,7 @@ const groups = scope.groups.map(group => ({
       ))}
     </div>
     {sortedPosts.length > 0 ? (
-      <ul>{sortedPosts.map(data => <Card {...data} />)}</ul>
+      <ul class="grid grid-cols-1 gap-6 md:grid-cols-2">{sortedPosts.map(data => <Card {...data} />)}</ul>
     ) : (
       <p class="rounded-xl border border-dashed border-skin-line p-6 text-skin-base/70">Guides for this scope are being prepared.</p>
     )}
