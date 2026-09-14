@@ -1,6 +1,7 @@
 ---
 author: VanSpecs Technical Team
 pubDatetime: 2026-09-13T23:55:22Z
+lastReviewed: 2026-09-14
 title: "Preventing LiFePO4 BMS Short-Circuit Tripping: Engineering a High-Capacitance Inverter Pre-Charge Circuit"
 postSlug: "lifepo4-bms-inverter-pre-charge-circuit-guide"
 category: Power & Solar Systems
@@ -252,6 +253,7 @@ By carefully designing, implementing, and testing a pre-charge circuit, the inhe
 
 *   **Ohm's Law:** Basic electrical engineering principle.
 *   **Capacitor Charging Equations:** Standard electrical engineering formulas for RC circuits.
+*   [Victron Energy, Wiring Unlimited](https://www.victronenergy.com/upload/documents/Book-Wiring-Unlimited-EN.pdf)
 *   **BMS Specifications:** Assumed from typical manufacturer datasheets (e.g., Renogy, Daly, JK BMS) for over-current protection thresholds and MOSFET ratings. Specific values (e.g., `I_safe` = 20A) are illustrative examples and must be determined from actual component datasheets.
 *   **Inverter DC-Link Capacitance:** Assumed typical values (e.g., 4700 µF) based on common inverter designs for 3kW-5kW range. Actual values should be obtained from the inverter's specifications.
 *   **Resistor Ratings:** General knowledge of power resistor types (aluminum-housed wirewound, ceramic) and their pulse power capabilities. Specific pulse energy ratings vary by manufacturer.

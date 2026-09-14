@@ -1,6 +1,7 @@
 ---
 author: VanSpecs Technical Team
 pubDatetime: 2026-09-11T19:43:56Z
+lastReviewed: 2026-09-14
 title: "Eliminating Inverter Idle Power Loss: Designing a Load-Sensing Automatic Remote Switch for Off-Grid Caravan Systems"
 postSlug: "eliminating-inverter-idle-loss-load-sensing-remote-switch-caravan"
 category: Power & Solar Systems

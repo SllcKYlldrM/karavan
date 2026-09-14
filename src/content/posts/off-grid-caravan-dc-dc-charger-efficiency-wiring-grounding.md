@@ -1,6 +1,7 @@
 ---
 author: VanSpecs Technical Team
 pubDatetime: 2026-09-11T17:19:43Z
+lastReviewed: 2026-09-14
 title: "Optimizing Off-Grid Caravan DC-DC Charger Efficiency: Advanced Wiring & Grounding Techniques"
 postSlug: "off-grid-caravan-dc-dc-charger-efficiency-wiring-grounding"
 calculator: dc-dc-sizing

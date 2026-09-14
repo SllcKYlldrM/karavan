@@ -1,6 +1,7 @@
 ---
 author: VanSpecs Technical Team
 pubDatetime: 2026-09-11T11:59:40Z
+lastReviewed: 2026-09-14
 title: "Top Essential Caravan Equipment & Weight Distribution Tips"
 postSlug: "caravan-weight-distribution-guide"
 calculator: weight-sizing

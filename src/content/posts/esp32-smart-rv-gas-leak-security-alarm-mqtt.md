@@ -1,6 +1,7 @@
 ---
 author: VanSpecs Technical Team
 pubDatetime: 2026-09-12T07:52:28Z
+lastReviewed: 2026-09-14
 title: "Designing an ESP32-Based Smart RV Security & Gas Leak Alarm System: Integrating MQTT Telemetry, Deep-Sleep Logic, and Fail-Safe Relays"
 postSlug: "esp32-smart-rv-gas-leak-security-alarm-mqtt"
 category: Smart RV & IoT
@@ -70,3 +71,6 @@ Deep sleep is usually unsuitable while a gas sensor needs continuous heater oper
 ## Sources and assumptions
 
 Use the exact ESP32, sensor, valve, power-converter and detector datasheets for the final design. The component names and current values above are examples, not universal specifications. This article is an engineering planning guide and does not certify a gas detection or shutoff system.
+
+* [Espressif ESP32 Series Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf)
+* [OASIS MQTT Version 3.1.1 Specification](https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html)

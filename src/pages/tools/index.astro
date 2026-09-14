@@ -8,81 +8,97 @@ const tools = [
     title: "Complete Off-Grid System Planner",
     description: "Plan daily loads, battery, solar, charging sources, inverter, MPPT, cable and protection checks in one workflow.",
     href: "/tools/system-planner",
+    scope: "caravan",
   },
   {
     title: "Solar, Battery and Cable Calculator",
     description: "Estimate RV energy use, battery capacity, solar panel power and DC cable size.",
     href: "/tools/solar-calculator",
+    scope: "caravan",
   },
   {
     title: "Battery Bank Calculator",
     description: "Estimate usable battery capacity, autonomy and the number of batteries required.",
     href: "/tools/battery-calculator",
+    scope: "caravan",
   },
   {
     title: "Cable and Fuse Calculator",
     description: "Estimate DC cable size, voltage drop, ampacity and fuse class for RV circuits.",
     href: "/tools/cable-calculator",
+    scope: "caravan",
   },
   {
     title: "Inverter Sizing Calculator",
     description: "Estimate continuous power, surge rating and battery-side current for an RV inverter.",
     href: "/tools/inverter-calculator",
+    scope: "caravan",
   },
   {
     title: "DC-DC Charger and Alternator Calculator",
     description: "Estimate alternator reserve, driving charge, cable size and fuse guidance for a DC-DC charger.",
     href: "/tools/dc-dc-calculator",
+    scope: "caravan",
   },
   {
     title: "Water Tank and Autonomy Calculator",
     description: "Estimate daily water use, tank autonomy, water payload and grey-water capacity.",
     href: "/tools/water-calculator",
+    scope: "caravan",
   },
   {
     title: "Caravan Towing and Payload Calculator",
     description: "Screen towing ratio, vehicle payload, MTPLM headroom and nose-weight margins.",
     href: "/tools/towing-calculator",
+    scope: "caravan",
   },
   {
     title: "Diesel Heater Fuel and Runtime Calculator",
     description: "Estimate heater runtime, daily diesel consumption and 12V electrical demand.",
     href: "/tools/heater-calculator",
+    scope: "caravan",
   },
   {
     title: "LPG Bottle Runtime Calculator",
     description: "Estimate LPG runtime and daily gas consumption for caravan appliances.",
     href: "/tools/gas-calculator",
+    scope: "caravan",
   },
   {
     title: "AC Shore Power and Generator Load Calculator",
     description: "Estimate AC current, startup load, source VA and breaker margin.",
     href: "/tools/ac-load-calculator",
+    scope: "caravan",
   },
   {
     title: "12V Water Pump and Accumulator Calculator",
     description: "Estimate pump duty, runtime, starts and daily electrical demand.",
     href: "/tools/pump-calculator",
+    scope: "caravan",
   },
   {
     title: "Caravan Payload and Weight Calculator",
     description: "Estimate loaded mass, payload, nose weight and axle-group load.",
     href: "/tools/weight-calculator",
+    scope: "caravan",
   },
   {
     title: "Marine Bilge Pump and Battery Calculator",
     description: "Estimate derated bilge flow, pump current, emergency battery runtime and water removal.",
     href: "/tools/bilge-calculator",
+    scope: "marine",
   },
   {
     title: "Tiny House Heat Loss Calculator",
     description: "Estimate simplified transmission and ventilation heat loss for early HVAC planning.",
     href: "/tools/heat-loss-calculator",
+    scope: "tiny-house",
   },
   {
     title: "Rainwater Harvesting Calculator",
     description: "Estimate roof runoff capture, cistern storage and existing tank autonomy.",
     href: "/tools/rainwater-calculator",
+    scope: "tiny-house",
   },
 ];
 const toolsUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
@@ -115,9 +131,22 @@ const itemListSchema = JSON.stringify({
       <p class="mt-4 max-w-2xl text-base leading-7 text-skin-base/75">
         Browser-based tools for planning practical caravan, marine, tiny house and shared off-grid systems.
       </p>
-      <div class="mt-8 grid gap-5 sm:grid-cols-2">
+      <div class="mt-8 flex flex-wrap gap-2" role="group" aria-label="Filter calculators by system">
+        {[
+          ["all", "All tools"],
+          ["caravan", "Caravan"],
+          ["marine", "Marine & boat"],
+          ["tiny-house", "Tiny house"],
+          ["shared", "Shared systems"],
+        ].map(([value, label], index) => (
+          <button type="button" data-tool-filter={value} aria-pressed={index === 0 ? "true" : "false"} class="rounded-full border border-skin-line bg-skin-card px-4 py-2 text-sm font-semibold text-skin-base transition hover:border-skin-accent hover:text-skin-accent">
+            {label}
+          </button>
+        ))}
+      </div>
+      <div id="tool-grid" class="mt-5 grid gap-5 sm:grid-cols-2">
         {tools.map(tool => (
-          <a href={tool.href} class="group rounded-2xl border border-skin-line bg-skin-card p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-skin-accent hover:shadow-md">
+          <a href={tool.href} data-tool-card data-scope={tool.scope} class="group rounded-2xl border border-skin-line bg-skin-card p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-skin-accent hover:shadow-md">
             <h2 class="text-xl font-bold text-skin-base group-hover:text-skin-accent">{tool.title}</h2>
             <p class="mt-3 text-sm leading-6 text-skin-base/75">{tool.description}</p>
             <span class="mt-5 inline-block text-sm font-semibold text-skin-accent">Open calculator →</span>
@@ -126,5 +155,16 @@ const itemListSchema = JSON.stringify({
       </div>
     </div>
   </main>
+  <script is:inline>
+    const filterButtons = document.querySelectorAll("[data-tool-filter]");
+    const toolCards = document.querySelectorAll("[data-tool-card]");
+    filterButtons.forEach(button => button.addEventListener("click", () => {
+      const filter = button.getAttribute("data-tool-filter");
+      filterButtons.forEach(item => item.setAttribute("aria-pressed", item === button ? "true" : "false"));
+      toolCards.forEach(card => {
+        card.hidden = filter !== "all" && card.getAttribute("data-scope") !== filter;
+      });
+    }));
+  </script>
   <Footer />
 </Layout>

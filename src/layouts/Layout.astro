@@ -165,6 +165,23 @@ const rssHref = getRelativeLocaleUrl(
         });
       })();
     </script>
+    <script is:inline>
+      const openExternalLinksInNewTab = () => {
+        document.querySelectorAll<HTMLAnchorElement>('a[href^="http"]').forEach(link => {
+          try {
+            const url = new URL(link.href, window.location.href);
+            if (url.origin !== window.location.origin) {
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+            }
+          } catch {
+            // Ignore malformed or dynamically replaced links.
+          }
+        });
+      };
+      openExternalLinksInNewTab();
+      document.addEventListener("astro:page-load", openExternalLinksInNewTab);
+    </script>
     <script>
       import "@/scripts/theme";
     </script>

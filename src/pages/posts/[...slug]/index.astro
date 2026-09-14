@@ -60,6 +60,9 @@ const authorProfile = {
 
 const wordCount = (post as any)?.body ? (post as any).body.split(/\s+/).length : 700;
 const readingTime = `${Math.max(1, Math.ceil(wordCount / 200))} min read`;
+const reviewDate = post.data.lastReviewed
+  ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(post.data.lastReviewed)
+  : null;
 
 const categoryDefinitions = [
   {
@@ -210,6 +213,8 @@ const articleSchema = JSON.stringify({
               </svg>
               {readingTime}
             </span>
+
+            {reviewDate && <span class="text-xs text-skin-base/55">Reviewed {reviewDate} UTC</span>}
           </div>
 
           <!-- Kapak Görseli (2:1 Oran) -->

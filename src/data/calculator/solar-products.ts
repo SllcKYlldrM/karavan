@@ -104,7 +104,7 @@ export const batteryPresets: BatteryPreset[] = [
   },
   {
     id: "generic-lifepo4-100",
-    name: "Generic LiFePO4 12V/100Ah — planning value",
+    name: "Generic LiFePO4 12V/100Ah — illustrative value; verify datasheet",
     nominalVoltage: 12.8,
     capacityAh: 100,
     maxContinuousDischarge: 100,

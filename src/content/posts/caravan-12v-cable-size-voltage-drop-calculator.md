@@ -1,6 +1,7 @@
 ---
 author: VanSpecs Technical Team
 pubDatetime: 2026-09-11T17:01:04Z
+lastReviewed: 2026-09-14
 title: "Off-Grid Caravan 12V Cable Size & Voltage Drop Calculator: Prevent Battery Power Loss"
 postSlug: "caravan-12v-cable-size-voltage-drop-calculator"
 category: Engineering Calculators
