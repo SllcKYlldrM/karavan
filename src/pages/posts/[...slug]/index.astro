@@ -119,6 +119,17 @@ const categories = categoryDefinitions
   .map(category => [category.name, categoryCounts[category.name] || 0] as const)
   .filter(([, count]) => count > 0);
 
+const scopeSlugs: Record<string, string> = {
+  caravan: "caravan-systems",
+  marine: "marine-boat-systems",
+  "tiny-house": "tiny-house-systems",
+  shared: "shared-systems",
+};
+const categoryHref = (category: string) =>
+  category === "Engineering Calculators"
+    ? "/tools/"
+    : `/scopes/${scopeSlugs[post.data.scope ?? "caravan"] ?? "caravan-systems"}/`;
+
 const tagCounts: Record<string, number> = {};
 for (const p of allPosts) {
   for (const t of p.data.tags || []) {
@@ -390,7 +401,7 @@ const articleSchema = JSON.stringify({
                 <ul class="flex flex-col text-sm">
                   {categories.map(([catName, count]) => (
                     <li class="relative">
-                      <a href={`/tags/${slugifyStr(catName)}`} class="flex items-center gap-3 justify-between py-1.5 hover:text-skin-accent transition-colors capitalize">
+                      <a href={categoryHref(catName)} class="flex items-center gap-3 justify-between py-1.5 hover:text-skin-accent transition-colors capitalize">
                         <span>{catName}</span>
                         <span class="text-skin-base/60">({count})</span>
                       </a>
