@@ -41,7 +41,7 @@ const title = `${subcategory} | ${scope.name}`;
 const description = `Technical guides and planning tools for ${subcategory.toLowerCase()} in ${scope.name.toLowerCase()}.`;
 ---
 
-<Layout title={`${title} | ${config.site.title}`} description={description}>
+<Layout title={`${title} | ${config.site.title}`} description={description} noindex={sortedPosts.length === 0}>
   <Header />
   <Breadcrumb />
   <Main class="max-w-[1480px] px-6 sm:px-10 lg:px-12" pageTitle={subcategory} pageDesc={description}>

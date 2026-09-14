@@ -30,6 +30,10 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          # Foundation: first balance Caravan subcategories before expanding scope.
+          CONTENT_PHASE: foundation
+          # If the foundation plan is exhausted, allow one controlled expansion step.
+          ALLOW_SCOPE_FALLBACK: "true"
         run: |
           python scripts/agent.py
 

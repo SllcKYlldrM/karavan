@@ -12,6 +12,7 @@ type Props = {
   description?: string;
   ogImage?: string;
   canonicalURL?: string;
+  noindex?: boolean;
 };
 
 const { site } = config;
@@ -21,6 +22,7 @@ const {
   description = site.description,
   ogImage = resolveDefaultOgImagePath(config),
   canonicalURL = new URL(Astro.url.pathname, Astro.site).href,
+  noindex = false,
 } = Astro.props;
 
 const socialImageURL = new URL(ogImage, Astro.site ?? Astro.url);
@@ -48,6 +50,7 @@ const websiteSchema = JSON.stringify({
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/png" href={getAssetPath("images/fav.png")} />
     <link rel="canonical" href={canonicalURL} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <meta name="generator" content={Astro.generator} />
 
     <!-- Font -->

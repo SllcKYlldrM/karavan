@@ -38,7 +38,7 @@ const groups = scope.groups.map(group => ({
 }));
 ---
 
-<Layout title={`${scope.name} | ${config.site.title}`}>
+<Layout title={`${scope.name} | ${config.site.title}`} noindex={sortedPosts.length === 0}>
   <Header />
   <Breadcrumb />
   <Main class="max-w-[1480px] px-6 sm:px-10 lg:px-12" pageTitle={scope.name} pageDesc={`Technical guides and planning tools for ${scope.name.toLowerCase()}.`}>
