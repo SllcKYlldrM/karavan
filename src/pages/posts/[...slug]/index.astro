@@ -241,87 +241,95 @@ const articleSchema = JSON.stringify({
           </div>
 
           {calculatorLink && (
-            <a href={calculatorLink.href} data-calculator-link={calculatorLink.href} class="mt-8 block rounded-2xl border border-skin-accent/40 bg-skin-accent/5 p-5 transition hover:border-skin-accent" aria-label={`Open ${calculatorLink.title}`}>
+            <a href="#article-calculator" data-calculator-link="#article-calculator" class="mt-8 block rounded-2xl border border-skin-accent/40 bg-skin-accent/5 p-5 transition hover:border-skin-accent" aria-label="Jump to the calculator in this article">
               <span class="block text-xs font-bold uppercase tracking-[0.12em] text-skin-accent">Interactive tool</span>
-              <span class="mt-1 block text-lg font-bold text-skin-base">{calculatorLink.title} →</span>
-              <span class="mt-1 block text-sm text-skin-base/70">Use the browser-based calculator to test your own inputs and review the planning assumptions.</span>
+              <span class="mt-1 block text-lg font-bold text-skin-base">Jump to calculator ↓</span>
+              <span class="mt-1 block text-sm text-skin-base/70">Use the calculator below with your own inputs and review the planning assumptions.</span>
             </a>
           )}
 
+          {post.data.calculator && <div id="article-calculator" class="mt-10 scroll-mt-24">
           {post.data.calculator === "solar-system" && (
-            <div class="mt-10">
+            <div>
               <SolarCalculator />
             </div>
           )}
           {post.data.calculator === "battery-sizing" && (
-            <div class="mt-10">
+            <div>
               <BatteryCalculator />
             </div>
           )}
           {post.data.calculator === "cable-sizing" && (
-            <div class="mt-10">
+            <div>
               <CableCalculator />
             </div>
           )}
           {post.data.calculator === "inverter-sizing" && (
-            <div class="mt-10">
+            <div>
               <InverterCalculator />
             </div>
           )}
           {post.data.calculator === "towing-safety" && (
-            <div class="mt-10">
+            <div>
               <TowingCalculator />
             </div>
           )}
           {post.data.calculator === "heater-runtime" && (
-            <div class="mt-10">
+            <div>
               <HeaterCalculator />
             </div>
           )}
           {post.data.calculator === "gas-runtime" && (
-            <div class="mt-10">
+            <div>
               <GasCalculator />
             </div>
           )}
           {post.data.calculator === "ac-load" && (
-            <div class="mt-10">
+            <div>
               <AcLoadCalculator />
             </div>
           )}
           {post.data.calculator === "pump-sizing" && (
-            <div class="mt-10">
+            <div>
               <PumpCalculator />
             </div>
           )}
           {post.data.calculator === "weight-sizing" && (
-            <div class="mt-10">
+            <div>
               <WeightCalculator />
             </div>
           )}
           {post.data.calculator === "water-sizing" && (
-            <div class="mt-10">
+            <div>
               <WaterCalculator />
             </div>
           )}
           {post.data.calculator === "dc-dc-sizing" && (
-            <div class="mt-10">
+            <div>
               <DcDcCalculator />
             </div>
           )}
           {post.data.calculator === "bilge-sizing" && (
-            <div class="mt-10">
+            <div>
               <BilgeCalculator />
             </div>
           )}
           {post.data.calculator === "heat-loss" && (
-            <div class="mt-10">
+            <div>
               <HeatLossCalculator />
             </div>
           )}
           {post.data.calculator === "rainwater-sizing" && (
-            <div class="mt-10">
+            <div>
               <RainwaterCalculator />
             </div>
+          )}
+          </div>}
+
+          {calculatorLink && (
+            <p class="mt-3 text-center text-xs text-skin-base/60">
+              <a href={calculatorLink.href} data-calculator-link={calculatorLink.href} class="font-semibold text-skin-accent hover:underline">Open the standalone calculator →</a>
+            </p>
           )}
 
           <!-- Etiketler ve Paylaşım Barı -->
