@@ -1,0 +1,32 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Main from "@/components/Main.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import Footer from "@/components/Footer.astro";
+---
+
+<Layout title="About VanSpecs" description="About VanSpecs and its technical editorial approach.">
+  <Header />
+  <Breadcrumb />
+  <Main pageTitle="About VanSpecs" pageDesc="Practical engineering guidance for mobile and compact off-grid systems.">
+    <div class="app-prose max-w-3xl space-y-8 text-base leading-8">
+      <section>
+        <h2>What VanSpecs covers</h2>
+        <p>VanSpecs publishes practical engineering guides for caravans, marine systems, tiny houses and shared off-grid technologies.</p>
+        <p>Our topics include energy storage, solar generation, electrical protection, water systems, heating, monitoring and system planning.</p>
+      </section>
+      <section>
+        <h2>Editorial approach</h2>
+        <p>Articles are prepared as technical explainers. We focus on stated assumptions, units, formulas, manufacturer documentation and limitations instead of presenting a single result as universally safe.</p>
+        <p>Where a topic depends on vessel geometry, structural design, local code or certified inspection, the article identifies that boundary.</p>
+      </section>
+      <section>
+        <h2>AI-assisted production</h2>
+        <p>Some research, drafting and quality-review steps use automated language tools. VanSpecs Technical Team is responsible for the editorial structure, technical review, source selection and publication decisions.</p>
+        <p>Readers should verify time-sensitive specifications and regulations against current primary sources before making a purchase or installation decision.</p>
+      </section>
+    </div>
+  </Main>
+  <Footer />
+</Layout>

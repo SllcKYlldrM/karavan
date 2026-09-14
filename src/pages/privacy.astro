@@ -1,0 +1,36 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Main from "@/components/Main.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import Footer from "@/components/Footer.astro";
+---
+
+<Layout title="Privacy Policy | VanSpecs" description="VanSpecs privacy policy and information about analytics and site data.">
+  <Header />
+  <Breadcrumb />
+  <Main pageTitle="Privacy Policy" pageDesc="How VanSpecs handles basic site and analytics data.">
+    <div class="app-prose max-w-3xl space-y-8 text-base leading-8">
+      <p><strong>Last updated:</strong> September 14, 2026</p>
+      <section>
+        <h2>Information we collect</h2>
+        <p>VanSpecs does not require an account for reading articles or using the browser-based calculators. Calculator inputs are processed in the browser and are not submitted to a VanSpecs database by the static site.</p>
+        <p>Infrastructure providers may process standard request data such as IP address, device information, browser information and timestamps for delivery, security and reliability.</p>
+      </section>
+      <section>
+        <h2>Analytics and search services</h2>
+        <p>VanSpecs uses Google Analytics to understand aggregated traffic and improve the site. Google Search Console is used to monitor search indexing and technical visibility. These services may use cookies or similar technologies according to their own policies.</p>
+        <p>VanSpecs does not sell personal information. Do not submit personal or confidential information through public issue links.</p>
+      </section>
+      <section>
+        <h2>Third-party links</h2>
+        <p>Articles may link to manufacturer documentation, standards organizations, GitHub and other external sites. Their privacy practices are governed by their own policies.</p>
+      </section>
+      <section>
+        <h2>Changes</h2>
+        <p>This policy may be updated when site features, analytics or legal requirements change. The latest version will remain available on this page.</p>
+      </section>
+    </div>
+  </Main>
+  <Footer />
+</Layout>

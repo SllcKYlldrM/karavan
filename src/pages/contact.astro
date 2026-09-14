@@ -1,0 +1,30 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Main from "@/components/Main.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import Footer from "@/components/Footer.astro";
+---
+
+<Layout title="Contact VanSpecs" description="Contact VanSpecs about corrections, sources and technical content.">
+  <Header />
+  <Breadcrumb />
+  <Main pageTitle="Contact" pageDesc="Send corrections, source updates or technical feedback about VanSpecs content.">
+    <div class="app-prose max-w-3xl space-y-8 text-base leading-8">
+      <section>
+        <h2>Content corrections</h2>
+        <p>If you find an incorrect calculation, outdated specification or broken link, open an issue in the public repository and include the affected page, the input values and the source that supports the correction.</p>
+        <p><a href="https://github.com/SllcKYlldrM/karavan/issues" target="_blank" rel="noreferrer">Open a VanSpecs content issue on GitHub</a></p>
+      </section>
+      <section>
+        <h2>Technical feedback</h2>
+        <p>Useful reports include reproducible steps, manufacturer documentation, applicable standards and the date of the information. Do not share private credentials, API keys or personal data in an issue.</p>
+      </section>
+      <section>
+        <h2>Safety reports</h2>
+        <p>For an immediate safety concern, stop using the affected result and consult a qualified professional. This website is not an emergency or inspection service.</p>
+      </section>
+    </div>
+  </Main>
+  <Footer />
+</Layout>
