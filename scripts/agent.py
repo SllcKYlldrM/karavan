@@ -26,23 +26,39 @@ POSTS_DIR = "src/content/posts"
 os.makedirs(POSTS_DIR, exist_ok=True)
 os.makedirs("public/images", exist_ok=True)
 
-CATEGORIES = {
-    "Power & Solar Systems": "LiFePO4 Akü, BMS, MPPT, DC-DC Şarj, İnverter Kayıpları",
-    "Engineering Calculators": "12V Kablo Kesiti, Voltaj Düşümü, Ağırlık Dağılımı",
-    "Build & Conversion": "Armaflex İzolasyon, Şasi, Tavan Havalandırma",
-    "Water & Plumbing Systems": "Basınçlı Su Pompaları, Isıtıcı Bantlar, UV Filtre",
-    "HVAC & Climate Control": "Inverter Klima Akü Tüketimi, Dizel Isıtıcı Bakımı",
-    "Smart RV & IoT": "ESP32 Otomasyon, MQTT Takip, Alarm Devreleri"
-}
-
-CATEGORY_AUTHORS = {
-    "Power & Solar Systems": "Alex Morgan",
-    "Engineering Calculators": "Daniel Brooks",
-    "Build & Conversion": "Oliver Reed",
-    "Water & Plumbing Systems": "Maya Carter",
-    "HVAC & Climate Control": "Ethan Cole",
-    "Smart RV & IoT": "Nora Bennett",
-}
+CONTENT_TRACKS = [
+    {"scope": "caravan", "scope_name": "Caravan Systems", "category": "Power & Solar", "subcategory": "Solar & Energy", "focus": "solar, charge controllers and energy budgets", "author": "Alex Morgan"},
+    {"scope": "caravan", "scope_name": "Caravan Systems", "category": "Power & Solar", "subcategory": "Batteries & Charging", "focus": "LiFePO4, BMS, DC-DC charging and inverters", "author": "Alex Morgan"},
+    {"scope": "caravan", "scope_name": "Caravan Systems", "category": "Water & Plumbing", "subcategory": "Freshwater & Wastewater", "focus": "freshwater tanks, pumps, filtration and wastewater", "author": "Maya Carter"},
+    {"scope": "caravan", "scope_name": "Caravan Systems", "category": "HVAC & Heating", "subcategory": "Climate Control", "focus": "air conditioning, insulation and thermal loads", "author": "Ethan Cole"},
+    {"scope": "caravan", "scope_name": "Caravan Systems", "category": "HVAC & Heating", "subcategory": "Heating & Ventilation", "focus": "diesel heaters, ventilation and altitude effects", "author": "Ethan Cole"},
+    {"scope": "caravan", "scope_name": "Caravan Systems", "category": "Electrical & Wiring", "subcategory": "DC Wiring", "focus": "cable sizing, voltage drop, fuses and grounding", "author": "Daniel Brooks"},
+    {"scope": "caravan", "scope_name": "Caravan Systems", "category": "Electrical & Wiring", "subcategory": "AC Shore Power", "focus": "shore power, load shedding, RCD/GFCI and transfer safety", "author": "Daniel Brooks"},
+    {"scope": "caravan", "scope_name": "Caravan Systems", "category": "Smart RV & IoT", "subcategory": "Automation & Monitoring", "focus": "ESP32, MQTT, sensors and fail-safe automation", "author": "Nora Bennett"},
+    {"scope": "caravan", "scope_name": "Caravan Systems", "category": "Towing & Weight", "subcategory": "Payload & Stability", "focus": "payload, axle loads, nose weight and weighbridge checks", "author": "Daniel Brooks"},
+    {"scope": "caravan", "scope_name": "Caravan Systems", "category": "Towing & Weight", "subcategory": "Towing Safety", "focus": "towing limits, stability, brakes and loading", "author": "Daniel Brooks"},
+    {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Marine Power & Solar", "subcategory": "Solar & Energy", "focus": "marine solar, charge controllers and energy budgets", "author": "Alex Morgan"},
+    {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Marine Power & Solar", "subcategory": "Batteries & Charging", "focus": "marine batteries, alternators, BMS and charging", "author": "Alex Morgan"},
+    {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Freshwater & Bilge", "subcategory": "Water Systems", "focus": "freshwater, tanks and onboard water treatment", "author": "Maya Carter"},
+    {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Freshwater & Bilge", "subcategory": "Bilge & Pumps", "focus": "bilge pumps, alarms and flood protection", "author": "Maya Carter"},
+    {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Marine HVAC", "subcategory": "Climate Control", "focus": "marine air conditioning, heating and ventilation", "author": "Ethan Cole"},
+    {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Wiring & Corrosion Protection", "subcategory": "Bonding & Corrosion", "focus": "galvanic corrosion, bonding and marine grounding", "author": "Daniel Brooks"},
+    {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Navigation & IoT", "subcategory": "Monitoring & Telemetry", "focus": "NMEA data, sensors, alarms and remote monitoring", "author": "Nora Bennett"},
+    {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Weight & Stability", "subcategory": "Stability & Trim", "focus": "load distribution, trim and stability calculations", "author": "Daniel Brooks"},
+    {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Off-Grid Power", "subcategory": "Solar & Energy", "focus": "tiny house energy budgets and solar sizing", "author": "Alex Morgan"},
+    {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Off-Grid Power", "subcategory": "Batteries & Inverters", "focus": "battery storage, inverters and backup power", "author": "Alex Morgan"},
+    {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Water & Wastewater", "subcategory": "Freshwater", "focus": "freshwater storage, pumps and filtration", "author": "Maya Carter"},
+    {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Heating & Cooling", "subcategory": "Heating", "focus": "heating loads, insulation and ventilation", "author": "Ethan Cole"},
+    {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Electrical Installation", "subcategory": "AC Distribution", "focus": "AC distribution, protection and local electrical requirements", "author": "Daniel Brooks"},
+    {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Automation & Monitoring", "subcategory": "Energy Monitoring", "focus": "smart energy monitoring and automation", "author": "Nora Bennett"},
+    {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Structure & Weight", "subcategory": "Load Planning", "focus": "structural loads, transport and placement planning", "author": "Daniel Brooks"},
+    {"scope": "shared", "scope_name": "Shared Systems", "category": "Solar & Energy", "subcategory": "Energy Budgets", "focus": "portable and small-space energy budgeting", "author": "Alex Morgan"},
+    {"scope": "shared", "scope_name": "Shared Systems", "category": "Battery Storage", "subcategory": "BMS & Protection", "focus": "battery safety, BMS limits and protection", "author": "Alex Morgan"},
+    {"scope": "shared", "scope_name": "Shared Systems", "category": "Water Systems", "subcategory": "Pumps & Filtration", "focus": "pump sizing, filtration and tank autonomy", "author": "Maya Carter"},
+    {"scope": "shared", "scope_name": "Shared Systems", "category": "HVAC & Climate", "subcategory": "Cooling & Ventilation", "focus": "climate loads, ventilation and condensation control", "author": "Ethan Cole"},
+    {"scope": "shared", "scope_name": "Shared Systems", "category": "Electrical Engineering", "subcategory": "Cable Sizing", "focus": "voltage drop, cable ampacity and protection", "author": "Daniel Brooks"},
+    {"scope": "shared", "scope_name": "Shared Systems", "category": "Automation & IoT", "subcategory": "Sensors", "focus": "sensors, telemetry and reliable control systems", "author": "Nora Bennett"},
+]
 
 def call_gemini(prompt: str, json_mode: bool = False) -> str:
     config_kwargs = {}
@@ -156,9 +172,9 @@ def require_english_content(title: str, body: str) -> None:
             "Generated content failed the English-only language check; no post was written."
         )
 
-def normalize_tags(raw_tags, category):
-    """Keep the selected category as the canonical first tag and remove duplicates."""
-    values = [category, "Caravan", "Off-Grid"] + (raw_tags or [])
+def normalize_tags(raw_tags, scope_name, category, subcategory):
+    """Keep scope and taxonomy labels canonical while removing duplicate tags."""
+    values = [scope_name, category, subcategory, "Off-Grid"] + (raw_tags or [])
     tags = []
     seen = set()
     for value in values:
@@ -183,12 +199,62 @@ def get_existing_posts_summary():
     return "\n".join(summaries) or "Henüz yayınlanmış yazı yok."
 
 existing_posts_context = get_existing_posts_summary()
-selected_category = random.choice(list(CATEGORIES.keys()))
+
+def infer_track(content: str):
+    scope_match = re.search(r"^scope:\s*([^\n]+)", content, re.MULTILINE)
+    subcategory_match = re.search(r"^subcategory:\s*[\"']?([^\"'\n]+)", content, re.MULTILINE)
+    category_match = re.search(r"^category:\s*[\"']?([^\"'\n]+)", content, re.MULTILINE)
+    scope = scope_match.group(1).strip().strip("\"'") if scope_match else "caravan"
+    subcategory = subcategory_match.group(1).strip() if subcategory_match else ""
+    category = category_match.group(1).strip() if category_match else ""
+    title = re.search(r"^title:\s*[\"']?(.*?)[\"']?$", content, re.MULTILINE)
+    searchable = f"{category} {subcategory} {title.group(1) if title else ''}".casefold()
+
+    if scope == "caravan":
+        if "water" in searchable or "pump" in searchable or "plumbing" in searchable:
+            category, subcategory = "Water & Plumbing", "Freshwater & Wastewater"
+        elif "heater" in searchable or "hvac" in searchable or "thermal" in searchable:
+            category, subcategory = "HVAC & Heating", "Heating & Ventilation"
+        elif "towing" in searchable or "weight" in searchable or "distribution" in searchable:
+            category, subcategory = "Towing & Weight", "Towing Safety"
+        elif "smart" in searchable or "iot" in searchable or "mqtt" in searchable or "esp32" in searchable:
+            category, subcategory = "Smart RV & IoT", "Automation & Monitoring"
+        elif "shore" in searchable or "ac " in searchable:
+            category, subcategory = "Electrical & Wiring", "AC Shore Power"
+        elif "cable" in searchable or "voltage" in searchable or "ground" in searchable or "wiring" in searchable:
+            category, subcategory = "Electrical & Wiring", "DC Wiring"
+        else:
+            category, subcategory = "Power & Solar", "Solar & Energy"
+
+    for track in CONTENT_TRACKS:
+        if track["scope"] == scope and track["category"] == category and track["subcategory"] == subcategory:
+            return track
+    return None
+
+track_counts = {id(track): 0 for track in CONTENT_TRACKS}
+for file_path in glob.glob(f"{POSTS_DIR}/*.md"):
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            track = infer_track(f.read())
+        if track:
+            track_counts[id(track)] += 1
+    except Exception:
+        continue
+
+least_filled_count = min(track_counts.values())
+selected_track = next(track for track in CONTENT_TRACKS if track_counts[id(track)] == least_filled_count)
+selected_scope = selected_track["scope"]
+selected_scope_name = selected_track["scope_name"]
+selected_category = selected_track["category"]
+selected_subcategory = selected_track["subcategory"]
 
 # --- ADIM 1: Strateji, Tekrar Analizi ve Zengin Brief Üretimi (Gemini) ---
 strategy_prompt = (
     f"Sen Kıdemli bir SEO ve İçerik Direktörüsün.\n"
-    f"Seçilen Kategori: {selected_category} ({CATEGORIES[selected_category]})\n\n"
+    f"Content scope: {selected_scope_name}\n"
+    f"Technical category: {selected_category}\n"
+    f"Subcategory: {selected_subcategory}\n"
+    f"Topic focus: {selected_track['focus']}\n\n"
     f"Sitede Daha Önce Yayınlanmış Yazılar:\n{existing_posts_context}\n\n"
     "GÖREV:\n"
     "1. Sitedeki mevcut içerikleri analiz et. Bu kategoride tekrara (cannibalization) düşmeyecek, kullanıcıya tamamen yepyeni ve derinlemesine teknik/pratik değer katacak özgün bir 'Long-Tail' konu seç.\n"
@@ -216,7 +282,9 @@ print(f"-> Stratejik Brief: {topic_data['brief']}")
 content_prompt = (
     "IMPORTANT LANGUAGE RULE: The website is English-only. Write the title, article body, headings, tables, labels, image descriptions, and every sentence in clear professional English. Never write Turkish, even if this instruction or the brief contains Turkish text.\n\n"
     "Return only the article body. Do not return YAML frontmatter, a title line, or direct /images/*.jpg links; use the exact [IMAGE: English description] placeholder when an image is needed.\n\n"
-    f"Kategori: {selected_category}\n"
+    f"Content scope: {selected_scope_name}\n"
+    f"Technical category: {selected_category}\n"
+    f"Subcategory: {selected_subcategory}\n"
     f"Konu Başlığı: \"{topic_data['title']}\"\n\n"
     f"TEKNİK BİRİEF / YÖNLENDİRME:\n{topic_data['brief']}\n\n"
     "GÖREV:\n"
@@ -305,18 +373,20 @@ for idx, img_desc in enumerate(re.findall(r'\[IMAGE:\s*(.*?)\]', article_body), 
 
 # --- ADIM 5: Dosya Kaydı (En Güvenli Yöntem) ---
 pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-normalized_tags = normalize_tags(topic_data.get("tags"), selected_category)
+normalized_tags = normalize_tags(topic_data.get("tags"), selected_scope_name, selected_category, selected_subcategory)
 tags_formatted = "\n".join([f"  - {tag}" for tag in normalized_tags])
 
 # Sadece gerçek kapak görseli başarıyla indiyse ogImage ekle, aksi halde alanı boş bırak
 og_image_line = f'ogImage: "{cover_image}"' if main_image_downloaded else ''
 
 post_content = f"""---
-author: {CATEGORY_AUTHORS[selected_category]}
+author: {selected_track['author']}
 pubDatetime: {pub_datetime}
 title: "{topic_data['title']}"
 postSlug: "{topic_data['slug']}"
+scope: {selected_scope}
 category: {selected_category}
+subcategory: {selected_subcategory}
 featured: false
 draft: false
 tags:

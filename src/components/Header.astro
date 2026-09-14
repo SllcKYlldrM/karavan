@@ -11,16 +11,13 @@ import { slugifyStr } from "@/utils/slugify";
 import { stripBase, stripLocale } from "@/utils/withBase";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
+import { contentScopes } from "@/data/category-tree";
 
 const { site, features } = config;
 
 const categories = [
-  { label: "Power & Solar", name: "Power & Solar Systems" },
+  ...contentScopes.map(scope => ({ label: scope.name.replace(" Systems", ""), name: scope.name, href: `/scopes/${scope.slug}` })),
   { label: "Calculators", name: "Engineering Calculators", href: "/tools" },
-  { label: "Build & Conversion", name: "Build & Conversion" },
-  { label: "Water & Plumbing", name: "Water & Plumbing Systems" },
-  { label: "HVAC & Climate", name: "HVAC & Climate Control" },
-  { label: "Smart RV & IoT", name: "Smart RV & IoT" },
 ].map(category => ({ ...category, slug: slugifyStr(category.name) }));
 
 const locale = Astro.currentLocale ?? config.site.lang;
