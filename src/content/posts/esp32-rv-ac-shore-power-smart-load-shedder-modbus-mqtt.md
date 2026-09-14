@@ -10,14 +10,11 @@ category: Smart RV & IoT
 featured: false
 draft: false
 tags:
-  - Smart RV & IoT
-  - Caravan
-  - Off-Grid
   - ESP32
-  - RV Smart Automation
-  - MQTT Telemetry
+  - MQTT
   - Modbus RTU
   - AC Load Shedding
+  - Shore Power
 ogImage: "/images/esp32-rv-ac-shore-power-smart-load-shedder-modbus-mqtt.jpg"
 description: "Comprehensive technical guide for Designing an ESP32 RV AC Shore Power Smart Load Shedder: Integrating Modbus Energy Meters, Relay Interlocking, and MQTT Telemetry."
 ---
@@ -280,3 +277,11 @@ Despite all digital controls, a physical manual bypass switch is an indispensabl
 
 **Safety Standards:**
 * All AC wiring should conform to local electrical codes (e.g., NEC in North America, BS 7671 in UK, VDE in Germany). Proper grounding, wire gauge selection, and overcurrent protection are critical and outside the scope of this control system's direct function, but assumed to be correctly implemented in the RV's main electrical system.
+
+## Sources and assumptions
+
+- [Espressif ESP32 datasheet](https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf)
+- [MQTT Version 3.1.1, OASIS Standard](https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html)
+- [Modbus Application Protocol Specification](https://modbus.org/docs/Modbus_Application_Protocol_V1_1b3.pdf)
+- [Eastron SDM120 documentation](https://www.eastrongroup.com/products/sdm120/)
+- Relay ratings, breaker limits, shore-power rules and AC wiring must be verified against the exact equipment datasheets and local electrical code. Example loads and timer values are not universal requirements.

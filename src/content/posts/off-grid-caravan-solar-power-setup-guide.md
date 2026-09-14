@@ -10,13 +10,11 @@ subcategory: Solar & Energy
 featured: true
 draft: false
 tags:
-  - Power & Solar Systems
-  - solar power
-  - off-grid
-  - caravan
+  - Solar Power
   - MPPT
-  - lithium batteries
-  - inverter
+  - LiFePO4 Battery
+  - Inverter Sizing
+  - Energy Budget
 description: "Learn how to size and set up an off-grid caravan solar power system with panels, MPPT controllers, lithium batteries, and inverters. Includes a beginner-friendly calculator."
 ---
 
@@ -40,3 +38,9 @@ Choose an inverter that can handle the peak power demand of your appliances. Ens
 
 ## Conclusion
 With this guide and the interactive calculator below, you’re well-equipped to design an efficient off-grid caravan solar power system. Happy travels!
+
+## Sources and assumptions
+
+- [Victron Energy, SmartSolar MPPT technical specifications](https://www.victronenergy.com/media/pg/Manual_SmartSolar_MPPT_75-10_up_to_100-20/en/technical-specifications.html) — example controller limits and installation data.
+- [Victron Energy, Wiring Unlimited](https://www.victronenergy.com/upload/documents/Book-Wiring-Unlimited-EN.pdf) — DC wiring and protection principles.
+- Solar yield, battery usable capacity, inverter surge capability and cable limits vary with exact hardware, weather and installation. Use the calculator for planning only and verify every value with the manufacturer datasheet.

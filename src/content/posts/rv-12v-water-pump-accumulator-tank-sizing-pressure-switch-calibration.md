@@ -10,13 +10,11 @@ category: Water & Plumbing Systems
 featured: false
 draft: false
 tags:
-  - Water & Plumbing Systems
-  - Caravan Plumbing
   - 12V Water Pump
   - Accumulator Tank Sizing
   - Pressure Switch Calibration
-  - RV Water System
-  - Off-Grid Plumbing
+  - Water System Troubleshooting
+  - Pump Cycling
 description: "A practical guide to diagnosing 12V RV pump rapid cycling, selecting an accumulator tank and setting pressure-switch differentials safely."
 ---
 
@@ -77,3 +75,6 @@ After service, test the system with the tank full and empty, with one low-flow f
 ## Sources and assumptions
 
 Final pressure, flow, pre-charge, fuse and cable values must come from the exact pump, tank, heater, pipe and fitting manuals. The numeric example is illustrative only. If the pump continues to cycle after leak and pressure checks, stop using it until the installation has been inspected.
+
+- [SHURFLO/RV water system resources](https://www.shurflo.com/us/en/rv.html) — use the exact pump model manual for pressure, flow, current and service limits.
+- Tank pre-charge, pipe pressure, fuse sizing and heater compatibility are installation-specific. Do not exceed the lowest rated component.

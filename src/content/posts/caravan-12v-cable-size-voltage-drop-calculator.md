@@ -10,11 +10,10 @@ subcategory: DC Wiring
 featured: false
 draft: false
 tags:
-  - Engineering Calculators
-  - caravan 12v wiring
-  - voltage drop calculator
-  - off grid electrical
-  - caravan battery cable gauge
+  - 12V Wiring
+  - Voltage Drop
+  - Cable Sizing
+  - Battery Cables
 description: "Complete guide and interactive calculator for Off-Grid Caravan 12V Cable Size & Voltage Drop Calculator: Prevent Battery Power Loss."
 ---
 
@@ -383,3 +382,9 @@ Before turning on your off-grid 12V/24V power system, perform this quick physica
 3. **Use Tinned Copper:** Choose marine-grade, multi-stranded tinned copper wire to stop oxidation.
 4. **Crimp Appropriately:** Use hex-crimping tools with proper copper lugs; never rely on simple hand-pliers or solder-only joints for high-current cables.
 5. **Protect Circuits:** Match fuse ratings directly to the maximum ampacity of the smallest cable in that specific circuit loop.
+
+## Sources and assumptions
+
+- [Victron Energy, Wiring Unlimited](https://www.victronenergy.com/upload/documents/Book-Wiring-Unlimited-EN.pdf) — DC voltage drop, conductor sizing and protection principles.
+- The calculator uses the entered current, round-trip length, conductor resistance and selected voltage-drop limit. Cable ampacity still depends on insulation rating, bundling, ambient temperature, routing and applicable code.
+- Treat the result as a planning estimate. Confirm exact cable and fuse limits with manufacturer datasheets and a qualified installer before energizing a high-current circuit.

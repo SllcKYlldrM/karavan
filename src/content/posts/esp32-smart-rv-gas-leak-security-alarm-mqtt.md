@@ -11,12 +11,10 @@ featured: false
 draft: false
 tags:
   - ESP32
-  - Smart RV
   - MQTT
-  - RV Safety
   - Gas Leak Detector
-  - IoT Automation
-  - Home Assistant
+  - Carbon Monoxide Safety
+  - Fail-Safe Automation
 description: "A practical engineering guide to an ESP32-based RV gas and security alarm with MQTT telemetry, fail-safe shutdown logic and explicit safety limits."
 ---
 

@@ -10,14 +10,10 @@ category: Smart RV & IoT
 featured: false
 draft: false
 tags:
-  - Smart RV & IoT
-  - Caravan
-  - Off-Grid
   - ESP32
-  - Smart RV
-  - IoT
   - MQTT
   - Tank Sensor
+  - Capacitive Sensing
 ogImage: "/images/esp32-non-contact-capacitive-rv-tank-level-monitoring-mqtt.jpg"
 description: "Comprehensive technical guide for Designing a Corrosion-Free ESP32 Non-Contact Capacitive RV Tank Level Monitoring System with MQTT Telemetry."
 ---
@@ -246,3 +242,6 @@ This detailed comparison reinforces the design choice, particularly highlighting
 *   **MQTT Broker:** An MQTT broker (either local or cloud-based) is assumed to be accessible by the ESP32.
 *   **Battery Voltage:** The RV's 12V supply is assumed to be within the operating range of the LDO regulator (typically 4.5V to 15V for AMS1117-3.3).
 *   **Component Specifications:** Manufacturer specifications for current draw (ESP32, MPR121) and LDO efficiency are based on typical values and datasheets. Actual consumption may vary slightly depending on specific models and operating conditions.
+
+*   **MQTT protocol:** [OASIS MQTT Version 3.1.1](https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html).
+*   Sensor placement, tank geometry, water chemistry and calibration determine accuracy; the example dimensions are not universal installation values.

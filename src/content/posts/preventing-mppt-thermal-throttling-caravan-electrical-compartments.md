@@ -10,12 +10,11 @@ category: Power & Solar Systems
 featured: false
 draft: false
 tags:
-  - Power & Solar Systems
-  - mppt-thermal-management
-  - caravan-electrical-design
-  - heat-sink-cooling
-  - off-grid-solar-efficiency
-  - dc-system-engineering
+  - MPPT
+  - Thermal Management
+  - Heat-Sink Cooling
+  - Solar Efficiency
+  - DC System Engineering
 ogImage: "/images/preventing-mppt-thermal-throttling-caravan-electrical-compartments.jpg"
 description: "Comprehensive technical guide and engineering standards for Preventing MPPT Solar Controller Thermal Throttling in Sealed Caravan Electrical Compartments."
 ---
@@ -356,3 +355,9 @@ For 12V battery architectures, the ideal balance between cable loss and internal
 To maintain a sealed environment, you have two main engineering options:
 1. **External Heatsink Pass-Through:** Cut an opening in the cabinet wall and mount the MPPT so its internal electronics remain inside the sealed box, while its aluminum heatsink protrudes outside (using continuous rubber gaskets).
 2. **Internal Thermal Conduction Plates:** Fasten the MPPT heatsink to a large aluminum heat spreader plate that is directly coupled to the uninsulated outer metal shell of the drawbar box, turning the box exterior into a giant passive heatsink without compromising its seals.
+
+## Sources and assumptions
+
+- [Victron Energy, SmartSolar MPPT technical specifications](https://www.victronenergy.com/media/pg/Manual_SmartSolar_MPPT_75-10_up_to_100-20/en/technical-specifications.html) — example controller thermal and electrical limits.
+- [Victron Energy, Wiring Unlimited](https://www.victronenergy.com/upload/documents/Book-Wiring-Unlimited-EN.pdf) — wiring, ventilation and protection principles.
+- Thermal derating depends on the exact controller, enclosure, airflow, mounting surface, ambient temperature and load profile. Do not treat example voltage and temperature ranges as universal specifications.

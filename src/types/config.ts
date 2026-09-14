@@ -13,7 +13,7 @@ interface SiteConfig {
   ogImage?: string;
   /** HTML lang attribute, defaults to "en" */
   lang?: string;
-  /** IANA timezone for post dates, e.g. "Asia/Bangkok" */
+  /** IANA timezone for post dates, e.g. "UTC" */
   timezone?: string;
   /** Text direction */
   dir?: "ltr" | "rtl" | "auto";

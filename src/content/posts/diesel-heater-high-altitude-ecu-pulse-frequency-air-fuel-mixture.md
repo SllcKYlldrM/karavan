@@ -10,11 +10,10 @@ subcategory: Heating & Ventilation
 featured: false
 draft: false
 tags:
-  - HVAC & Climate Control
   - Diesel Heater
-  - High-Altitude Maintenance
-  - Air-Fuel Ratio
-  - Caravan HVAC
+  - High-Altitude Operation
+  - Combustion
+  - Carbon Monoxide Safety
 description: "A safety-focused guide to high-altitude diesel-heater operation, manufacturer-approved compensation and soot prevention."
 ---
 
@@ -69,3 +68,9 @@ An approved altitude sensor or kit is generally preferable to manual trial-and-e
 ## Sources and assumptions
 
 Final pulse values, altitude limits, service intervals and installation clearances must come from the exact heater and controller documentation. The arithmetic example is illustrative only. This article does not certify a heater installation or authorize an ECU modification.
+
+Primary references:
+
+- [Webasto technical documentation](https://www.webasto.com/en-int/technical-documentation.html) — use the exact heater model manual.
+- [Eberspächer technical documentation](https://www.eberspaecher.com/en/service/downloads) — use the exact heater model manual.
+- [CDC, Carbon Monoxide Poisoning Prevention](https://www.cdc.gov/carbon-monoxide/about/index.html) — carbon-monoxide safety context.

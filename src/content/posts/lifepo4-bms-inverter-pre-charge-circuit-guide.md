@@ -9,14 +9,11 @@ subcategory: Batteries & Charging
 featured: false
 draft: false
 tags:
-  - Power & Solar Systems
-  - Caravan
-  - Off-Grid
   - LiFePO4 Battery
   - BMS Protection
   - Inverter Inrush Current
   - Pre-Charge Resistor
-  - Caravan Electrics
+  - DC Link Capacitor
 ogImage: "/images/lifepo4-bms-inverter-pre-charge-circuit-guide.jpg"
 description: "Comprehensive technical guide for Preventing LiFePO4 BMS Short-Circuit Tripping: Engineering a High-Capacitance Inverter Pre-Charge Circuit."
 ---

@@ -10,12 +10,10 @@ category: Engineering Calculators
 featured: false
 draft: false
 tags:
-  - Engineering Calculators
-  - caravan
-  - travel
-  - safety
-  - equipment
-  - weight distribution
+  - Weight Distribution
+  - Payload
+  - Towing Safety
+  - Caravan Equipment
 description: "Discover the top essential caravan equipment and expert tips for proper weight distribution to ensure safety and comfort on your travels."
 ---
 
@@ -65,3 +63,9 @@ Adjust your packing as needed, especially after restocking supplies.
 ## Conclusion
 
 Having the right caravan equipment and maintaining proper weight distribution are essential for a safe and enjoyable trip. By following these tips, you can ensure your caravan is well-prepared for the adventures ahead. Happy travels!
+
+## Sources and assumptions
+
+- [NHTSA, Trailers](https://www.nhtsa.gov/vehicle-safety/trailers) — general loading, coupling and trailer safety guidance.
+- [UK Government, Towing with a car](https://www.gov.uk/towing-with-car) — towing limits and responsibilities.
+- No universal payload or nose-weight value is assumed. Use the identification plate, axle limits, tyre limits and manufacturer handbook for the specific vehicle and caravan.

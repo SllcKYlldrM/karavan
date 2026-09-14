@@ -10,10 +10,9 @@ subcategory: Batteries & Charging
 featured: false
 draft: false
 tags:
-  - Power & Solar Systems
   - Inverter Standby Drain
-  - 12V Electrical Engineering
-  - Off-Grid Caravan Automation
+  - Inverter Sizing
+  - 12V Control
   - Parasitic Power Loss
   - Load Sensing Switch
 ogImage: "/images/eliminating-inverter-idle-loss-load-sensing-remote-switch-caravan.jpg"
@@ -293,3 +292,9 @@ The LSARS design is universal. It connects to any inverter equipped with a remot
 
 ### Q5: Does disconnecting the AC line via relays introduce dangerous voltage transients?
 No. The LSARS logic ensures that the primary high-current AC contacts only open *after* the inverter has been commanded to stop generating power, or under zero-cross current conditions. This zero-current switching approach eliminates inductive contact arcing, dramatically extending relay contact life and preventing voltage spikes on the caravan's AC distribution panel.
+
+## Sources and assumptions
+
+- [Victron Energy, MultiPlus technical data](https://www.victronenergy.com/media/pg/MultiPlus_2kVA_230V/en/technical-data-2kva.html) — example inverter operating and standby characteristics; exact models differ.
+- [Victron Energy, Wiring Unlimited](https://www.victronenergy.com/upload/documents/Book-Wiring-Unlimited-EN.pdf) — DC protection and wiring principles.
+- Relay ratings, zero-cross behaviour, remote-port logic and shutdown timing must be verified against exact datasheets. Do not switch mains wiring without qualified electrical design and local-code compliance.

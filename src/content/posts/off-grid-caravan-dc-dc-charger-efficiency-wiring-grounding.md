@@ -10,13 +10,12 @@ category: Power & Solar Systems
 featured: false
 draft: false
 tags:
-  - Power & Solar Systems
-  - dc-dc charger
-  - caravan electrics
-  - voltage drop mitigation
-  - grounding strategies
-  - electrical engineering
-ogImage: "https://image.pollinations.ai/prompt/Professional%20off-grid%20caravan,%20Optimizing%20Off-Grid%20Caravan%20DC-DC%20Charger%20Efficiency%3A%20Advanced%20Wiring%20%26%20Grounding%20Techniques?width=1200&height=630&nologo=true"
+  - DC-DC Charger
+  - Voltage Drop
+  - Grounding
+  - Cable Sizing
+  - Alternator Charging
+ogImage: "/images/default-og.jpg"
 description: "Comprehensive technical guide and engineering standards for Optimizing Off-Grid Caravan DC-DC Charger Efficiency: Advanced Wiring & Grounding Techniques."
 ---
 
@@ -429,3 +428,9 @@ To compensate for this drop:
 1. Ensure the DC-DC charger features an adjustable **Low-Voltage Cut-Off Override** or ignition-sense trigger input so it remains operational when alternator voltage sags.
 2. Oversize the primary transmission wire (e.g., use 1/0 AWG or 2/0 AWG) to ensure line voltage drop remains under 2.5% even during minimum alternator output phases.
 3. Ensure the negative return wire connects directly downstream of the vehicle’s OEM battery shunt, allowing the ECU to accurately measure caravan power draw and bump up baseline alternator output voltage accordingly.
+
+## Sources and assumptions
+
+- [Victron Energy, Orion XS technical data](https://www.victronenergy.com/media/pg/Orion_XS_12-12-50A_DC-DC_battery_charger/en/technical-data.html) — example DC-DC charger limits and efficiency data.
+- [Victron Energy, Wiring Unlimited](https://www.victronenergy.com/upload/documents/Book-Wiring-Unlimited-EN.pdf) — voltage-drop, grounding and overcurrent-protection principles.
+- Alternator output, cable ampacity, fuse placement and chassis-bonding requirements depend on the vehicle and jurisdiction. Verify the exact charger manual, vehicle wiring documentation and applicable code before installation.

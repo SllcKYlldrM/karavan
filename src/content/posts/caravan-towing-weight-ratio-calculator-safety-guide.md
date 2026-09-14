@@ -10,12 +10,10 @@ subcategory: Towing Safety
 featured: true
 draft: false
 tags:
-  - Engineering Calculators
-  - caravan
-  - towing
-  - safety
-  - calculator
-  - guide
+  - Towing Ratio
+  - Payload
+  - Towing Safety
+  - Weight Limits
 description: "Calculate your caravan towing weight ratio safely with our interactive tool. Learn practical towing advice and safety tips."
 ---
 
@@ -28,3 +26,9 @@ description: "Calculate your caravan towing weight ratio safely with our interac
   <li>Regularly inspect your caravan's brakes, tires, and lights.</li>
   <li>Avoid sudden maneuvers and maintain a safe speed.</li>
 </ul>
+
+## Sources and assumptions
+
+- [UK Government, Towing with a car](https://www.gov.uk/towing-with-car) — vehicle limits and towing guidance.
+- [NHTSA, Trailers](https://www.nhtsa.gov/vehicle-safety/trailers) — general trailer safety guidance.
+- Legal limits, axle ratings, nose-weight limits and braking requirements vary by vehicle, caravan and jurisdiction. Use the exact manuals and local regulations; the calculator is a screening aid, not legal approval.

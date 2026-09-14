@@ -8,7 +8,7 @@ export default defineAstroPaperConfig({
     author: "VanSpecs Technical Team",
     ogImage: "default-og.jpg",
     lang: "en",
-    timezone: "Asia/Bangkok",
+    timezone: "UTC",
     dir: "ltr",
   },
   posts: {
