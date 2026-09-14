@@ -1,0 +1,12 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import BilgeCalculator from "@/components/calculator/BilgeCalculator.astro";
+const toolUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
+const toolsUrl = new URL("/tools", Astro.site ?? Astro.url).href;
+const homeUrl = new URL("/", Astro.site ?? Astro.url).href;
+const schema = JSON.stringify({ "@context": "https://schema.org", "@type": "WebApplication", name: "VanSpecs Marine Bilge Pump Calculator", applicationCategory: "UtilitiesApplication", operatingSystem: "Web", url: toolUrl, offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } });
+const breadcrumb = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: homeUrl }, { "@type": "ListItem", position: 2, name: "Tools", item: toolsUrl }, { "@type": "ListItem", position: 3, name: "Bilge pump calculator", item: toolUrl }] });
+---
+<Layout title="Marine Bilge Pump Calculator | VanSpecs" description="Estimate derated bilge pump flow, emergency battery runtime and water removal planning."><Fragment slot="head"><script is:inline type="application/ld+json" set:html={schema}></script><script is:inline type="application/ld+json" set:html={breadcrumb}></script></Fragment><Header /><main id="main-content" class="mx-auto w-full max-w-[1480px] px-6 py-10 sm:px-10 lg:px-12"><div class="mx-auto max-w-5xl"><nav class="mb-6 text-sm text-skin-base/65" aria-label="Breadcrumb"><a href="/" class="hover:text-skin-accent">Home</a><span class="mx-2">/</span><a href="/tools" class="hover:text-skin-accent">Tools</a><span class="mx-2">/</span><span>Bilge pump calculator</span></nav><BilgeCalculator /></div></main><Footer /></Layout>

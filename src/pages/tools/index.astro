@@ -69,6 +69,21 @@ const tools = [
     description: "Estimate loaded mass, payload, nose weight and axle-group load.",
     href: "/tools/weight-calculator",
   },
+  {
+    title: "Marine Bilge Pump and Battery Calculator",
+    description: "Estimate derated bilge flow, pump current, emergency battery runtime and water removal.",
+    href: "/tools/bilge-calculator",
+  },
+  {
+    title: "Tiny House Heat Loss Calculator",
+    description: "Estimate simplified transmission and ventilation heat loss for early HVAC planning.",
+    href: "/tools/heat-loss-calculator",
+  },
+  {
+    title: "Rainwater Harvesting Calculator",
+    description: "Estimate roof runoff capture, cistern storage and existing tank autonomy.",
+    href: "/tools/rainwater-calculator",
+  },
 ];
 const toolsUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
 const itemListSchema = JSON.stringify({
@@ -87,7 +102,7 @@ const itemListSchema = JSON.stringify({
 
 <Layout
   title="Engineering Calculators | VanSpecs"
-  description="Practical engineering calculators for off-grid caravan power, batteries and wiring."
+  description="Practical engineering calculators for caravan, marine, tiny house and shared off-grid systems."
 >
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={itemListSchema}></script>
@@ -98,7 +113,7 @@ const itemListSchema = JSON.stringify({
       <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-skin-accent">VanSpecs tools</p>
       <h1 class="text-3xl font-bold tracking-tight text-skin-base sm:text-4xl">Engineering Calculators</h1>
       <p class="mt-4 max-w-2xl text-base leading-7 text-skin-base/75">
-        Browser-based tools for planning practical off-grid caravan systems.
+        Browser-based tools for planning practical caravan, marine, tiny house and shared off-grid systems.
       </p>
       <div class="mt-8 grid gap-5 sm:grid-cols-2">
         {tools.map(tool => (

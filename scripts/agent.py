@@ -40,7 +40,7 @@ CONTENT_TRACKS = [
     {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Marine Power & Solar", "subcategory": "Solar & Energy", "focus": "marine solar, charge controllers and energy budgets", "author": "Alex Morgan"},
     {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Marine Power & Solar", "subcategory": "Batteries & Charging", "focus": "marine batteries, alternators, BMS and charging", "author": "Alex Morgan"},
     {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Freshwater & Bilge", "subcategory": "Water Systems", "focus": "freshwater, tanks and onboard water treatment", "author": "Maya Carter"},
-    {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Freshwater & Bilge", "subcategory": "Bilge & Pumps", "focus": "bilge pumps, alarms and flood protection", "author": "Maya Carter"},
+    {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Freshwater & Bilge", "subcategory": "Bilge & Pumps", "focus": "bilge pumps, alarms and flood protection", "author": "Maya Carter", "calculator": "bilge-sizing"},
     {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Marine HVAC", "subcategory": "Climate Control", "focus": "marine air conditioning, heating and ventilation", "author": "Ethan Cole"},
     {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Wiring & Corrosion Protection", "subcategory": "Bonding & Corrosion", "focus": "galvanic corrosion, bonding and marine grounding", "author": "Daniel Brooks"},
     {"scope": "marine", "scope_name": "Marine & Boat Systems", "category": "Navigation & IoT", "subcategory": "Monitoring & Telemetry", "focus": "NMEA data, sensors, alarms and remote monitoring", "author": "Nora Bennett"},
@@ -48,7 +48,8 @@ CONTENT_TRACKS = [
     {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Off-Grid Power", "subcategory": "Solar & Energy", "focus": "tiny house energy budgets and solar sizing", "author": "Alex Morgan"},
     {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Off-Grid Power", "subcategory": "Batteries & Inverters", "focus": "battery storage, inverters and backup power", "author": "Alex Morgan"},
     {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Water & Wastewater", "subcategory": "Freshwater", "focus": "freshwater storage, pumps and filtration", "author": "Maya Carter"},
-    {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Heating & Cooling", "subcategory": "Heating", "focus": "heating loads, insulation and ventilation", "author": "Ethan Cole"},
+    {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Water & Wastewater", "subcategory": "Wastewater & Treatment", "focus": "rainwater harvesting, cistern sizing, first-flush diversion and greywater treatment", "author": "Maya Carter", "calculator": "rainwater-sizing"},
+    {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Heating & Cooling", "subcategory": "Heating", "focus": "heating loads, insulation and ventilation", "author": "Ethan Cole", "calculator": "heat-loss"},
     {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Electrical Installation", "subcategory": "AC Distribution", "focus": "AC distribution, protection and local electrical requirements", "author": "Daniel Brooks"},
     {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Automation & Monitoring", "subcategory": "Energy Monitoring", "focus": "smart energy monitoring and automation", "author": "Nora Bennett"},
     {"scope": "tiny-house", "scope_name": "Tiny House Systems", "category": "Structure & Weight", "subcategory": "Load Planning", "focus": "structural loads, transport and placement planning", "author": "Daniel Brooks"},
@@ -59,6 +60,8 @@ CONTENT_TRACKS = [
     {"scope": "shared", "scope_name": "Shared Systems", "category": "Electrical Engineering", "subcategory": "Cable Sizing", "focus": "voltage drop, cable ampacity and protection", "author": "Daniel Brooks"},
     {"scope": "shared", "scope_name": "Shared Systems", "category": "Automation & IoT", "subcategory": "Sensors", "focus": "sensors, telemetry and reliable control systems", "author": "Nora Bennett"},
 ]
+
+CALCULATORS = {"solar-system", "battery-sizing", "cable-sizing", "inverter-sizing", "towing-safety", "heater-runtime", "gas-runtime", "ac-load", "pump-sizing", "weight-sizing", "water-sizing", "dc-dc-sizing", "bilge-sizing", "heat-loss", "rainwater-sizing"}
 
 def call_gemini(prompt: str, json_mode: bool = False) -> str:
     config_kwargs = {}
@@ -255,6 +258,7 @@ strategy_prompt = (
     f"Technical category: {selected_category}\n"
     f"Subcategory: {selected_subcategory}\n"
     f"Topic focus: {selected_track['focus']}\n\n"
+    f"Relevant calculator hint: {selected_track.get('calculator', 'none')}\n\n"
     f"Sitede Daha Önce Yayınlanmış Yazılar:\n{existing_posts_context}\n\n"
     "GÖREV:\n"
     "1. Sitedeki mevcut içerikleri analiz et. Bu kategoride tekrara (cannibalization) düşmeyecek, kullanıcıya tamamen yepyeni ve derinlemesine teknik/pratik değer katacak özgün bir 'Long-Tail' konu seç.\n"
@@ -265,6 +269,7 @@ strategy_prompt = (
     "  \"title\": \"İngilizce SEO Uyumlu Başlık\",\n"
     "  \"slug\": \"url-slug\",\n"
     "  \"tags\": [\"tag1\", \"tag2\"],\n"
+    "  \"calculator\": null,\n"
     "  \"brief\": \"Bu makalede işlenecek teknik detaylar, formüller, karşılaştırma parametreleri ve adım adım hesaplama senaryosunun detaylı açıklaması.\"\n"
     "}"
 )
@@ -274,6 +279,14 @@ strategy_raw = call_gemini(strategy_prompt, json_mode=True)
 strategy_raw = re.sub(r"^```json\s*", "", strategy_raw)
 strategy_raw = re.sub(r"\s*```$", "", strategy_raw)
 topic_data = json.loads(strategy_raw)
+
+requested_calculator = topic_data.get("calculator")
+if requested_calculator not in CALCULATORS:
+    requested_calculator = None
+if selected_track.get("calculator") and requested_calculator is None:
+    requested_calculator = selected_track["calculator"]
+if requested_calculator == "rainwater-sizing" and not re.search(r"rainwater|rain harvesting|cistern|stormwater", f"{topic_data.get('title', '')} {topic_data.get('brief', '')}", re.IGNORECASE):
+    requested_calculator = None
 
 print(f"-> Seçilen Konu: {topic_data['title']}")
 print(f"-> Stratejik Brief: {topic_data['brief']}")
@@ -387,6 +400,7 @@ postSlug: "{topic_data['slug']}"
 scope: {selected_scope}
 category: {selected_category}
 subcategory: {selected_subcategory}
+{"calculator: " + requested_calculator if requested_calculator else ""}
 featured: false
 draft: false
 tags:

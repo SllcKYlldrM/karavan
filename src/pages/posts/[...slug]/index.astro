@@ -16,6 +16,9 @@ import PumpCalculator from "@/components/calculator/PumpCalculator.astro";
 import WeightCalculator from "@/components/calculator/WeightCalculator.astro";
 import WaterCalculator from "@/components/calculator/WaterCalculator.astro";
 import DcDcCalculator from "@/components/calculator/DcDcCalculator.astro";
+import BilgeCalculator from "@/components/calculator/BilgeCalculator.astro";
+import HeatLossCalculator from "@/components/calculator/HeatLossCalculator.astro";
+import RainwaterCalculator from "@/components/calculator/RainwaterCalculator.astro";
 import { slugifyStr } from "@/utils/slugify";
 
 export async function getStaticPaths() {
@@ -322,6 +325,21 @@ const articleSchema = JSON.stringify({
           {post.data.calculator === "dc-dc-sizing" && (
             <div class="mt-10">
               <DcDcCalculator />
+            </div>
+          )}
+          {post.data.calculator === "bilge-sizing" && (
+            <div class="mt-10">
+              <BilgeCalculator />
+            </div>
+          )}
+          {post.data.calculator === "heat-loss" && (
+            <div class="mt-10">
+              <HeatLossCalculator />
+            </div>
+          )}
+          {post.data.calculator === "rainwater-sizing" && (
+            <div class="mt-10">
+              <RainwaterCalculator />
             </div>
           )}
 

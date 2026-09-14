@@ -17,7 +17,7 @@ const posts = defineCollection({
       category: z.string().optional(),
       scope: z.enum(["caravan", "marine", "tiny-house", "shared"]).default("caravan"),
       subcategory: z.string().optional(),
-      calculator: z.enum(["solar-system", "battery-sizing", "cable-sizing", "inverter-sizing", "towing-safety", "heater-runtime", "gas-runtime", "ac-load", "pump-sizing", "weight-sizing", "water-sizing", "dc-dc-sizing"]).optional(),
+      calculator: z.enum(["solar-system", "battery-sizing", "cable-sizing", "inverter-sizing", "towing-safety", "heater-runtime", "gas-runtime", "ac-load", "pump-sizing", "weight-sizing", "water-sizing", "dc-dc-sizing", "bilge-sizing", "heat-loss", "rainwater-sizing"]).optional(),
       featured: z.boolean().optional(),
       draft: z.boolean().optional(),
       tags: z.array(z.string()).default(["others"]),
