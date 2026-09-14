@@ -64,6 +64,116 @@ CONTENT_TRACKS = [
 
 CALCULATORS = {"solar-system", "battery-sizing", "cable-sizing", "inverter-sizing", "towing-safety", "heater-runtime", "gas-runtime", "ac-load", "pump-sizing", "weight-sizing", "water-sizing", "dc-dc-sizing", "bilge-sizing", "heat-loss", "rainwater-sizing"}
 
+CONTENT_TYPES = {
+    "technical-guide": {"label": "technical guide", "target": 0.30},
+    "calculator-support": {"label": "calculator/support", "target": 0.20},
+    "troubleshooting": {"label": "troubleshooting", "target": 0.20},
+    "comparison-decision": {"label": "comparison/decision", "target": 0.20},
+    "complete-system-case-study": {"label": "complete system/case study", "target": 0.10},
+}
+
+ROLE_ORDER = ["pillar", "calculator", "decision", "troubleshooting", "sub-guide", "equipment-selection"]
+
+def slugify(value):
+    value = re.sub(r"[^a-z0-9]+", "-", value.casefold()).strip("-")
+    return value
+
+def is_semantic_duplicate(candidate, existing_titles):
+    stopwords = {"a", "an", "and", "for", "how", "to", "the", "with", "in", "of", "on", "guide"}
+    candidate_words = {word for word in re.findall(r"[a-z0-9]+", candidate.casefold()) if word not in stopwords}
+    if len(candidate_words) < 4:
+        return False
+    for title in existing_titles:
+        existing_words = {word for word in re.findall(r"[a-z0-9]+", title.casefold()) if word not in stopwords}
+        overlap = len(candidate_words & existing_words) / max(1, len(candidate_words | existing_words))
+        if overlap >= 0.72:
+            return True
+    return False
+
+def parse_frontmatter(content):
+    frontmatter = content.split("---", 2)[1] if content.startswith("---") else ""
+    def field(name):
+        match = re.search(rf"^{name}:\s*[\"']?([^\"'\n]+)", frontmatter, re.MULTILINE)
+        return match.group(1).strip() if match else ""
+    return {"title": field("title"), "slug": field("postSlug"), "scope": field("scope"),
+            "category": field("category"), "subcategory": field("subcategory"),
+            "calculator": field("calculator"), "content_type": field("contentType"),
+            "cluster": field("topicCluster")}
+
+def classify_content_type(post):
+    if post.get("content_type") in CONTENT_TYPES:
+        return post["content_type"]
+    text = post["title"].casefold()
+    if any(word in text for word in ("troubleshoot", "preventing", "eliminating", "rapid cycling", "tripping", "thermal throttling", "soot")):
+        return "troubleshooting"
+    if any(word in text for word in (" vs ", "versus", "choose", "comparison", "selection", "selecting")):
+        return "comparison-decision"
+    if any(word in text for word in ("complete system", "case study", "system design", "designing an " )):
+        return "complete-system-case-study"
+    if post.get("calculator"):
+        return "calculator-support"
+    return "technical-guide"
+
+def cluster_key(post):
+    return post.get("cluster") or " / ".join(filter(None, (post.get("scope"), post.get("category"), post.get("subcategory"))))
+
+def get_content_inventory():
+    inventory = []
+    for file_path in sorted(glob.glob(f"{POSTS_DIR}/*.md")):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                raw_content = f.read()
+            post = parse_frontmatter(raw_content)
+            inferred_track = infer_track(raw_content)
+            if inferred_track:
+                post["scope"] = inferred_track["scope"]
+                post["category"] = inferred_track["category"]
+                post["subcategory"] = inferred_track["subcategory"]
+            post["file"] = os.path.basename(file_path)
+            post["content_type"] = classify_content_type(post)
+            post["cluster"] = cluster_key(post)
+            inventory.append(post)
+        except (OSError, UnicodeError):
+            continue
+    return inventory
+
+def build_topic_plan(inventory):
+    """Create a deterministic cluster/role gap plan before asking a model for wording."""
+    clusters = {}
+    for post in inventory:
+        clusters.setdefault(post["cluster"], []).append(post)
+    plans = []
+    for track in CONTENT_TRACKS:
+        key = " / ".join((track["scope"], track["category"], track["subcategory"]))
+        posts = clusters.get(key, [])
+        calculator = track.get("calculator")
+        roles = {
+            "pillar": ("complete-system-case-study", f"Complete {track['focus']} system design for {track['scope_name']}"),
+            "calculator": ("calculator-support", f"How to size {track['focus']} with a practical calculator"),
+            "decision": ("comparison-decision", f"How to choose {track['focus']} equipment for an off-grid system"),
+            "troubleshooting": ("troubleshooting", f"Troubleshooting common {track['focus']} failures"),
+            "sub-guide": ("technical-guide", f"Technical guide to {track['focus']} installation and verification"),
+            "equipment-selection": ("comparison-decision", f"Equipment selection checklist for {track['focus']}"),
+        }
+        for role in ROLE_ORDER:
+            content_type, seed_title = roles[role]
+            role_terms = {"pillar": ("complete", "system", "case study"), "calculator": ("calculator", "size"),
+                          "decision": (" vs ", "choose", "comparison", "select"), "troubleshooting": ("troubleshoot", "prevent", "eliminat", "failure"),
+                          "sub-guide": ("guide", "wiring", "installation", "designing"), "equipment-selection": ("selection", "select", "choose")}[role]
+            covered = any(any(term in post["title"].casefold() for term in role_terms) for post in posts)
+            if role == "calculator" and calculator and calculator in {post["calculator"] for post in posts}:
+                covered = True
+            if not covered:
+                plans.append({"track": track, "cluster": key, "role": role, "content_type": content_type,
+                              "seed_title": seed_title, "calculator": calculator if role == "calculator" else None,
+                              "existing_titles": [post["title"] for post in posts]})
+    type_counts = {content_type: sum(post["content_type"] == content_type for post in inventory) for content_type in CONTENT_TYPES}
+    total = max(len(inventory), 1)
+    for plan in plans:
+        current_share = type_counts[plan["content_type"]] / total
+        plan["priority"] = (CONTENT_TYPES[plan["content_type"]]["target"] - current_share) + (1.0 if plan["role"] == "pillar" else 0.0)
+    return sorted(plans, key=lambda plan: (-plan["priority"], plan["cluster"], ROLE_ORDER.index(plan["role"]))), type_counts
+
 def call_gemini(prompt: str, json_mode: bool = False) -> str:
     config_kwargs = {}
     if json_mode:
@@ -161,6 +271,12 @@ def remove_missing_local_images(body: str) -> str:
     body = html_image_pattern.sub(keep_existing, body)
     return markdown_image_pattern.sub(keep_existing, body)
 
+def reject_remote_image_references(body: str) -> None:
+    """Enforce the repository rule that generated article images are local assets."""
+    remote_image = re.compile(r"!\[[^\]]*\]\(https?://|<img\b[^>]*\bsrc=[\"']https?://", re.IGNORECASE)
+    if remote_image.search(body):
+        raise RuntimeError("Generated content contains a remote image URL; only /images/* assets are allowed.")
+
 def limit_inline_image_placeholders(body: str, maximum: int = 2) -> str:
     """Keep at most two generated inline image placeholders per article."""
     placeholders = list(re.finditer(r"\[IMAGE:\s*.*?\]", body, flags=re.IGNORECASE))
@@ -187,8 +303,8 @@ def require_english_content(title: str, body: str) -> None:
         )
 
 def normalize_tags(raw_tags, scope_name, category, subcategory):
-    """Keep scope and taxonomy labels canonical while removing duplicate tags."""
-    values = [scope_name, category, subcategory, "Off-Grid"] + (raw_tags or [])
+    """Keep topical tags useful; scope and category already have dedicated taxonomy fields."""
+    values = raw_tags or []
     tags = []
     seen = set()
     for value in values:
@@ -199,20 +315,11 @@ def normalize_tags(raw_tags, scope_name, category, subcategory):
             seen.add(key)
     return tags[:8]
 
-def get_existing_posts_summary():
-    summaries = []
-    for file_path in glob.glob(f"{POSTS_DIR}/*.md"):
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
-                title_match = re.search(r'^title:\s*["\']?(.*?)["\']?$', content, re.MULTILINE)
-                desc_match = re.search(r'^description:\s*["\']?(.*?)["\']?$', content, re.MULTILINE)
-                if title_match:
-                    summaries.append(f"- Başlık: {title_match.group(1).strip()} | Açıklama: {desc_match.group(1).strip() if desc_match else 'Yok'}")
-        except Exception: continue
-    return "\n".join(summaries) or "Henüz yayınlanmış yazı yok."
-
-existing_posts_context = get_existing_posts_summary()
+def get_existing_posts_summary(inventory):
+    return "\n".join(
+        f"- {post['title']} | type={post['content_type']} | cluster={post['cluster']} | calculator={post['calculator'] or 'none'} | file={post['file']}"
+        for post in inventory
+    ) or "No existing posts."
 
 def infer_track(content: str):
     scope_match = re.search(r"^scope:\s*([^\n]+)", content, re.MULTILINE)
@@ -245,22 +352,21 @@ def infer_track(content: str):
             return track
     return None
 
-track_counts = {id(track): 0 for track in CONTENT_TRACKS}
-for file_path in glob.glob(f"{POSTS_DIR}/*.md"):
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            track = infer_track(f.read())
-        if track:
-            track_counts[id(track)] += 1
-    except Exception:
-        continue
-
-least_filled_count = min(track_counts.values())
-selected_track = next(track for track in CONTENT_TRACKS if track_counts[id(track)] == least_filled_count)
+content_inventory = get_content_inventory()
+topic_plans, type_counts = build_topic_plan(content_inventory)
+if not topic_plans:
+    raise RuntimeError("No uncovered topic-cluster role remains; review the cluster blueprints before generating more content.")
+selected_plan = topic_plans[0]
+selected_track = selected_plan["track"]
 selected_scope = selected_track["scope"]
 selected_scope_name = selected_track["scope_name"]
 selected_category = selected_track["category"]
 selected_subcategory = selected_track["subcategory"]
+selected_content_type = selected_plan["content_type"]
+selected_cluster = selected_plan["cluster"]
+existing_posts_context = get_existing_posts_summary(content_inventory)
+print(f"-> Content inventory: {len(content_inventory)} posts; type counts: {type_counts}")
+print(f"-> Gap plan: {selected_cluster} / {selected_plan['role']} / {selected_content_type}")
 
 # --- ADIM 1: Strateji, Tekrar Analizi ve Zengin Brief Üretimi (Gemini) ---
 strategy_prompt = (
@@ -269,10 +375,13 @@ strategy_prompt = (
     f"Technical category: {selected_category}\n"
     f"Subcategory: {selected_subcategory}\n"
     f"Topic focus: {selected_track['focus']}\n\n"
-    f"Relevant calculator hint: {selected_track.get('calculator', 'none')}\n\n"
+    f"Cluster role: {selected_plan['role']}\n"
+    f"Required content type: {selected_content_type}\n"
+    f"Relevant calculator hint: {selected_plan.get('calculator') or 'none'}\n"
+    f"Gap seed (do not copy literally): {selected_plan['seed_title']}\n\n"
     f"Sitede Daha Önce Yayınlanmış Yazılar:\n{existing_posts_context}\n\n"
     "GÖREV:\n"
-    "1. Sitedeki mevcut içerikleri analiz et. Bu kategoride tekrara (cannibalization) düşmeyecek, kullanıcıya tamamen yepyeni ve derinlemesine teknik/pratik değer katacak özgün bir 'Long-Tail' konu seç.\n"
+    "1. Use the inventory and gap plan to select a genuinely uncovered topic. Never repeat or lightly rephrase an existing title. Reject semantic duplicates and choose a narrower unanswered user problem.\n"
     "2. Seçtiğin konunun kullanıcıya sağlayacağı ekstra faydayı stratejik olarak kurgula.\n"
     "3. Yazıyı yazacak olan mühendis yazar (OpenRouter) için kapsamlı bir içerik brief'i hazırla.\n\n"
     "ÇIKTI FORMATI (Saf JSON):\n"
@@ -280,7 +389,10 @@ strategy_prompt = (
     "  \"title\": \"İngilizce SEO Uyumlu Başlık\",\n"
     "  \"slug\": \"url-slug\",\n"
     "  \"tags\": [\"tag1\", \"tag2\"],\n"
+    "  \"content_type\": \"technical-guide|calculator-support|troubleshooting|comparison-decision|complete-system-case-study\",\n"
+    "  \"topic_cluster\": \"scope / category / subcategory\",\n"
     "  \"calculator\": null,\n"
+    "  \"related_posts\": [\"exact existing post title\"],\n"
     "  \"brief\": \"Bu makalede işlenecek teknik detaylar, formüller, karşılaştırma parametreleri ve adım adım hesaplama senaryosunun detaylı açıklaması.\"\n"
     "}"
 )
@@ -299,6 +411,29 @@ if selected_track.get("calculator") and requested_calculator is None:
 if requested_calculator == "rainwater-sizing" and not re.search(r"rainwater|rain harvesting|cistern|stormwater", f"{topic_data.get('title', '')} {topic_data.get('brief', '')}", re.IGNORECASE):
     requested_calculator = None
 
+if topic_data.get("content_type") not in CONTENT_TYPES:
+    topic_data["content_type"] = selected_content_type
+topic_data["topic_cluster"] = selected_cluster
+existing_titles = [post["title"].casefold() for post in content_inventory]
+candidate_title = str(topic_data.get("title", "")).strip()
+candidate_slug = slugify(str(topic_data.get("slug") or candidate_title))
+existing_slugs = {post["slug"].casefold() for post in content_inventory if post["slug"]}
+if (not candidate_title or is_semantic_duplicate(candidate_title, existing_titles)
+        or candidate_slug in existing_slugs):
+    raise RuntimeError("Planner returned an existing or semantically duplicate topic; no post was written.")
+topic_data["slug"] = candidate_slug
+related_posts = [post for post in content_inventory if post["cluster"] == selected_cluster]
+related_posts = related_posts[:5]
+CALCULATOR_ROUTES = {
+    "solar-system": "solar-calculator", "battery-sizing": "battery-calculator", "cable-sizing": "cable-calculator",
+    "inverter-sizing": "inverter-calculator", "towing-safety": "towing-calculator", "heater-runtime": "heater-calculator",
+    "gas-runtime": "gas-calculator", "ac-load": "ac-load-calculator", "pump-sizing": "pump-calculator",
+    "weight-sizing": "weight-calculator", "water-sizing": "water-calculator", "dc-dc-sizing": "dc-dc-calculator",
+    "bilge-sizing": "bilge-calculator", "heat-loss": "heat-loss-calculator", "rainwater-sizing": "rainwater-calculator",
+}
+related_calculator_route = f"/tools/{CALCULATOR_ROUTES[requested_calculator]}" if requested_calculator in CALCULATOR_ROUTES else "none"
+related_links = "\n".join(f"- [{post['title']}](/posts/{post['slug']})" for post in related_posts) or "- none"
+
 print(f"-> Seçilen Konu: {topic_data['title']}")
 print(f"-> Stratejik Brief: {topic_data['brief']}")
 
@@ -309,8 +444,12 @@ content_prompt = (
     f"Content scope: {selected_scope_name}\n"
     f"Technical category: {selected_category}\n"
     f"Subcategory: {selected_subcategory}\n"
+    f"Required content type: {selected_content_type}\n"
+    f"Topic cluster: {selected_cluster}\n"
     f"Konu Başlığı: \"{topic_data['title']}\"\n\n"
     f"TEKNİK BİRİEF / YÖNLENDİRME:\n{topic_data['brief']}\n\n"
+    f"Existing related guide links (use only when relevant):\n{related_links}\n"
+    f"Related calculator route: {related_calculator_route}\n\n"
     "GÖREV:\n"
     "Yukarıdaki stratejik brief'e sadık kalarak, en az 1200 kelime, son derece derinlemesine ve profesyonel bir teknik rehber yaz.\n\n"
     "KESİN KURALLAR:\n"
@@ -318,10 +457,15 @@ content_prompt = (
     "2. İçerikte en az 2 adet detaylı Markdown Veri/Karşılaştırma Tablosu bulunsun.\n"
     "3. Somut sayısal hesaplama adımları ekle.\n"
     "4. Every calculation must state inputs, units, formula, assumptions, and result. Never invent manufacturer specifications; mark unknown values as assumptions.\n"
-    "5. End with a concise Sources and Assumptions section using official manufacturer or standards references when available.\n"
+    "5. End with a concise Sources and Assumptions section using direct official manufacturer, standards or government URLs when available. State clearly when a value is illustrative or model-specific.\n"
     "6. Görsel yerleri için tam olarak şu formatı kullan: [IMAGE: Kısa ingilizce görsel açıklaması]. En fazla 2 görsel işareti kullan.\n"
-    "7. Sadece makale gövdesini yaz; `# Başlık` kullanma, çünkü sayfa şablonu başlığı zaten H1 olarak basıyor. Giriş paragrafı veya `##` başlığıyla başla."
-    "\n8. Never return a Python list, JSON object, SDK response, refusal metadata, escaped \\n sequences or provider log. Return readable Markdown only."
+    "7. Sadece makale gövdesini yaz; `# Başlık` kullanma, çünkü sayfa şablonu başlığı zaten H1 olarak basıyor. Giriş paragrafı veya `##` başlığıyla başla.\n"
+    "8. Generated images must never be linked remotely. Use only the provided [IMAGE: English description] placeholders; the pipeline stores them under public/images.\n"
+    "9. Tags must be short, English, topic-specific labels only. Do not repeat scope, category or subcategory values as tags.\n"
+    "10. Add 2-5 natural internal links to the supplied related guides and calculator route. Use descriptive English anchor text, never a raw URL list. Link only to existing paths.\n"
+    "11. Match the required content type: pillar/system content must connect the full system; calculator/support must explain inputs and interpretation; troubleshooting must use symptoms, tests and safe fixes; comparison/decision must end with a clear choice matrix; technical guides must focus on one implementation topic.\n"
+    "12. State safety boundaries for electrical, gas, towing, structural and marine work. Do not present illustrative values as universal specifications."
+    "\n10. Never return a Python list, JSON object, SDK response, refusal metadata, escaped \\n sequences or provider log. Return readable Markdown only."
 )
 
 print("-> [Adım 2] OpenRouter makaleyi kaleme alıyor...")
@@ -368,6 +512,7 @@ for revision_count in range(max_revisions + 1):
 article_body = normalize_article_body(article_body)
 article_body = limit_inline_image_placeholders(article_body, maximum=2)
 article_body = remove_missing_local_images(article_body)
+reject_remote_image_references(article_body)
 require_english_content(topic_data["title"], article_body)
 
 # --- ADIM 4: Görsel İndirme (Garantili Retry Döngüsü) ---
@@ -400,6 +545,7 @@ for idx, img_desc in enumerate(re.findall(r'\[IMAGE:\s*(.*?)\]', article_body), 
 pub_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 normalized_tags = normalize_tags(topic_data.get("tags"), selected_scope_name, selected_category, selected_subcategory)
 tags_formatted = "\n".join([f"  - {tag}" for tag in normalized_tags])
+related_guides_formatted = "\n".join(f'  - "{post["slug"]}"' for post in related_posts) or "  []"
 
 # Sadece gerçek kapak görseli başarıyla indiyse ogImage ekle, aksi halde alanı boş bırak
 og_image_line = f'ogImage: "{cover_image}"' if main_image_downloaded else ''
@@ -412,7 +558,11 @@ postSlug: "{topic_data['slug']}"
 scope: {selected_scope}
 category: {selected_category}
 subcategory: {selected_subcategory}
+contentType: {topic_data['content_type']}
+topicCluster: "{selected_cluster}"
 {"calculator: " + requested_calculator if requested_calculator else ""}
+relatedGuides:
+{related_guides_formatted}
 featured: false
 draft: false
 tags:
