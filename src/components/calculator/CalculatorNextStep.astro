@@ -1,0 +1,20 @@
+---
+import { calculatorLinks } from "@/data/calculator-links";
+
+const pathname = Astro.url.pathname.replace(/\/$/, "");
+const calculatorKey = Object.entries(calculatorLinks).find(([, item]) => item.href.replace(/\/$/, "") === pathname)?.[0];
+const link = calculatorKey ? calculatorLinks[calculatorKey] : null;
+---
+
+{link && (
+  <div class="mt-4 grid gap-3 border-t border-skin-line pt-4 sm:grid-cols-2" aria-label="Next steps">
+    <a href={link.guideHref} data-related-guide-link={link.guideHref} class="rounded-xl border border-skin-line bg-skin-fill p-4 transition hover:border-skin-accent">
+      <span class="block text-xs font-bold uppercase tracking-[0.12em] text-skin-accent">Related guide</span>
+      <span class="mt-1 block font-semibold text-skin-base">{link.guideTitle} →</span>
+    </a>
+    <a href={link.nextHref} data-calculator-link={link.nextHref} class="rounded-xl border border-skin-line bg-skin-fill p-4 transition hover:border-skin-accent">
+      <span class="block text-xs font-bold uppercase tracking-[0.12em] text-skin-accent">Next step</span>
+      <span class="mt-1 block font-semibold text-skin-base">{link.nextTitle} →</span>
+    </a>
+  </div>
+)}

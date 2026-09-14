@@ -28,6 +28,13 @@ const rssHref = getRelativeLocaleUrl(
   Astro.currentLocale ?? config.site.lang,
   "rss.xml"
 );
+const websiteSchema = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: site.title,
+  url: new URL("/", Astro.site ?? Astro.url).href,
+  description: site.description,
+});
 ---
 
 <!doctype html>
@@ -88,6 +95,7 @@ const rssHref = getRelativeLocaleUrl(
 
     <!-- Extra head content injected by child layouts (e.g. JSON-LD, article meta) -->
     <slot name="head" />
+    <script is:inline type="application/ld+json" set:html={websiteSchema}></script>
 
     {
       site.googleVerification && (
@@ -181,6 +189,59 @@ const rssHref = getRelativeLocaleUrl(
       };
       openExternalLinksInNewTab();
       document.addEventListener("astro:page-load", openExternalLinksInNewTab);
+    </script>
+    <script is:inline>
+      (() => {
+        const track = (eventName, parameters) => {
+          if (typeof window.gtag === "function") {
+            window.gtag("event", eventName, parameters);
+          }
+        };
+
+        const markCalculatorUse = event => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) return;
+          const calculator = target.closest("[data-solar-calculator], [data-battery-calculator], [data-cable-calculator], [data-inverter-calculator], [data-dc-dc-calculator], [data-water-calculator], [data-towing-calculator], [data-heater-calculator], [data-gas-calculator], [data-ac-load-calculator], [data-pump-calculator], [data-weight-calculator], [data-bilge-calculator], [data-heat-loss-calculator], [data-rainwater-calculator]");
+          if (!calculator || calculator.dataset.analyticsTracked === "true") return;
+          calculator.dataset.analyticsTracked = "true";
+          const calculatorName = [...calculator.attributes].find(attribute => attribute.name.endsWith("-calculator"))?.name.replace("data-", "").replace("-calculator", "");
+          track("calculator_started", { calculator: calculatorName || "unknown" });
+        };
+
+        const trackAffiliateClick = event => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) return;
+          const link = target.closest("a[data-affiliate-link]");
+          if (!link) return;
+          track("affiliate_click", {
+            offer: link.getAttribute("data-affiliate-link") || "unknown",
+            page_path: window.location.pathname,
+          });
+        };
+
+        const trackCalculatorAction = event => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) return;
+          if (target.closest("[data-copy-results]")) track("calculator_summary_copied", { page_path: window.location.pathname });
+          const shareLink = target.closest('a[aria-label^="Share on"]');
+          if (shareLink) track("content_shared", { network: shareLink.getAttribute("aria-label") || "unknown", page_path: window.location.pathname });
+          const calculatorLink = target.closest("a[data-calculator-link]");
+          if (calculatorLink) track("calculator_link_click", { destination: calculatorLink.getAttribute("href") || "unknown", page_path: window.location.pathname });
+          const relatedGuideLink = target.closest("a[data-related-guide-link]");
+          if (relatedGuideLink) track("related_guide_click", { destination: relatedGuideLink.getAttribute("href") || "unknown", page_path: window.location.pathname });
+        };
+
+        const trackContactSubmit = event => {
+          const form = event.target;
+          if (form instanceof HTMLFormElement && form.id === "contact-form") track("contact_form_submitted", { page_path: window.location.pathname });
+        };
+
+        document.addEventListener("input", markCalculatorUse);
+        document.addEventListener("change", markCalculatorUse);
+        document.addEventListener("click", trackAffiliateClick);
+        document.addEventListener("click", trackCalculatorAction);
+        document.addEventListener("submit", trackContactSubmit);
+      })();
     </script>
     <script>
       import "@/scripts/theme";

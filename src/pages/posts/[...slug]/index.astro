@@ -19,6 +19,7 @@ import DcDcCalculator from "@/components/calculator/DcDcCalculator.astro";
 import BilgeCalculator from "@/components/calculator/BilgeCalculator.astro";
 import HeatLossCalculator from "@/components/calculator/HeatLossCalculator.astro";
 import RainwaterCalculator from "@/components/calculator/RainwaterCalculator.astro";
+import { calculatorLinks } from "@/data/calculator-links";
 import { slugifyStr } from "@/utils/slugify";
 
 export async function getStaticPaths() {
@@ -63,6 +64,7 @@ const readingTime = `${Math.max(1, Math.ceil(wordCount / 200))} min read`;
 const reviewDate = post.data.lastReviewed
   ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(post.data.lastReviewed)
   : null;
+const calculatorLink = post.data.calculator ? calculatorLinks[post.data.calculator] : null;
 
 const categoryDefinitions = [
   {
@@ -237,6 +239,14 @@ const articleSchema = JSON.stringify({
           <div class="app-prose post-content mx-auto w-full max-w-[72ch] pt-2 text-[17px] leading-8 prose-headings:font-bold prose-headings:text-skin-base prose-p:text-skin-base/85 prose-p:leading-8 prose-img:rounded-lg">
             <Content />
           </div>
+
+          {calculatorLink && (
+            <a href={calculatorLink.href} data-calculator-link={calculatorLink.href} class="mt-8 block rounded-2xl border border-skin-accent/40 bg-skin-accent/5 p-5 transition hover:border-skin-accent" aria-label={`Open ${calculatorLink.title}`}>
+              <span class="block text-xs font-bold uppercase tracking-[0.12em] text-skin-accent">Interactive tool</span>
+              <span class="mt-1 block text-lg font-bold text-skin-base">{calculatorLink.title} →</span>
+              <span class="mt-1 block text-sm text-skin-base/70">Use the browser-based calculator to test your own inputs and review the planning assumptions.</span>
+            </a>
+          )}
 
           {post.data.calculator === "solar-system" && (
             <div class="mt-10">
