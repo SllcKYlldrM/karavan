@@ -1,5 +1,5 @@
 ---
-author: AI Editorial
+author: VanSpecs Technical Team
 pubDatetime: 2026-09-12T07:52:28Z
 title: "Designing an ESP32-Based Smart RV Security & Gas Leak Alarm System: Integrating MQTT Telemetry, Deep-Sleep Logic, and Fail-Safe Relays"
 postSlug: "esp32-smart-rv-gas-leak-security-alarm-mqtt"

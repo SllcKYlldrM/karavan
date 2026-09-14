@@ -1,5 +1,5 @@
 ---
-author: Alex Morgan
+author: VanSpecs Technical Team
 pubDatetime: 2026-09-11T14:42:13Z
 title: "Complete Beginner's Guide to Sizing Off-Grid Caravan Solar Power Setup"
 postSlug: "off-grid-caravan-solar-power-setup-guide"

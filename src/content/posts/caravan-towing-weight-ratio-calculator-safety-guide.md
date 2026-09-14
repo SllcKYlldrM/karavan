@@ -1,5 +1,5 @@
 ---
-author: Daniel Brooks
+author: VanSpecs Technical Team
 pubDatetime: 2026-09-11T12:31:24Z
 title: "Caravan Towing Weight Ratio Calculator & Safety Guide"
 postSlug: "caravan-towing-weight-ratio-calculator-safety-guide"

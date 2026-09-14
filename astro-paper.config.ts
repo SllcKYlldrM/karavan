@@ -5,7 +5,7 @@ export default defineAstroPaperConfig({
     url: "https://vanspecs.com/",
     title: "VanSpecs",
     description: "Engineering guides for autonomous caravans, off-grid systems, and mobile living.",
-    author: "Karavan Editorial Team",
+    author: "VanSpecs Technical Team",
     ogImage: "default-og.jpg",
     lang: "en",
     timezone: "Asia/Bangkok",

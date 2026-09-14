@@ -48,58 +48,13 @@ const getCover = (p: any) =>
     : "/images/default-og.jpg";
 
 const displayTitle = post.data.title;
-const authorBySlug: Record<string, string> = {
-  "rv-12v-water-pump-accumulator-tank-sizing-pressure-switch-calibration": "Maya Carter",
-  "preventing-mppt-thermal-throttling-caravan-electrical-compartments": "Alex Morgan",
-  "off-grid-caravan-solar-power-setup-guide": "Alex Morgan",
-  "off-grid-caravan-dc-dc-charger-efficiency-wiring-grounding": "Alex Morgan",
-  "lifepo4-low-temperature-protection-thermal-pad-heating-circuit": "Alex Morgan",
-  "caravan-12v-cable-size-voltage-drop-calculator": "Daniel Brooks",
-  "caravan-weight-distribution-guide": "Daniel Brooks",
-  "caravan-towing-weight-ratio-calculator-safety-guide": "Daniel Brooks",
-  "eliminating-inverter-idle-loss-load-sensing-remote-switch-caravan": "Alex Morgan",
-  "diesel-heater-high-altitude-ecu-pulse-frequency-air-fuel-mixture": "Ethan Cole",
-};
-const postSlug = (post.data as any).postSlug ?? post.id.replace(/\.[^/.]+$/, "");
-const displayAuthor = authorBySlug[postSlug] ?? post.data.author ?? "Editorial Staff";
+const displayAuthor = "VanSpecs Technical Team";
 const displayCover = getCover(post);
 const tags = post.data.tags || ["Caravan"];
 const primaryTag = tags[0] || "Engineering";
-const authorProfiles: Record<string, { role: string; bio: string; image: string }> = {
-  "Alex Morgan": {
-    role: "Power Systems Researcher",
-    bio: "Specializes in solar charging, LiFePO4 battery systems, inverter efficiency, and off-grid electrical architecture.",
-    image: "/images/authors/alex-morgan.png",
-  },
-  "Daniel Brooks": {
-    role: "Caravan Systems Analyst",
-    bio: "Focuses on engineering calculators, cable sizing, towing safety, weight distribution, and practical field measurements.",
-    image: "/images/authors/daniel-brooks.png",
-  },
-  "Oliver Reed": {
-    role: "Conversion & Build Specialist",
-    bio: "Covers insulation, structural conversion, ventilation, materials, and the practical engineering of mobile living spaces.",
-    image: "/images/authors/oliver-reed.png",
-  },
-  "Maya Carter": {
-    role: "Water Systems Researcher",
-    bio: "Specializes in RV plumbing, pump control, accumulator sizing, pressure management, and reliable off-grid water systems.",
-    image: "/images/authors/maya-carter.png",
-  },
-  "Ethan Cole": {
-    role: "Climate Systems Engineer",
-    bio: "Researches diesel heaters, HVAC performance, thermal management, altitude effects, and mobile climate control.",
-    image: "/images/authors/ethan-cole.png",
-  },
-  "Nora Bennett": {
-    role: "Smart RV Systems Researcher",
-    bio: "Focuses on ESP32 automation, MQTT telemetry, alarms, remote monitoring, and connected off-grid systems.",
-    image: "/images/authors/nora-bennett.png",
-  },
-};
-const authorProfile = authorProfiles[displayAuthor] ?? {
-  role: "Technical Correspondent",
-  bio: "Researches practical engineering systems for reliable, efficient, and comfortable off-grid travel.",
+const authorProfile = {
+  role: "Technical Editorial Team",
+  bio: "Researches, reviews, and explains practical engineering systems for reliable off-grid travel and compact living.",
   image: "",
 };
 

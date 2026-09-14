@@ -1,5 +1,5 @@
 ---
-author: Ethan Cole
+author: VanSpecs Technical Team
 pubDatetime: 2026-09-11T20:30:45Z
 title: "Diesel Heater High-Altitude Calibration: Adjusting ECU Pulse Frequency & Air-Fuel Mixture to Prevent Soot Clogging"
 postSlug: "diesel-heater-high-altitude-ecu-pulse-frequency-air-fuel-mixture"
