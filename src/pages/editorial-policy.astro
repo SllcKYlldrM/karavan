@@ -1,0 +1,23 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Main from "@/components/Main.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import Footer from "@/components/Footer.astro";
+---
+
+<Layout title="Editorial Policy | VanSpecs" description="VanSpecs standards for technical research, calculations, corrections and updates.">
+  <Header />
+  <Breadcrumb />
+  <Main pageTitle="Editorial Policy" pageDesc="How VanSpecs researches, checks and updates technical guidance.">
+    <div class="app-prose max-w-3xl space-y-8 text-base leading-8">
+      <p><strong>Last updated:</strong> September 14, 2026</p>
+      <section><h2>Scope and responsibility</h2><p>VanSpecs Technical Team publishes English-language guides about caravan, marine, tiny-house and shared off-grid systems. We are responsible for editorial structure, source selection, technical review and publication decisions.</p></section>
+      <section><h2>Research standard</h2><p>Where available, we prioritize manufacturer manuals and datasheets, official standards and government or first-party technical documentation. Articles should identify the relevant model, version, date, unit system and assumptions instead of presenting uncertain values as universal facts.</p></section>
+      <section><h2>Calculations and safety</h2><p>Calculators and worked examples show inputs, units, formulas, assumptions and limitations. Outputs are planning estimates, not certification. Safety-critical decisions require current product documentation and qualified inspection, especially for mains power, gas, fuel, batteries, lifting, towing and structural work.</p></section>
+      <section><h2>Production and review</h2><p>Research and drafting tools may assist the workflow, but publication decisions remain with the VanSpecs Technical Team. Before publication, we check language, structure, calculations, links, image references and safety boundaries. Content is not published as a raw provider response or as unreviewed metadata.</p></section>
+      <section><h2>Corrections and updates</h2><p>If a technical claim, calculation, link or specification is wrong or outdated, contact us with the affected page, input values and supporting primary source. We will review credible corrections and update the article when warranted.</p></section>
+    </div>
+  </Main>
+  <Footer />
+</Layout>

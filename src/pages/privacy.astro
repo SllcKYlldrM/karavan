@@ -6,25 +6,34 @@ import Breadcrumb from "@/components/Breadcrumb.astro";
 import Footer from "@/components/Footer.astro";
 ---
 
-<Layout title="Privacy Policy | VanSpecs" description="VanSpecs privacy policy and information about analytics and site data.">
+<Layout title="Privacy Policy | VanSpecs" description="VanSpecs privacy policy for analytics, contact requests and site operations.">
   <Header />
   <Breadcrumb />
-  <Main pageTitle="Privacy Policy" pageDesc="How VanSpecs handles basic site and analytics data.">
+  <Main pageTitle="Privacy Policy" pageDesc="How VanSpecs handles site, analytics and contact data.">
     <div class="app-prose max-w-3xl space-y-8 text-base leading-8">
       <p><strong>Last updated:</strong> September 14, 2026</p>
       <section>
         <h2>Information we collect</h2>
-        <p>VanSpecs does not require an account for reading articles or using the browser-based calculators. Calculator inputs are processed in the browser and are not submitted to a VanSpecs database by the static site.</p>
-        <p>Infrastructure providers may process standard request data such as IP address, device information, browser information and timestamps for delivery, security and reliability.</p>
+        <p>VanSpecs does not require an account for reading articles or using browser-based calculators. Calculator inputs are processed in the browser and are not submitted to a VanSpecs database by the static site.</p>
+        <p>When you use the contact form, we collect the name, email address, subject and message you submit so that we can respond to your request, investigate a correction or address a safety report. Please do not submit passwords, API keys, payment details or other confidential information.</p>
+        <p>Cloudflare Pages and related security services may process standard request data such as IP address, device information, browser information and timestamps for delivery, abuse prevention and reliability. Cloudflare Turnstile may process browser and network signals to distinguish legitimate visitors from automated abuse.</p>
+      </section>
+      <section>
+        <h2>Contact delivery</h2>
+        <p>Contact form messages are processed by a Cloudflare Pages Function and delivered through Resend to the VanSpecs contact mailbox. We retain messages only as long as reasonably needed to respond, resolve a correction or keep necessary operational records, then delete or anonymize them where practical.</p>
       </section>
       <section>
         <h2>Analytics and search services</h2>
-        <p>VanSpecs uses Google Analytics to understand aggregated traffic and improve the site. Google Search Console is used to monitor search indexing and technical visibility. These services may use cookies or similar technologies according to their own policies.</p>
-        <p>VanSpecs does not sell personal information. Do not submit personal or confidential information through public issue links.</p>
+        <p>VanSpecs uses Google Analytics to understand aggregated traffic and improve the site. Google Search Console is used to monitor indexing and technical visibility. These services may use cookies or similar technologies according to their own policies. See <a href="https://policies.google.com/privacy" rel="noopener noreferrer">Google's Privacy Policy</a> for more information.</p>
+        <p>VanSpecs does not currently serve advertising or use affiliate links. If advertising or affiliate tools are introduced, this policy will be updated before they are enabled to explain the relevant vendors, cookies, data use and consent choices.</p>
+      </section>
+      <section>
+        <h2>Your choices and requests</h2>
+        <p>You may contact us to request access to, correction of or deletion of information you submitted through the contact form, subject to applicable legal and operational requirements. You can also control cookies through your browser settings. Some site features may not work as intended if analytics or security technologies are blocked.</p>
       </section>
       <section>
         <h2>Third-party links</h2>
-        <p>Articles may link to manufacturer documentation, standards organizations, GitHub and other external sites. Their privacy practices are governed by their own policies.</p>
+        <p>Articles may link to manufacturer documentation, standards organizations, GitHub and other external sites. Their privacy practices are governed by their own policies, not this policy.</p>
       </section>
       <section>
         <h2>Changes</h2>

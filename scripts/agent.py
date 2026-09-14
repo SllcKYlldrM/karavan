@@ -1,4 +1,5 @@
 import os
+import ast
 import re
 import json
 import glob
@@ -131,6 +132,16 @@ def download_image_safely(url, save_path, max_retries=3):
 def normalize_article_body(body: str) -> str:
     """Remove model fences and the duplicate leading H1 used by the page template."""
     body = body.strip()
+    # Never persist a provider SDK response/list representation as article Markdown.
+    if body.startswith("[") and "'message'" in body and "'content'" in body:
+        try:
+            parsed = ast.literal_eval(body)
+            if isinstance(parsed, list) and parsed and isinstance(parsed[0], dict):
+                message = parsed[0].get("message", {})
+                if isinstance(message, dict) and isinstance(message.get("content"), str):
+                    body = message["content"].strip()
+        except (SyntaxError, ValueError):
+            pass
     body = re.sub(r"^```(?:markdown)?\s*", "", body, flags=re.IGNORECASE)
     body = re.sub(r"\s*```$", "", body)
     body = re.sub(r"^---\s*\n.*?\n---\s*\n", "", body, count=1, flags=re.DOTALL)
@@ -310,6 +321,7 @@ content_prompt = (
     "5. End with a concise Sources and Assumptions section using official manufacturer or standards references when available.\n"
     "6. Görsel yerleri için tam olarak şu formatı kullan: [IMAGE: Kısa ingilizce görsel açıklaması]. En fazla 2 görsel işareti kullan.\n"
     "7. Sadece makale gövdesini yaz; `# Başlık` kullanma, çünkü sayfa şablonu başlığı zaten H1 olarak basıyor. Giriş paragrafı veya `##` başlığıyla başla."
+    "\n8. Never return a Python list, JSON object, SDK response, refusal metadata, escaped \\n sequences or provider log. Return readable Markdown only."
 )
 
 print("-> [Adım 2] OpenRouter makaleyi kaleme alıyor...")

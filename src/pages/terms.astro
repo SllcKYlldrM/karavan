@@ -1,0 +1,23 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Main from "@/components/Main.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import Footer from "@/components/Footer.astro";
+---
+
+<Layout title="Terms of Use | VanSpecs" description="Terms governing the use of VanSpecs articles, calculators and website services.">
+  <Header />
+  <Breadcrumb />
+  <Main pageTitle="Terms of Use" pageDesc="Rules and limitations for using VanSpecs content and tools.">
+    <div class="app-prose max-w-3xl space-y-8 text-base leading-8">
+      <p><strong>Last updated:</strong> September 14, 2026</p>
+      <section><h2>Educational purpose</h2><p>VanSpecs provides technical articles and browser-based calculators for general education and planning. Results are estimates based on the inputs, assumptions and formulas shown on each tool. They are not a substitute for a site survey, engineering design, manufacturer instructions, electrical inspection or legally required approval.</p></section>
+      <section><h2>Safe use</h2><p>Before building, modifying or operating a system, verify the result against current manufacturer documentation, applicable standards and local regulations. Work involving mains voltage, gas, fuel, structural loads, batteries or fire safety must be reviewed and carried out by a suitably qualified professional where required.</p></section>
+      <section><h2>Content and external links</h2><p>We aim to keep the information accurate and current, but specifications, regulations, product availability and software can change. External links are provided for reference; VanSpecs does not control or guarantee third-party content, products or services.</p></section>
+      <section><h2>Availability and changes</h2><p>The website and its tools may change, be temporarily unavailable or contain errors. We may correct, update or remove content without notice. Continued use of the site after an update means you accept the revised terms.</p></section>
+      <section><h2>Contact</h2><p>Report a factual issue or request clarification through the <a href="/contact">Contact</a> page. Do not send passwords, API keys, payment details or other confidential information.</p></section>
+    </div>
+  </Main>
+  <Footer />
+</Layout>
