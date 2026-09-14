@@ -5,6 +5,8 @@ title: "Complete Beginner's Guide to Sizing Off-Grid Caravan Solar Power Setup"
 postSlug: "off-grid-caravan-solar-power-setup-guide"
 category: Power & Solar Systems
 calculator: solar-system
+scope: caravan
+subcategory: Solar & Energy
 featured: true
 draft: false
 tags:

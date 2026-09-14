@@ -5,6 +5,8 @@ title: "Diesel Heater High-Altitude Calibration: Adjusting ECU Pulse Frequency &
 postSlug: "diesel-heater-high-altitude-ecu-pulse-frequency-air-fuel-mixture"
 category: HVAC & Climate Control
 calculator: heater-runtime
+scope: caravan
+subcategory: Heating & Ventilation
 featured: false
 draft: false
 tags:

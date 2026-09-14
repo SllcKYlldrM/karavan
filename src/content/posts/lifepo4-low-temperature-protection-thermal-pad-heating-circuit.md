@@ -5,6 +5,8 @@ title: "LiFePO4 Low-Temperature Protection: Designing an Automated Thermal Pad H
 postSlug: "lifepo4-low-temperature-protection-thermal-pad-heating-circuit"
 category: Power & Solar Systems
 calculator: battery-sizing
+scope: caravan
+subcategory: Batteries & Charging
 featured: false
 draft: false
 tags:

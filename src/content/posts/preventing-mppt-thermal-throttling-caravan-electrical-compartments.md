@@ -4,6 +4,8 @@ pubDatetime: 2026-09-11T17:49:53Z
 title: "Preventing MPPT Solar Controller Thermal Throttling in Sealed Caravan Electrical Compartments"
 postSlug: "preventing-mppt-thermal-throttling-caravan-electrical-compartments"
 calculator: solar-system
+scope: caravan
+subcategory: Solar & Energy
 category: Power & Solar Systems
 featured: false
 draft: false

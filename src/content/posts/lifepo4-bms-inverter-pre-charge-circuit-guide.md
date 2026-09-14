@@ -4,6 +4,8 @@ pubDatetime: 2026-09-13T23:55:22Z
 title: "Preventing LiFePO4 BMS Short-Circuit Tripping: Engineering a High-Capacitance Inverter Pre-Charge Circuit"
 postSlug: "lifepo4-bms-inverter-pre-charge-circuit-guide"
 category: Power & Solar Systems
+scope: caravan
+subcategory: Batteries & Charging
 featured: false
 draft: false
 tags:

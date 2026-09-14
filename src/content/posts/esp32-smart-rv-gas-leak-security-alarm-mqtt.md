@@ -5,6 +5,8 @@ title: "Designing an ESP32-Based Smart RV Security & Gas Leak Alarm System: Inte
 postSlug: "esp32-smart-rv-gas-leak-security-alarm-mqtt"
 category: Smart RV & IoT
 calculator: gas-runtime
+scope: caravan
+subcategory: Automation & Monitoring
 featured: false
 draft: false
 tags:

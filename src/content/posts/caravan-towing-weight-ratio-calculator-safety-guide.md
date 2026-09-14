@@ -5,6 +5,8 @@ title: "Caravan Towing Weight Ratio Calculator & Safety Guide"
 postSlug: "caravan-towing-weight-ratio-calculator-safety-guide"
 category: Engineering Calculators
 calculator: towing-safety
+scope: caravan
+subcategory: Towing Safety
 featured: true
 draft: false
 tags:

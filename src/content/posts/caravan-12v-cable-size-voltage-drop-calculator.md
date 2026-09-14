@@ -5,6 +5,8 @@ title: "Off-Grid Caravan 12V Cable Size & Voltage Drop Calculator: Prevent Batte
 postSlug: "caravan-12v-cable-size-voltage-drop-calculator"
 category: Engineering Calculators
 calculator: cable-sizing
+scope: caravan
+subcategory: DC Wiring
 featured: false
 draft: false
 tags:

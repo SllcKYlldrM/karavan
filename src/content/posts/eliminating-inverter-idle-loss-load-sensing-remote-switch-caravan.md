@@ -5,6 +5,8 @@ title: "Eliminating Inverter Idle Power Loss: Designing a Load-Sensing Automatic
 postSlug: "eliminating-inverter-idle-loss-load-sensing-remote-switch-caravan"
 category: Power & Solar Systems
 calculator: inverter-sizing
+scope: caravan
+subcategory: Batteries & Charging
 featured: false
 draft: false
 tags:
