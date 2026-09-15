@@ -15,7 +15,7 @@ import urllib.parse
 gemini_api_key = os.environ.get("GEMINI_API_KEY")
 openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
 gemini_model = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
-gemini_fallback_model = os.environ.get("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash")
+gemini_fallback_model = os.environ.get("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash-lite")
 gemini_max_retries = 3
 
 if not gemini_api_key:
@@ -221,18 +221,25 @@ def call_gemini(prompt: str, json_mode: bool = False) -> str:
             except Exception as error:
                 status_code = getattr(error, "status_code", None)
                 error_text = str(error)
+                is_model_not_found = status_code == 404 or "NOT_FOUND" in error_text
                 is_retryable_model_error = (
-                    status_code in {429, 500, 503}
+                    status_code in {404, 429, 500, 503}
                     or "RESOURCE_EXHAUSTED" in error_text
                     or "UNAVAILABLE" in error_text
+                    or "NOT_FOUND" in error_text
                     or "429" in error_text
                 )
                 is_daily_quota = "quota_exceeded" in error_text.casefold() or "daily quota" in error_text.casefold()
                 if not is_retryable_model_error:
                     raise
                 if model_index < len(models) - 1:
-                    print(f"⚠️ {model} kota/geçici servis yoğunluğu nedeniyle kullanılamıyor; {gemini_fallback_model} ile devam edilecek.")
+                    reason = "model bulunamadı" if is_model_not_found else "kota/geçici servis yoğunluğu"
+                    print(f"⚠️ {model} ({reason}) kullanılamıyor; {gemini_fallback_model} ile devam edilecek.")
                     break
+                if is_model_not_found:
+                    raise RuntimeError(
+                        "Gemini primary and fallback model IDs are unavailable for this API project."
+                    ) from error
                 if is_daily_quota:
                     raise RuntimeError(
                         "Gemini daily quota is exhausted on both primary and fallback models; the next scheduled run will retry."
