@@ -14,6 +14,9 @@ import urllib.parse
 # 1. İstemciler ve Anahtarlar
 gemini_api_key = os.environ.get("GEMINI_API_KEY")
 openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
+gemini_model = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
+gemini_fallback_model = os.environ.get("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash")
+gemini_max_retries = 3
 
 if not gemini_api_key:
     raise ValueError("GEMINI_API_KEY ortam değişkeni zorunludur.")
@@ -189,17 +192,58 @@ def build_topic_plan(inventory, phase=None):
     # Böylece günlük yayınlar tek bir kategoriye yığılmadan dengeli ilerler.
     return sorted(plans, key=lambda plan: (plan["cluster_count"], plan["role_index"], -plan["priority"], plan["cluster"])), type_counts
 
+def _gemini_retry_delay(error: Exception, attempt: int) -> float:
+    """Honor Google's retryDelay when available, with a bounded exponential fallback."""
+    match = re.search(r"retryDelay['\"]?\s*[:=]\s*['\"]([0-9]+(?:\.[0-9]+)?)s", str(error))
+    delay = float(match.group(1)) if match else min(8 * (2 ** (attempt - 1)), 60)
+    return min(delay, 60)
+
 def call_gemini(prompt: str, json_mode: bool = False) -> str:
     config_kwargs = {}
     if json_mode:
         config_kwargs["response_mime_type"] = "application/json"
         
-    response = gemini_client.models.generate_content(
-        model="gemini-3.6-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(**config_kwargs)
-    )
-    return response.text.strip()
+    models = [gemini_model]
+    if gemini_fallback_model and gemini_fallback_model != gemini_model:
+        models.append(gemini_fallback_model)
+
+    for model_index, model in enumerate(models):
+        for attempt in range(1, gemini_max_retries + 1):
+            try:
+                response = gemini_client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(**config_kwargs)
+                )
+                if model != gemini_model:
+                    print(f"-> Gemini fallback aktif: {model}")
+                return response.text.strip()
+            except Exception as error:
+                status_code = getattr(error, "status_code", None)
+                error_text = str(error)
+                is_retryable_model_error = (
+                    status_code in {429, 500, 503}
+                    or "RESOURCE_EXHAUSTED" in error_text
+                    or "UNAVAILABLE" in error_text
+                    or "429" in error_text
+                )
+                is_daily_quota = "quota_exceeded" in error_text.casefold() or "daily quota" in error_text.casefold()
+                if not is_retryable_model_error:
+                    raise
+                if model_index < len(models) - 1:
+                    print(f"⚠️ {model} kota/geçici servis yoğunluğu nedeniyle kullanılamıyor; {gemini_fallback_model} ile devam edilecek.")
+                    break
+                if is_daily_quota:
+                    raise RuntimeError(
+                        "Gemini daily quota is exhausted on both primary and fallback models; the next scheduled run will retry."
+                    ) from error
+                if attempt == gemini_max_retries:
+                    raise RuntimeError(
+                        "Gemini primary and fallback models are unavailable after retrying quota/service errors."
+                    ) from error
+                delay = _gemini_retry_delay(error, attempt)
+                print(f"⚠️ Gemini fallback geçici hata. {delay:g} saniye sonra tekrar denenecek ({attempt}/{gemini_max_retries - 1}).")
+                time.sleep(delay)
 
 def call_openrouter(prompt: str, system_instruction: str = None) -> str:
     headers = {
@@ -331,10 +375,11 @@ def normalize_tags(raw_tags, scope_name, category, subcategory):
     return tags[:8]
 
 def get_existing_posts_summary(inventory):
-    return "\n".join(
+    summary = "\n".join(
         f"- {post['title']} | type={post['content_type']} | cluster={post['cluster']} | calculator={post['calculator'] or 'none'} | file={post['file']}"
         for post in inventory
     ) or "No existing posts."
+    return summary[:6000]
 
 def infer_track(content: str):
     scope_match = re.search(r"^scope:\s*([^\n]+)", content, re.MULTILINE)

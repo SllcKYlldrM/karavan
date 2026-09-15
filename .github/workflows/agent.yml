@@ -2,8 +2,8 @@ name: Autonomous Content Agent
 
 on:
   schedule:
-    # 01:00 Europe/Istanbul (22:00 UTC previous day)
-    - cron: '0 22 * * *'
+    # 08:05 UTC: safely after the Gemini daily Pacific-Time quota reset.
+    - cron: '5 8 * * *'
   workflow_dispatch:
 
 permissions:
@@ -29,6 +29,8 @@ jobs:
       - name: Ajanı Çalıştır
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini-3.6-flash
+          GEMINI_FALLBACK_MODEL: gemini-2.5-flash
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           # Foundation: first balance Caravan subcategories before expanding scope.
           CONTENT_PHASE: foundation
