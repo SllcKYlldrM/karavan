@@ -263,7 +263,7 @@ const articleSchema = JSON.stringify({
             <img src={displayCover} alt={displayTitle} class="h-full w-full object-cover" />
           </div>
 
-          <TableOfContents groups={tocGroups} />
+          <TableOfContents groups={tocGroups} variant="mobile" />
 
           <!-- Makale Metni -->
           <div class="app-prose post-content mx-auto w-full max-w-[72ch] min-w-0 pt-2 text-[17px] leading-8 prose-headings:font-bold prose-headings:text-skin-base prose-p:text-skin-base/85 prose-p:leading-8 prose-img:rounded-lg">
@@ -440,7 +440,7 @@ const articleSchema = JSON.stringify({
         <aside class="lg:col-span-1 lg:ps-6">
           <div class="flex flex-col gap-4 lg:gap-6 lg:top-24 lg:sticky">
 
-            <TableOfContents groups={tocGroups} />
+            <TableOfContents groups={tocGroups} variant="desktop" />
             
             <!-- Kategori Kutusu -->
             <div class="rounded-lg border border-skin-line bg-skin-card">
