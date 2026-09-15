@@ -28,13 +28,13 @@ const hasEntries = groups.length > 0;
         <ul class="space-y-2 text-sm">
           {groups.map(group => (
             <li>
-              <a href={`#${group.heading.id}`} data-toc-level="2" class="block text-skin-base/80 hover:text-skin-accent">
+              <a href={`#${group.heading.id}`} data-toc-level="2" data-toc-mobile-link class="block text-skin-base/80 hover:text-skin-accent">
                 {group.heading.text}
               </a>
               {group.children.length > 0 && (
                 <ul class="mt-1 ml-4 space-y-1 border-l border-skin-line pl-3 text-xs">
                   {group.children.map(child => (
-                    <li><a href={`#${child.id}`} class="text-skin-base/65 hover:text-skin-accent">{child.text}</a></li>
+                  <li><a href={`#${child.id}`} data-toc-mobile-link class="text-skin-base/65 hover:text-skin-accent">{child.text}</a></li>
                   ))}
                 </ul>
               )}
@@ -79,6 +79,12 @@ const hasEntries = groups.length > 0;
       const setupTableOfContents = () => {
         const previousCleanup = window.__vanspecsTocCleanup;
         previousCleanup?.();
+
+        document.querySelectorAll("[data-toc-mobile-link]").forEach(link => {
+          link.addEventListener("click", () => {
+            requestAnimationFrame(() => link.closest("details")?.removeAttribute("open"));
+          });
+        });
 
         const links = [...document.querySelectorAll('[data-toc-level="2"]')];
         const headings = links

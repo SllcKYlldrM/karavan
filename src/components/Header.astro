@@ -200,6 +200,11 @@ const isActive = (path: string) => {
     if (!header || header.dataset.visibilityInitialized === "true") return;
 
     header.dataset.visibilityInitialized = "true";
+    if (window.matchMedia("(max-width: 639px)").matches) {
+      header.classList.remove("-translate-y-full");
+      return;
+    }
+
     let lastScrollY = window.scrollY;
     let frame = 0;
 
