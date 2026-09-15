@@ -27,7 +27,7 @@ const hasEntries = groups.length > 0;
         <ul class="space-y-2 text-sm">
           {groups.map(group => (
             <li>
-              <a href={`#${group.heading.id}`} class="block text-skin-base/80 hover:text-skin-accent">
+              <a href={`#${group.heading.id}`} data-toc-level="2" class="block text-skin-base/80 hover:text-skin-accent">
                 {group.heading.text}
               </a>
               {group.children.length > 0 && (
@@ -49,7 +49,7 @@ const hasEntries = groups.length > 0;
         <ul class="space-y-2 text-sm">
           {groups.map(group => (
             <li>
-              <a href={`#${group.heading.id}`} class="block font-medium text-skin-base/85 hover:text-skin-accent">
+              <a href={`#${group.heading.id}`} data-toc-level="2" class="block font-medium text-skin-base/85 hover:text-skin-accent">
                 {group.heading.text}
               </a>
               {group.children.length > 0 && (
@@ -71,3 +71,62 @@ const hasEntries = groups.length > 0;
     </div>
   </nav>
 )}
+
+{hasEntries && (
+  <script is:inline>
+    (() => {
+      const setupTableOfContents = () => {
+        const previousCleanup = window.__vanspecsTocCleanup;
+        previousCleanup?.();
+
+        const links = [...document.querySelectorAll('[data-toc-level="2"]')];
+        const headings = links
+          .map(link => document.getElementById(link.getAttribute("href")?.slice(1) || ""))
+          .filter(Boolean);
+        if (!links.length || !headings.length) return;
+
+        const setActive = id => {
+          links.forEach(link => {
+            if (link.getAttribute("href") === `#${id}`) link.setAttribute("aria-current", "location");
+            else link.removeAttribute("aria-current");
+          });
+        };
+
+        const updateActive = () => {
+          const threshold = 120;
+          let current = headings[0];
+          headings.forEach(heading => {
+            if (heading.getBoundingClientRect().top <= threshold) current = heading;
+          });
+          setActive(current.id);
+        };
+
+        let frame = 0;
+        const onScroll = () => {
+          if (frame) return;
+          frame = requestAnimationFrame(() => {
+            frame = 0;
+            updateActive();
+          });
+        };
+
+        window.addEventListener("scroll", onScroll, { passive: true });
+        updateActive();
+        window.__vanspecsTocCleanup = () => {
+          window.removeEventListener("scroll", onScroll);
+          if (frame) cancelAnimationFrame(frame);
+        };
+      };
+
+      setupTableOfContents();
+      document.addEventListener("astro:page-load", setupTableOfContents);
+    })();
+  </script>
+)}
+
+<style>
+  [data-toc-level="2"][aria-current="location"] {
+    color: var(--accent);
+    font-weight: 700;
+  }
+</style>
