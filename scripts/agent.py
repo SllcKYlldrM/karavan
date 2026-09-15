@@ -562,6 +562,7 @@ print("-> [Adım 2] OpenRouter makaleyi kaleme alıyor...")
 article_body = call_openrouter(content_prompt, system_instruction="Uzun, teknik ve profesyonel Markdown makaleleri yazarsın.")
 
 max_revisions = 1
+qa_approved = False
 for revision_count in range(max_revisions + 1):
     qa_prompt = (
         "- The website is English-only. If any Turkish sentence, heading, table text, or Turkish language markers appear, return REVIZE_GEREKLI and require a complete English rewrite.\n"
@@ -580,6 +581,7 @@ for revision_count in range(max_revisions + 1):
     if qa_response.startswith("ONAYLANDI"):
         print("-> ✅ İçerik Gemini kalite kontrolünden başarıyla geçti.")
         article_body = qa_response.replace("ONAYLANDI", "").strip()
+        qa_approved = True
         break
     elif "REVIZE_GEREKLI" in qa_response and revision_count < max_revisions:
         print(f"⚠️ İçerikte eksikler bulundu, OpenRouter'a revize gönderiliyor...")
@@ -590,14 +592,17 @@ for revision_count in range(max_revisions + 1):
         )
         article_body = call_openrouter(revision_feedback_prompt, system_instruction="Kıdemli teknik yazarsın, eleştirilere göre kusursuz makaleler üretirsin.")
     else:
-        print("-> Maksimum revize hakkı doldu veya onay alındı, son hal işleniyor.")
+        print("-> ❌ Maksimum revize hakkı doldu; içerik yayınlanmayacak.")
         if "ONAYLANDI" in qa_response:
             article_body = qa_response.replace("ONAYLANDI", "").strip()
-        elif "REVIZE_GEREKLI" in qa_response:
-            article_body = qa_response.split("REVIZE_GEREKLI")[-1].strip()
-        else:
-            article_body = qa_response
+            qa_approved = True
+        # REVIZE_GEREKLI responses contain QA feedback, not article content.
         break
+
+if not qa_approved:
+    raise RuntimeError(
+        "Gemini quality gate did not approve the article after the maximum revision attempts; no post was written."
+    )
 
 article_body = normalize_article_body(article_body)
 article_body = limit_inline_image_placeholders(article_body, maximum=2)
