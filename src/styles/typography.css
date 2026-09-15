@@ -60,9 +60,12 @@
     }
 
     table {
+      @apply block max-w-full overflow-x-auto;
+
       th,
       td {
         @apply border-border border p-2;
+        overflow-wrap: anywhere;
       }
 
       th {
@@ -87,6 +90,17 @@
 
     code {
       @apply bg-muted/75 text-foreground rounded p-1 wrap-break-word before:content-none after:content-none;
+    }
+
+    a,
+    code,
+    pre {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    pre {
+      @apply max-w-full overflow-x-auto;
     }
 
     .astro-code code {

@@ -68,6 +68,7 @@ const reviewDate = post.data.lastReviewed
 const calculatorLink = post.data.calculator ? calculatorLinks[post.data.calculator] : null;
 
 const tocGroups: { heading: { text: string; id: string }; children: { text: string; id: string }[] }[] = [];
+const tocHeadings: { text: string; id: string }[] = [];
 const headingCounts = new Map<string, number>();
 const markdownHeadings = ((post as any).body ?? "").match(/^#{2,3}\s+.+$/gm) ?? [];
 for (const markdownHeading of markdownHeadings) {
@@ -85,8 +86,12 @@ for (const markdownHeading of markdownHeadings) {
   const occurrence = headingCounts.get(baseId) ?? 0;
   headingCounts.set(baseId, occurrence + 1);
   const id = occurrence === 0 ? baseId : `${baseId}-${occurrence}`;
+  tocHeadings.push({ text, id });
   if (level === 2) tocGroups.push({ heading: { text, id }, children: [] });
   else if (tocGroups.length > 0) tocGroups[tocGroups.length - 1].children.push({ text, id });
+}
+if (tocGroups.length === 0) {
+  tocGroups.push(...tocHeadings.map(heading => ({ heading, children: [] })));
 }
 
 const categoryDefinitions = [
@@ -261,7 +266,7 @@ const articleSchema = JSON.stringify({
           <TableOfContents groups={tocGroups} />
 
           <!-- Makale Metni -->
-          <div class="app-prose post-content mx-auto w-full max-w-[72ch] pt-2 text-[17px] leading-8 prose-headings:font-bold prose-headings:text-skin-base prose-p:text-skin-base/85 prose-p:leading-8 prose-img:rounded-lg">
+          <div class="app-prose post-content mx-auto w-full max-w-[72ch] min-w-0 pt-2 text-[17px] leading-8 prose-headings:font-bold prose-headings:text-skin-base prose-p:text-skin-base/85 prose-p:leading-8 prose-img:rounded-lg">
             <Content />
           </div>
 
@@ -433,7 +438,7 @@ const articleSchema = JSON.stringify({
 
         <!-- SAĞ: SIDEBAR (1 SÜTUN) -->
         <aside class="lg:col-span-1 lg:ps-6">
-          <div class="flex flex-col gap-4 lg:gap-6 top-24 sticky">
+          <div class="flex flex-col gap-4 lg:gap-6 lg:top-24 lg:sticky">
 
             <TableOfContents groups={tocGroups} />
             
