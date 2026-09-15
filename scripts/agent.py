@@ -455,10 +455,11 @@ strategy_prompt = (
     f"Publishing phase: {selected_phase}. Do not select a topic outside the active scopes.\n"
     f"Sitede Daha Önce Yayınlanmış Yazılar:\n{existing_posts_context}\n\n"
     "GÖREV:\n"
-    "1. Use the inventory and gap plan to select a genuinely uncovered topic. Never repeat or lightly rephrase an existing title. Reject semantic duplicates and choose a narrower unanswered user problem.\n"
+    "1. Use the inventory and gap plan to select a genuinely uncovered topic. Never repeat or lightly rephrase an existing title. Reject semantic duplicates and choose one narrow, answerable user problem. Do not combine more than one major engineering system in the same article.\n"
     "2. Seçtiğin konunun kullanıcıya sağlayacağı ekstra faydayı stratejik olarak kurgula.\n"
     "3. Search intent, primary query, secondary queries, title promise and a concise meta description oluştur.\n"
-    "4. Yazıyı yazacak olan mühendis yazar (OpenRouter) için kapsamlı bir içerik brief'i hazırla.\n\n"
+    "4. Yazıyı yazacak olan mühendis yazar (OpenRouter) için uygulanabilir ama kısa bir içerik brief'i hazırla. Brief 1600 karakteri geçmesin; en fazla 4 ana teknik bölüm, gerekli kaynak türleri ve açık güvenlik sınırları içersin.\n"
+    "5. AC, şebeke, gaz, towing veya yapısal güvenlik içeren konularda evrensel bağlantı/uygulama talimatı verme. Üretici dokümanı ve yetkili kontrol gerektiren noktaları açıkça belirt; kaynak yoksa sayısal değeri varsayım olarak etiketle.\n\n"
     "ÇIKTI FORMATI (Saf JSON):\n"
     "{\n"
     "  \"title\": \"İngilizce SEO Uyumlu Başlık\",\n"
@@ -566,7 +567,7 @@ qa_approved = False
 for revision_count in range(max_revisions + 1):
     qa_prompt = (
         "- The website is English-only. If any Turkish sentence, heading, table text, or Turkish language markers appear, return REVIZE_GEREKLI and require a complete English rewrite.\n"
-        "Aşağıdaki makaleyi SEO uygunluğu, teknik doğruluk, kelime uzunluğu, tablo varlığı ve kurallara uyum açısından denetle.\n"
+        "Aşağıdaki makaleyi SEO uygunluğu, teknik doğruluk, kelime uzunluğu, tablo varlığı ve kurallara uyum açısından denetle. Yalnızca kritik bir güvenlik/faktüel hata, İngilizce kuralı, belirgin format ihlali veya görevin temel amacının kaçırılması varsa REVIZE_GEREKLI döndür; küçük üslup eksikleri ve isteğe bağlı ayrıntılar için onay ver.\n"
         "KURALLAR:\n"
         "- HTML etiketleri veya LaTeX ($...$) var mı? Varsa tamamen düz metne çevir.\n"
         "- Markdown tabloları ve başlık hiyerarşisi tam mı? İlk satırda H1 (`# Başlık`) var mı? Varsa kaldır.\n\n"
@@ -577,6 +578,7 @@ for revision_count in range(max_revisions + 1):
 
     print(f"-> [Adım 3] Gemini kalite kontrol ve SEO denetimi yapıyor (Deneme {revision_count + 1}/{max_revisions + 1})...")
     qa_response = call_gemini(qa_prompt)
+    print(f"-> QA sonucu: {qa_response[:900].replace(chr(10), ' ')}")
 
     if qa_response.startswith("ONAYLANDI"):
         print("-> ✅ İçerik Gemini kalite kontrolünden başarıyla geçti.")
