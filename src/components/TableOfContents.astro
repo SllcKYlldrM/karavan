@@ -1,0 +1,73 @@
+---
+export interface TocHeading {
+  text: string;
+  id: string;
+}
+
+export interface TocGroup {
+  heading: TocHeading;
+  children: TocHeading[];
+}
+
+interface Props {
+  groups: TocGroup[];
+}
+
+const { groups } = Astro.props;
+const hasEntries = groups.length > 0;
+---
+
+{hasEntries && (
+  <nav aria-label="On this page" class="mb-6">
+    <details class="rounded-xl border border-skin-line bg-skin-card lg:hidden">
+      <summary class="cursor-pointer px-5 py-4 text-sm font-bold text-skin-base">
+        On this page
+      </summary>
+      <div class="border-t border-skin-line px-5 py-4">
+        <ul class="space-y-2 text-sm">
+          {groups.map(group => (
+            <li>
+              <a href={`#${group.heading.id}`} class="block text-skin-base/80 hover:text-skin-accent">
+                {group.heading.text}
+              </a>
+              {group.children.length > 0 && (
+                <ul class="mt-1 ml-4 space-y-1 border-l border-skin-line pl-3 text-xs">
+                  {group.children.map(child => (
+                    <li><a href={`#${child.id}`} class="text-skin-base/65 hover:text-skin-accent">{child.text}</a></li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </details>
+
+    <div class="hidden rounded-xl border border-skin-line bg-skin-card lg:block">
+      <h2 class="border-b border-skin-line px-5 py-3 text-sm font-bold text-skin-base">On this page</h2>
+      <div class="px-5 py-4">
+        <ul class="space-y-2 text-sm">
+          {groups.map(group => (
+            <li>
+              <a href={`#${group.heading.id}`} class="block font-medium text-skin-base/85 hover:text-skin-accent">
+                {group.heading.text}
+              </a>
+              {group.children.length > 0 && (
+                <details class="mt-1 ml-3 border-l border-skin-line pl-3">
+                  <summary class="cursor-pointer py-0.5 text-xs text-skin-base/55 hover:text-skin-accent">
+                    Show subsections ({group.children.length})
+                  </summary>
+                  <ul class="mt-1 space-y-1 text-xs">
+                    {group.children.map(child => (
+                      <li><a href={`#${child.id}`} class="text-skin-base/65 hover:text-skin-accent">{child.text}</a></li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </nav>
+)}
