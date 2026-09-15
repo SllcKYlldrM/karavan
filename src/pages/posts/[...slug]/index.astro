@@ -70,6 +70,13 @@ const calculatorLink = post.data.calculator ? calculatorLinks[post.data.calculat
 const tocGroups: { heading: { text: string; id: string }; children: { text: string; id: string }[] }[] = [];
 const tocHeadings: { text: string; id: string }[] = [];
 const headingCounts = new Map<string, number>();
+// Keep TOC anchors aligned with Astro's github-slugger heading IDs:
+// remove punctuation, preserve existing hyphens, and replace each space with a hyphen.
+const getHeadingId = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .replace(/ /g, "-");
 const markdownHeadings = ((post as any).body ?? "").match(/^#{2,3}\s+.+$/gm) ?? [];
 for (const markdownHeading of markdownHeadings) {
   const level = markdownHeading.match(/^#+/)?.[0].length ?? 0;
@@ -79,10 +86,7 @@ for (const markdownHeading of markdownHeadings) {
     .replace(/[*_`]/g, "")
     .trim();
   if (!text || level < 2 || level > 3) continue;
-  const baseId = slugifyStr(text)
-    .replace(/[^a-zA-Z0-9-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  const baseId = getHeadingId(text);
   const occurrence = headingCounts.get(baseId) ?? 0;
   headingCounts.set(baseId, occurrence + 1);
   const id = occurrence === 0 ? baseId : `${baseId}-${occurrence}`;
